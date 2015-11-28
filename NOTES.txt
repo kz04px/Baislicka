@@ -1,0 +1,2 @@
+Perft file available from:
+http://mediocrechess.blogspot.co.uk/2007/01/guide-perft-scores.html
