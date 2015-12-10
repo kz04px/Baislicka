@@ -1,1 +1,0 @@
-// http://wbec-ridderkerk.nl/html/UCIProtocol.html

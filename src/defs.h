@@ -3,57 +3,41 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <inttypes.h>
 
-enum{A8, B8, C8, D8, E8, F8, G8, H8,
-     A7, B7, C7, D7, E7, F7, G7, H7,
-     A6, B6, C6, D6, E6, F6, G6, H6,
-     A5, B5, C5, D5, E5, F5, G5, H5,
-     A4, B4, C4, D4, E4, F4, G4, H4,
-     A3, B3, C3, D3, E3, F3, G3, H3,
-     A2, B2, C2, D2, E2, F2, G2, H2,
-     A1, B1, C1, D1, E1, F1, G1, H1};
-enum {wP, wN, wB, wR, wQ, wK, bP, bN, bB, bR, bQ, bK, EMPTY};
-enum {wKSC, wQSC, bKSC, bQSC, NORMAL, DOUBLE_MOVE, CAPTURE, PROMOTE, EP};
-enum {WHITE, BLACK, BOTH};
-//enum {FALSE, TRUE};
-
-#define TRUE  1
-#define FALSE 0
-
+#define ENGINE_NAME "Baislicka 3.0"
+#define ENGINE_AUTHOR "Twipply"
 #define START_FEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
-#define TEST1_FEN "rnbqkbnr/ppppp1pp/8/8/5p2/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
-#define TEST2_FEN "k6N/8/8/4N3/8/1K1p4/8/N7 w - - 0 0"
+#define TEST1_FEN "k7/5n2/8/8/5R2/8/3b1P2/K7 w - - 0 0"
+#define TEST2_FEN "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1"
 #define TEST3_FEN "8/3K4/8/3k4/8/8/8/7N w - - 0 0"
 #define TEST4_FEN "8/1kp1p3/6N1/4B3/8/8/R3K2R/8 w - - 0 0"
-#define MAX_MOVES 256
-#define MAX_DEPTH 19
-
-#define TOGGLEBIT(x, n) (x = (x) ^ (1<<(n)))
-#define SETBIT(x, n) (x = (x) | ((U64)1<<(n)))
+#define U64 unsigned long long int
+#define SETBIT(x, n) ((x) = (x) | ((U64)1<<(n)))
 #define GETBIT(x, n) (((x)>>(n))&1)
-//#define UNSETBIT(x, n) (x = (x) | (1<<(n)))
+#define MAX_MOVES 256
+#define POS_TO_COL_CHAR(x) ('h'-(x%8))
+#define POS_TO_ROW_CHAR(x) ((x/8)+'1')
 
-#define ROW64(n) (7-n/8)
-#define COL64(n) (n%8)
-#define ONBOARD64(n) (n < A8 || n > H1 ? FALSE : TRUE)
-#define COLOUR(n) (n > wK ? BLACK : WHITE)
-#define OFFBOARD (-1)
-#define U64_COL_A 0x0101010101010101
-#define U64_COL_B 0x0202020202020202
-#define U64_COL_C 0x0404040404040404
-#define U64_COL_D 0x0808080808080808
-#define U64_COL_E 0x1010101010101010
-#define U64_COL_F 0x2020202020202020
-#define U64_COL_G 0x4040404040404040
-#define U64_COL_H 0x8080808080808080
-#define U64_ROW_8 0x00000000000000FF
-#define U64_ROW_7 0x000000000000FF00
-#define U64_ROW_6 0x0000000000FF0000
-#define U64_ROW_5 0x00000000FF000000
-#define U64_ROW_4 0x000000FF00000000
-#define U64_ROW_3 0x0000FF0000000000
-#define U64_ROW_2 0x00FF000000000000
-#define U64_ROW_1 0xFF00000000000000
+#define FALSE 0
+#define TRUE !FALSE
+
+#define U64_COL_H 0x0101010101010101
+#define U64_COL_G 0x0202020202020202
+#define U64_COL_F 0x0404040404040404
+#define U64_COL_E 0x0808080808080808
+#define U64_COL_D 0x1010101010101010
+#define U64_COL_C 0x2020202020202020
+#define U64_COL_B 0x4040404040404040
+#define U64_COL_A 0x8080808080808080
+#define U64_ROW_1 0x00000000000000FF
+#define U64_ROW_2 0x000000000000FF00
+#define U64_ROW_3 0x0000000000FF0000
+#define U64_ROW_4 0x00000000FF000000
+#define U64_ROW_5 0x000000FF00000000
+#define U64_ROW_6 0x0000FF0000000000
+#define U64_ROW_7 0x00FF000000000000
+#define U64_ROW_8 0xFF00000000000000
 
 #define U64_A1 (U64_COL_A & U64_ROW_1)
 #define U64_B1 (U64_COL_B & U64_ROW_1)
@@ -64,16 +48,17 @@ enum {WHITE, BLACK, BOTH};
 #define U64_G1 (U64_COL_G & U64_ROW_1)
 #define U64_H1 (U64_COL_H & U64_ROW_1)
 
-#define U64_G2 (U64_COL_G & U64_ROW_2)
-#define U64_H2 (U64_COL_H & U64_ROW_2)
-
-#define U64_F3 (U64_COL_F & U64_ROW_3)
-#define U64_H3 (U64_COL_H & U64_ROW_3)
-
-#define U64_E4 (U64_COL_E & U64_ROW_4)
-#define U64_F4 (U64_COL_F & U64_ROW_4)
+#define U64_A5 (U64_COL_A & U64_ROW_5)
+#define U64_B5 (U64_COL_B & U64_ROW_5)
+#define U64_C5 (U64_COL_C & U64_ROW_5)
+#define U64_D5 (U64_COL_D & U64_ROW_5)
+#define U64_E5 (U64_COL_E & U64_ROW_5)
+#define U64_F5 (U64_COL_F & U64_ROW_5)
+#define U64_G5 (U64_COL_G & U64_ROW_5)
+#define U64_H5 (U64_COL_H & U64_ROW_5)
 
 #define U64_A8 (U64_COL_A & U64_ROW_8)
+#define U64_B8 (U64_COL_B & U64_ROW_8)
 #define U64_C8 (U64_COL_C & U64_ROW_8)
 #define U64_D8 (U64_COL_D & U64_ROW_8)
 #define U64_E8 (U64_COL_E & U64_ROW_8)
@@ -81,8 +66,7 @@ enum {WHITE, BLACK, BOTH};
 #define U64_G8 (U64_COL_G & U64_ROW_8)
 #define U64_H8 (U64_COL_H & U64_ROW_8)
 
-//#define DEBUG
-//#define HASHTABLE
+#define DEBUG
 
 #ifndef DEBUG
   #define ASSERT(n)
@@ -96,11 +80,21 @@ enum {WHITE, BLACK, BOTH};
     fprintf(stdout, "In File %s\n", __FILE__); \
     fprintf(stdout, "At Line %d\n", __LINE__); \
     getchar(); \
-    exit(1); \
   }
 #endif
 
-typedef unsigned long long int U64;
+enum {WHITE, BLACK, BOTH};
+enum {wP, wN, wB, wR, wQ, wK, bP, bN, bB, bR, bQ, bK, EMPTY};
+enum {wKSC, wQSC, bKSC, bQSC, NORMAL, DOUBLE_MOVE, CAPTURE, PROMOTE, EP};
+
+enum {H8=56, G8, F8, E8, D8, C8, B8, A8};
+enum {H7=48, G7, F7, E7, D7, C7, B7, A7};
+enum {H6=40, G6, F6, E6, D6, C6, B6, A6};
+enum {H5=32, G5, F5, E5, D5, C5, B5, A5};
+enum {H4=24, G4, F4, E4, D4, C4, B4, A4};
+enum {H3=16, G3, F3, E3, D3, C3, B3, A3};
+enum {H2= 8, G2, F2, E2, D2, C2, B2, A2};
+enum {H1= 0, G1, F1, E1, D1, C1, B1, A1};
 
 typedef struct
 {
@@ -121,81 +115,38 @@ typedef struct
 
 typedef struct
 {
-	s_move history[512];
-	int turn;
-	U64 ep;
-	int castling[4];
-	
-	U64 pieces[12];
-	U64 all_pieces[3];
-	U64 attacking[12];
-	U64 all_attacking[2];
-	int num_pieces[12];
-	int locations[12][10];
+  int turn;
+  int castling[4];
+  U64 ep;
+  U64 pieces[12];
+  U64 pieces_colour[2];
+  U64 pieces_all;
 } s_board;
 
-typedef struct
-{
-	U64 total;
-	U64 normal;
-	U64 takes;
-	U64 checks;
-	U64 checkmates;
-	U64 eps;
-	U64 promotions;
-	U64 wKSCs;
-	U64 wQSCs;
-	U64 bKSCs;
-	U64 bQSCs;
-} s_moves_found;
-
-// attacking.c
-int in_check(s_board *board, int colour);
+// bitboards.c
+void generateOccupancyVariations(int isRook);
+void generateMoveDatabase(int isRook);
 int calculate_attacked(s_board *board, U64 sq, int attacking_colour);
-int white_attacking(s_board *board, U64 positions);
-void Update_attacking(s_board *board);
-
-// display.c
-void display_board(s_board *board);
-void display_bitboard(U64 Our_Bitboard);
-
-// board.c
-void Add_Piece(s_board *board, int type, int location);
-void Init_Board(s_board *board);
-int U64_to_Col(U64 pos);
-int U64_to_Row(U64 pos);
-
-// io.c
-char Int_to_Char(int n);
-void Print_Piecelist(s_board *board);
-int set_fen(s_board *board, const char *string);
-
-// evaluate.c
-int evaluate(s_board *board);
-
-// move.c
-int move_print(s_move *our_move);
-s_move add_move(s_board *board, U64 from, U64 to, int type, int piece);
-s_move add_promotion_move(s_board *board, U64 from, U64 to, int piece, int promo_piece);
-void make_move(s_board *board, s_move *move);
-void undo_move(s_board *board, s_move *move);
 
 // movegen.c
-int find_moves(s_board *board, s_move *moves);
+int find_moves(s_board* board, s_move* move_list, int colour);
 
-// search.c
-void Search(s_board *board, int depth);
-
-// attacking.c
-int calculate_attacked(s_board *board, U64 sq, int colour);
-void update_attacking(s_board *board);
-int white_attacking(s_board *board, U64 positions);
-int black_attacking(s_board *board, U64 positions);
+// fen.c
+int set_fen(s_board *board, const char *fen);
 
 // perft.c
-void perft_threaded_search(char *fen, int depth, int num_threads);
-s_moves_found perft_exact(s_board *board, int depth);
-void perft_suite(s_board *board, char *filename, int max_depth);
-int test_positions(s_board *board);
+void perft(s_board* board, int max_depth, const char* fen);
+void perft_split(s_board* board, int depth, const char* fen);
+
+// move.c
+s_move move_add(s_board *board, U64 from, U64 to, int type, int piece_type);
+void move_make(s_board *board, s_move *move);
+void move_undo(s_board *board, s_move *move);
+
+// display.c
+void print_move(s_move move);
+void print_move_list(s_move* move_list, int num_moves);
+void print_u64(U64 board);
+void display_board(s_board *board);
 
 #endif // DEFS_H_INCLUDED

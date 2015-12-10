@@ -1,45 +1,11 @@
 #include "defs.h"
-	
-int move_print(s_move *our_move)
-{
-	printf("%c%c%c%c ", U64_to_Col(our_move->from)+'a', U64_to_Row(our_move->from)+'1',
-	                    U64_to_Col(our_move->to)+'a', U64_to_Row(our_move->to)+'1');
-
-	switch(our_move->type)
-	{
-		case NORMAL:
-			printf("Move\n");
-			break;
-		case CAPTURE:
-			printf("Capture\n");
-			break;
-		case DOUBLE_MOVE:
-			printf("Double move\n");
-			break;
-		case wKSC:
-			printf("wKSC\n");
-			break;
-		case wQSC:
-			printf("wQSC\n");
-			break;
-		case bKSC:
-			printf("bKSC\n");
-			break;
-		case bQSC:
-			printf("bQSC\n");
-			break;
-		case PROMOTE:
-			printf("Promotion\n");
-			break;
-		case EP:
-			printf("En Passant\n");
-			break;
-	}
-	return 0;
-}
 
 s_move add_promotion_move(s_board *board, U64 from, U64 to, int piece_type, int promo_piece)
 {
+  ASSERT(board != NULL);
+  ASSERT(from);
+  ASSERT(to);
+  
 	int taken = EMPTY;
 	int n;
 	for(n = 0; n < 12; ++n)
@@ -57,8 +23,12 @@ s_move add_promotion_move(s_board *board, U64 from, U64 to, int piece_type, int 
 	return move;
 }
 
-s_move add_move(s_board *board, U64 from, U64 to, int type, int piece_type)
+s_move move_add(s_board *board, U64 from, U64 to, int type, int piece_type)
 {
+  ASSERT(board != NULL);
+  ASSERT(from);
+  ASSERT(to);
+  
 	int taken = EMPTY;
 	if(type == CAPTURE || type == PROMOTE)
 	{
@@ -89,8 +59,11 @@ s_move add_move(s_board *board, U64 from, U64 to, int type, int piece_type)
 	return move;
 }
 
-void make_move(s_board *board, s_move *move)
+void move_make(s_board *board, s_move *move)
 {
+  ASSERT(board != NULL);
+  ASSERT(move != NULL);
+  
 	// set old permissions
 	move->ep_old = board->ep;
 	move->wKSC_old = board->castling[wKSC];
@@ -144,11 +117,11 @@ void make_move(s_board *board, s_move *move)
 			// Add ep square
 			if(move->piece_type == wP)
 			{
-				board->ep = (move->to)<<8;
+				board->ep = (move->to)>>8;
 			}
 			else
 			{
-				board->ep = (move->to)>>8;
+				board->ep = (move->to)<<8;
 			}			
 			break;
 		case PROMOTE:
@@ -164,11 +137,11 @@ void make_move(s_board *board, s_move *move)
 			board->pieces[move->piece_type] ^= move->to;
 			if(move->piece_type == wP)
 			{
-				board->pieces[bP] ^= (move->to)<<8;
+				board->pieces[bP] ^= (move->to)>>8;
 			}
 			else
 			{
-				board->pieces[wP] ^= (move->to)>>8;
+				board->pieces[wP] ^= (move->to)<<8;
 			}
 			break;
 		case wKSC:
@@ -197,24 +170,22 @@ void make_move(s_board *board, s_move *move)
 			break;
 	}
 	
-	board->all_pieces[WHITE] = board->pieces[wP] |
-	                           board->pieces[wN] |
-	                           board->pieces[wB] |
-	                           board->pieces[wR] |
-	                           board->pieces[wQ] |
-	                           board->pieces[wK];
-	board->all_pieces[BLACK] = board->pieces[bP] |
-	                           board->pieces[bN] |
-	                           board->pieces[bB] |
-	                           board->pieces[bR] |
-	                           board->pieces[bQ] |
-	                           board->pieces[bK];
-	board->all_pieces[BOTH] = board->all_pieces[WHITE]|board->all_pieces[BLACK];
-
-	board->turn = 1-(board->turn);
+	board->pieces_colour[WHITE] = board->pieces[wP] |
+	                              board->pieces[wN] |
+	                              board->pieces[wB] |
+	                              board->pieces[wR] |
+	                              board->pieces[wQ] |
+	                              board->pieces[wK];
+	board->pieces_colour[BLACK] = board->pieces[bP] |
+	                              board->pieces[bN] |
+	                              board->pieces[bB] |
+	                              board->pieces[bR] |
+	                              board->pieces[bQ] |
+	                              board->pieces[bK];
+	board->pieces_all = board->pieces_colour[WHITE]|board->pieces_colour[BLACK];
 }
 
-void undo_move(s_board *board, s_move *move)
+void move_undo(s_board *board, s_move *move)
 {  
 	switch(move->type)
 	{
@@ -244,11 +215,11 @@ void undo_move(s_board *board, s_move *move)
 			board->pieces[move->piece_type] ^= move->to;
 			if(move->piece_type == wP)
 			{
-				board->pieces[bP] ^= (move->to)<<8;
+				board->pieces[bP] ^= (move->to)>>8;
 			}
 			else
 			{
-				board->pieces[wP] ^= (move->to)>>8;
+				board->pieces[wP] ^= (move->to)<<8;
 			}
 			break;
 		case wKSC:
@@ -284,17 +255,15 @@ void undo_move(s_board *board, s_move *move)
 	board->castling[bQSC] = move->bQSC_old;
 	
 	int x;
-	board->all_pieces[WHITE] = 0;
-	board->all_pieces[BLACK] = 0;
+	board->pieces_colour[WHITE] = 0;
+	board->pieces_colour[BLACK] = 0;
 	for(x = wP; x <= wK; ++x)
 	{
-		board->all_pieces[WHITE] |= board->pieces[x];
+		board->pieces_colour[WHITE] |= board->pieces[x];
 	}
 	for(x = bP; x <= bK; ++x)
 	{
-		board->all_pieces[BLACK] |= board->pieces[x];
+		board->pieces_colour[BLACK] |= board->pieces[x];
 	}
-	board->all_pieces[BOTH] = board->all_pieces[WHITE] | board->all_pieces[BLACK];
-	
-	board->turn = 1-(board->turn);
+	board->pieces_all = board->pieces_colour[WHITE] | board->pieces_colour[BLACK];
 }
