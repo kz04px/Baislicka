@@ -221,5 +221,5 @@ int set_fen(s_board *board, const char *fen)
   
 	//update_attacking(board);
 	
-	return 0;
+	return TRUE;
 }

@@ -127,6 +127,8 @@ typedef struct
 void generateOccupancyVariations(int isRook);
 void generateMoveDatabase(int isRook);
 int calculate_attacked(s_board *board, U64 sq, int attacking_colour);
+int find_moves_white(s_board* board, s_move* move_list);
+int find_moves_black(s_board* board, s_move* move_list);
 
 // movegen.c
 int find_moves(s_board* board, s_move* move_list, int colour);
@@ -137,9 +139,11 @@ int set_fen(s_board *board, const char *fen);
 // perft.c
 void perft(s_board* board, int max_depth, const char* fen);
 void perft_split(s_board* board, int depth, const char* fen);
+void perft_suite(s_board* board, int max_depth, const char* filepath);
 
 // move.c
 s_move move_add(s_board *board, U64 from, U64 to, int type, int piece_type);
+s_move add_promotion_move(s_board *board, U64 from, U64 to, int piece_type, int promo_piece);
 void move_make(s_board *board, s_move *move);
 void move_undo(s_board *board, s_move *move);
 

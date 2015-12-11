@@ -1,6 +1,5 @@
 To do:
-- Test extracting the pawn movegen like in baislicka 2.0
-- Fix this:     if(board->pieces[bP]>>p & 1)
+- Test calculating all the pawn shifts at once
 - Add promotions
 -
 

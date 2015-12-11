@@ -148,5 +148,5 @@ void display_board(s_board *board)
 		}
 	}
   
-  printf("Ep: %"PRIu64"\n", board->ep);
+  printf("Ep: %I64u\n", board->ep);
 }

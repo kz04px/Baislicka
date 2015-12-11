@@ -1,6 +1,6 @@
 #include "defs.h"
 
-#include <stdio.h>
+#include <string.h>
 #include <time.h>
 
 U64 moves_total;
@@ -183,7 +183,7 @@ void perft_split(s_board* board, int depth, const char* fen)
     board->turn = 1-(board->turn);
     
     print_move(move_list[m]);
-    printf("%"PRIu64"\n\n", moves_total);
+    printf("%I64u\n\n", moves_total);
     
     move_undo(board, &move_list[m]);
     
@@ -195,6 +195,86 @@ void perft_split(s_board* board, int depth, const char* fen)
   printf("Board:\n");
   display_board(board);
   printf("\n");
+}
+
+void perft_suite(s_board* board, int max_depth, const char* filepath)
+{
+  ASSERT(board != NULL);
+  ASSERT(max_depth > 0);
+  ASSERT(filepath != NULL);
+  
+  FILE* file = fopen(filepath, "r");
+  if(!file)
+  {
+    printf("Failed to find %s\n", filepath);
+    printf("Aborting test suite\n");
+    return;
+  }
+  
+  printf("Starting test suite\n");
+  printf("Location: %s\n", filepath);
+  printf("Depth: %i\n", max_depth);
+  printf("\n");
+  
+  int num_tests = 0;
+  int num_passed = 0;
+  int num_failed = 0;
+  
+  char line[1024];
+  while(fgets(line, sizeof(line), file))
+  {
+    char* pch = NULL;
+    pch = strtok(line, ";");
+    
+    if(set_fen(board, line) == FALSE)
+    {
+      printf("Invalid fen (%s)\n", line);
+      printf("Skipping test\n");
+      continue;
+    }
+    num_tests++;
+    
+    printf("Test %i: ", num_tests);
+    
+    int pass = TRUE;
+    
+    while((pch = strtok(NULL, ";\n")))
+    {
+      int depth = -1;
+      U64 result = -1;
+      sscanf(pch+1, "%i %I64u", &depth, &result);
+      
+      if(depth > max_depth)
+      {
+        break;
+      }
+      
+      moves_total = 0;  
+      perft_search(board, depth);
+      
+      if(moves_total != result)
+      {
+        pass = FALSE;
+      }
+    }
+    
+    if(pass == TRUE)
+    {
+      printf("passed\n");
+      num_passed++;
+    }
+    else
+    {
+      printf("failed\n");
+      num_failed++;
+    }
+  }
+  
+  printf("\n");
+  printf("Results:\n");
+  printf("Tests:  %i\n", num_tests);
+  printf("Passed: %i (%.1f%%)\n", num_passed, 100*(float)num_passed/num_tests);
+  printf("Failed: %i (%.1f%%)\n", num_failed, 100*(float)num_failed/num_tests);
 }
 
 void perft(s_board* board, int max_depth, const char* fen)
@@ -236,7 +316,7 @@ void perft(s_board* board, int max_depth, const char* fen)
          if(time_taken < 10.0)  {printf("  ");}
     else if(time_taken < 100.0) {printf(" ");}
     
-    printf("%"PRIu64, moves_total);
+    printf("%I64u", moves_total);
          if(moves_total < 10)           {printf("           ");}
     else if(moves_total < 100)          {printf("          ");}
     else if(moves_total < 1000)         {printf("         ");}
@@ -249,7 +329,7 @@ void perft(s_board* board, int max_depth, const char* fen)
     else if(moves_total < 10000000000)  {printf("  ");}
     else if(moves_total < 100000000000) {printf(" ");}
     
-    printf("%"PRIu64, moves_capture);
+    printf("%I64u", moves_capture);
          if(moves_capture < 10)         {printf("         ");}
     else if(moves_capture < 100)        {printf("        ");}
     else if(moves_capture < 1000)       {printf("       ");}
@@ -260,7 +340,7 @@ void perft(s_board* board, int max_depth, const char* fen)
     else if(moves_capture < 100000000)  {printf("  ");}
     else if(moves_capture < 1000000000) {printf(" ");}
     
-    printf("%"PRIu64, moves_ep);
+    printf("%I64u", moves_ep);
          if(moves_ep < 10)        {printf("      ");}
     else if(moves_ep < 100)       {printf("     ");}
     else if(moves_ep < 1000)      {printf("    ");}
@@ -268,7 +348,7 @@ void perft(s_board* board, int max_depth, const char* fen)
     else if(moves_ep < 100000)    {printf("  ");}
     else if(moves_ep < 1000000)   {printf(" ");}
     
-    printf("%"PRIu64, moves_wKSC + moves_wQSC + moves_bKSC + moves_bQSC);
+    printf("%I64u", moves_wKSC + moves_wQSC + moves_bKSC + moves_bQSC);
          if(moves_wKSC + moves_wQSC + moves_bKSC + moves_bQSC < 10)        {printf("       ");}
     else if(moves_wKSC + moves_wQSC + moves_bKSC + moves_bQSC < 100)       {printf("      ");}
     else if(moves_wKSC + moves_wQSC + moves_bKSC + moves_bQSC < 1000)      {printf("     ");}
@@ -278,7 +358,7 @@ void perft(s_board* board, int max_depth, const char* fen)
     else if(moves_wKSC + moves_wQSC + moves_bKSC + moves_bQSC < 10000000)  {printf(" ");}
     //printf("(%i %i %i %i)", moves_wKSC, moves_wQSC, moves_bKSC, moves_bQSC);
     
-    printf("%"PRIu64, moves_check);
+    printf("%I64u", moves_check);
          if(moves_check < 10)        {printf("      ");}
     else if(moves_check < 100)       {printf("     ");}
     else if(moves_check < 1000)      {printf("    ");}

@@ -30,7 +30,7 @@ s_move move_add(s_board *board, U64 from, U64 to, int type, int piece_type)
   ASSERT(to);
   
 	int taken = EMPTY;
-	if(type == CAPTURE || type == PROMOTE)
+	if(type == CAPTURE)
 	{
 		int n;
 		for(n = 0; n < 12; ++n)

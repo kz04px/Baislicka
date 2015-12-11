@@ -30,11 +30,11 @@ const int magicNumberShiftsBishop[] = {
   59,59,59,59,59,59,59,59,58,59,59,59,59,59,59,58
 };
 
-U64 magicMovesRook[64][8192] = {{0}};
-U64 magicMovesBishop[64][8192] = {{0}};
-U64 occupancyVariation[64][8192] = {{0}}; // FIXME: 512
-U64 rookOccupancyAttackSet[64][8192] = {{0}}; // FIXME: 512
-U64 bishopOccupancyAttackSet[64][8192] = {{0}}; // FIXME: 512
+U64 magicMovesRook[64][4096] = {{0}};
+U64 magicMovesBishop[64][4096] = {{0}};
+U64 occupancyVariation[64][4096] = {{0}}; // FIXME: 512
+U64 rookOccupancyAttackSet[64][4096] = {{0}}; // FIXME: 512
+U64 bishopOccupancyAttackSet[64][4096] = {{0}}; // FIXME: 512
 
 void generateOccupancyVariations(int isRook)
 {
@@ -424,13 +424,102 @@ int find_moves_white(s_board* board, s_move* move_list)
     from = (U64)1<<p;
     
     // Pawns
-    if(board->pieces[wP]>>p & 1)
+    if(board->pieces[wP]&from)
     {
+      // Check if we're about to promote)
+      if(from&U64_ROW_7)
+      {
+        // Up 1
+        if((from<<8)&(~board->pieces_all))
+        {
+          move_list[num_moves] = add_promotion_move(board, from, from<<8, wP, wQ);
+          num_moves++;
+          move_list[num_moves] = add_promotion_move(board, from, from<<8, wP, wN);
+          num_moves++;
+          move_list[num_moves] = add_promotion_move(board, from, from<<8, wP, wR);
+          num_moves++;
+          move_list[num_moves] = add_promotion_move(board, from, from<<8, wP, wB);
+          num_moves++;
+        }
+        
+        // Up & Right
+        if(board->pieces_colour[BLACK] & (from<<7) & (~U64_COL_A))
+        {
+          move_list[num_moves] = add_promotion_move(board, from, from<<7, wP, wQ);
+          num_moves++;
+          move_list[num_moves] = add_promotion_move(board, from, from<<7, wP, wN);
+          num_moves++;
+          move_list[num_moves] = add_promotion_move(board, from, from<<7, wP, wR);
+          num_moves++;
+          move_list[num_moves] = add_promotion_move(board, from, from<<7, wP, wB);
+          num_moves++;
+        }
+        
+        // Up & Left
+        if(board->pieces_colour[BLACK] & (from<<9) & (~U64_COL_H))
+        {
+          move_list[num_moves] = add_promotion_move(board, from, from<<9, wP, wQ);
+          num_moves++;
+          move_list[num_moves] = add_promotion_move(board, from, from<<9, wP, wN);
+          num_moves++;
+          move_list[num_moves] = add_promotion_move(board, from, from<<9, wP, wR);
+          num_moves++;
+          move_list[num_moves] = add_promotion_move(board, from, from<<9, wP, wB);
+          num_moves++;
+        }
+      }
+      else
+      {
+        // Up 1
+        if(~board->pieces_all & (from<<8))
+        {
+          move_list[num_moves] = move_add(board, from, from<<8, NORMAL, wP);
+          num_moves++;
+          
+          // Up 2
+          if((from&U64_ROW_2) && ~board->pieces_all & (from<<16))
+          {
+            move_list[num_moves] = move_add(board, from, from<<16, DOUBLE_MOVE, wP);
+            num_moves++;
+          }
+        }
+        
+        // Up & Right
+        if(board->pieces_colour[BLACK] & ((U64)1<<(p+7)) & (~U64_COL_A))
+        {
+          move_list[num_moves] = move_add(board, from, from<<7, CAPTURE, wP);
+          num_moves++;
+        }
+        
+        // Up & Left
+        if(board->pieces_colour[BLACK] & ((U64)1<<(p+9)) & (~U64_COL_H))
+        {
+          move_list[num_moves] = move_add(board, from, from<<9, CAPTURE, wP);
+          num_moves++;
+        }
+      }
+      
+      /*
       // Up 1
       if(~board->pieces_all & (from<<8))
       {
-        move_list[num_moves] = move_add(board, from, from<<8, NORMAL, wP);
-        num_moves++;
+        // Check if promotion
+        if((from<<8)&U64_ROW_8)
+        {
+          move_list[num_moves] = add_promotion_move(board, from, from<<8, wP, wQ);
+          num_moves++;
+          move_list[num_moves] = add_promotion_move(board, from, from<<8, wP, wN);
+          num_moves++;
+          move_list[num_moves] = add_promotion_move(board, from, from<<8, wP, wR);
+          num_moves++;
+          move_list[num_moves] = add_promotion_move(board, from, from<<8, wP, wB);
+          num_moves++;
+        }
+        else
+        {
+          move_list[num_moves] = move_add(board, from, from<<8, NORMAL, wP);
+          num_moves++;
+        }
         
         // Up 2
         if((from&U64_ROW_2) && ~board->pieces_all & (from<<16))
@@ -453,9 +542,10 @@ int find_moves_white(s_board* board, s_move* move_list)
         move_list[num_moves] = move_add(board, from, from<<9, CAPTURE, wP);
         num_moves++;
       }
+      */
     }
     // Rooks
-    else if(board->pieces[wR]>>p & 1)
+    else if(board->pieces[wR]&from)
     {
       blockers = board->pieces_all & occupancyMaskRook[p];
       index = (blockers * magicNumberRook[p]) >> magicNumberShiftsRook[p];
@@ -477,7 +567,7 @@ int find_moves_white(s_board* board, s_move* move_list)
       }
     }
     // Bishops
-    else if(board->pieces[wB]>>p & 1)
+    else if(board->pieces[wB]&from)
     {
       blockers = board->pieces_all & occupancyMaskBishop[p];
       index = (blockers * magicNumberBishop[p]) >> magicNumberShiftsBishop[p];
@@ -499,7 +589,7 @@ int find_moves_white(s_board* board, s_move* move_list)
       }
     }
     // Knights
-    else if(board->pieces[wN]>>p & 1)
+    else if(board->pieces[wN]&from)
     {
       // Up 2 left 1
       to = from<<17 & (~board->pieces_colour[WHITE]) & (~U64_COL_H);
@@ -623,7 +713,7 @@ int find_moves_white(s_board* board, s_move* move_list)
       
     }
     // Queens
-    else if(board->pieces[wQ]>>p & 1)
+    else if(board->pieces[wQ]&from)
     {
       // Horizontal
       blockers = board->pieces_all & occupancyMaskRook[p];
@@ -666,7 +756,7 @@ int find_moves_white(s_board* board, s_move* move_list)
       }
     }
     // King
-    else if(board->pieces[wK]>>p & 1)
+    else if(board->pieces[wK]&from)
     {
       // up 1
       to = (from<<8) & ~board->pieces_colour[WHITE];
@@ -783,6 +873,7 @@ int find_moves_white(s_board* board, s_move* move_list)
     }
   }
   
+  ASSERT(num_moves <= MAX_MOVES);
   return num_moves;
 }
 
@@ -842,7 +933,7 @@ int find_moves_black(s_board* board, s_move* move_list)
     from = (U64)1<<p;
     
     // Pawns
-    if(board->pieces[bP]>>p & 1)
+    if(board->pieces[bP]&from)
     {
       // Down 1
       if(~board->pieces_all & (from>>8))
@@ -873,7 +964,7 @@ int find_moves_black(s_board* board, s_move* move_list)
       }
     }
     // Rooks
-    else if(board->pieces[bR]>>p & 1)
+    else if(board->pieces[bR]&from)
     {
       blockers = board->pieces_all & occupancyMaskRook[p];
       index = (blockers * magicNumberRook[p]) >> magicNumberShiftsRook[p];
@@ -895,7 +986,7 @@ int find_moves_black(s_board* board, s_move* move_list)
       }
     }
     // Bishops
-    else if(board->pieces[bB]>>p & 1)
+    else if(board->pieces[bB]&from)
     {
       blockers = board->pieces_all & occupancyMaskBishop[p];
       index = (blockers * magicNumberBishop[p]) >> magicNumberShiftsBishop[p];
@@ -917,7 +1008,7 @@ int find_moves_black(s_board* board, s_move* move_list)
       }
     }
     // Knights
-    else if(board->pieces[bN]>>p & 1)
+    else if(board->pieces[bN]&from)
     {
       // Up 2 left 1
       to = from<<17 & (~board->pieces_colour[BLACK]) & (~U64_COL_H);
@@ -1041,7 +1132,7 @@ int find_moves_black(s_board* board, s_move* move_list)
       
     }
     // Queens
-    else if(board->pieces[bQ]>>p & 1)
+    else if(board->pieces[bQ]&from)
     {
       // Horizontal
       blockers = board->pieces_all & occupancyMaskRook[p];
@@ -1084,7 +1175,7 @@ int find_moves_black(s_board* board, s_move* move_list)
       }
     }
     // King
-    else if(board->pieces[bK]>>p & 1)
+    else if(board->pieces[bK]&from)
     {
       // up 1
       to = (from<<8) & ~board->pieces_colour[BLACK];
@@ -1201,27 +1292,6 @@ int find_moves_black(s_board* board, s_move* move_list)
     }
   }
   
-  return num_moves;
-}
-
-int find_moves(s_board* board, s_move* move_list, int colour)
-{
-  ASSERT(board != NULL);
-  ASSERT(move_list != NULL);
-  ASSERT(colour == WHITE || colour == BLACK);
-  
-  int num_moves = 0;
-  
-  if(colour == WHITE)
-  {
-    //printf("Finding white moves\n");
-    num_moves += find_moves_white(board, move_list);
-  }
-  else
-  {
-    //printf("Finding black moves\n");
-    num_moves += find_moves_black(board, move_list);
-  }
-  
+  ASSERT(num_moves <= MAX_MOVES);
   return num_moves;
 }
