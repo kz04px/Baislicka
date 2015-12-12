@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <inttypes.h>
 
-#define ENGINE_NAME "Baislicka 3.0"
+#define ENGINE_NAME "Baislicka 2.0"
 #define ENGINE_AUTHOR "Twipply"
 #define START_FEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 #define TEST1_FEN "k7/5n2/8/8/5R2/8/3b1P2/K7 w - - 0 0"
@@ -137,9 +137,9 @@ int find_moves(s_board* board, s_move* move_list, int colour);
 int set_fen(s_board *board, const char *fen);
 
 // perft.c
-void perft(s_board* board, int max_depth, const char* fen);
-void perft_split(s_board* board, int depth, const char* fen);
-void perft_suite(s_board* board, int max_depth, const char* filepath);
+void perft(s_board* board, int max_depth, char* fen);
+int perft_split(s_board* board, int depth, char* fen);
+void perft_suite(s_board* board, int max_depth, char* filepath);
 
 // move.c
 s_move move_add(s_board *board, U64 from, U64 to, int type, int piece_type);

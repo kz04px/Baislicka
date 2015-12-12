@@ -2,6 +2,9 @@
 
 int set_fen(s_board *board, const char *fen)
 {
+  ASSERT(board != NULL);
+  ASSERT(fen != NULL);
+  
 	board->pieces[wP] = 0;
 	board->pieces[wN] = 0;
 	board->pieces[wB] = 0;
@@ -54,7 +57,7 @@ int set_fen(s_board *board, const char *fen)
 			case '7':
 			case '8':
 			{
-				x -= fen[n]-48 - 1; // FIXME: fen[n] = '0';
+				x -= fen[n] - '1'; // FIXME: fen[n] = '0';
 				break;
 			}
 			case 'p':
@@ -165,7 +168,7 @@ int set_fen(s_board *board, const char *fen)
 	}
 	n += 2;
 	
-	while(fen[n] != ' ')
+	while(fen[n] != ' ' && fen[n] != '\0' && fen[n] != '\n')
 	{
 		switch(fen[n])
 		{
@@ -221,5 +224,5 @@ int set_fen(s_board *board, const char *fen)
   
 	//update_attacking(board);
 	
-	return TRUE;
+	return 0;
 }

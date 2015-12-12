@@ -13,22 +13,11 @@ U64 moves_wQSC;
 U64 moves_bKSC;
 U64 moves_bQSC;
 
-s_move history[10];
-
 void perft_search(s_board* board, int d)
 {
   ASSERT(board != NULL);
   ASSERT(d > 0);
   ASSERT(board->turn == WHITE || board->turn == BLACK);
-  
-  /*
-  if(board->pieces[bP] == U64_ROW_5)
-  {
-    printf("Depth: %i\n", d);
-    print_move_list(history, 10);
-    getchar();
-  }
-  */
   
   s_move move_list[MAX_MOVES];
   int num_moves = find_moves(board, move_list, board->turn);
@@ -54,25 +43,6 @@ void perft_search(s_board* board, int d)
         continue;
       }
     }
-    
-    history[d] = move_list[m];
-    
-    /*
-    printf("Lala:\n");
-    display_board(board);
-    printf("\n");
-    getchar();
-    */
-    
-    /*
-    if(board->pieces[wQ]&U64_H5)
-    {
-      display_board(board);
-      printf("White in check: %i\n", calculate_attacked(board, board->pieces[bK], WHITE) == TRUE);
-      printf("Black in check: %i\n", calculate_attacked(board, board->pieces[wK], BLACK) == TRUE);
-      getchar();
-    }
-    */
   
     if(d == 1)
     {
@@ -126,19 +96,23 @@ void perft_search(s_board* board, int d)
   return;
 }
 
-void perft_split(s_board* board, int depth, const char* fen)
+int perft_split(s_board* board, int depth, char* fen)
 {
   ASSERT(board != NULL);
   ASSERT(depth > 0);
   ASSERT(fen != NULL);
   
   int combined_total = 0;
-  set_fen(board, fen);
+  int r = set_fen(board, fen);
+  if(r != 0)
+  {
+    printf("Invalid fen (%s)\n", fen);
+    printf("Error code: %i\n", r);
+    return r;
+  }
   
   printf("Board:\n");
   display_board(board);
-  printf("\n");
-  print_u64(board->ep);
   
   s_move move_list[MAX_MOVES];
   int num_moves = find_moves(board, move_list, board->turn);
@@ -178,11 +152,15 @@ void perft_split(s_board* board, int depth, const char* fen)
     moves_bKSC = 0;
     moves_bQSC = 0;
     
-    board->turn = 1-(board->turn);
-    perft_search(board, depth-1);
-    board->turn = 1-(board->turn);
+    if(depth > 1)
+    {
+      board->turn = 1-(board->turn);
+      perft_search(board, depth-1);
+      board->turn = 1-(board->turn);
+    }
     
     print_move(move_list[m]);
+    
     printf("%I64u\n\n", moves_total);
     
     move_undo(board, &move_list[m]);
@@ -191,13 +169,10 @@ void perft_split(s_board* board, int depth, const char* fen)
   }
   
   printf("Total: %i\n", combined_total);
-  
-  printf("Board:\n");
-  display_board(board);
-  printf("\n");
+  return 0;
 }
 
-void perft_suite(s_board* board, int max_depth, const char* filepath)
+void perft_suite(s_board* board, int max_depth, char* filepath)
 {
   ASSERT(board != NULL);
   ASSERT(max_depth > 0);
@@ -211,24 +186,27 @@ void perft_suite(s_board* board, int max_depth, const char* filepath)
     return;
   }
   
+	time_t start;
+	double time_taken;
+    
   printf("Starting test suite\n");
-  printf("Location: %s\n", filepath);
-  printf("Depth: %i\n", max_depth);
   printf("\n");
   
   int num_tests = 0;
   int num_passed = 0;
   int num_failed = 0;
   
+  start = clock();
   char line[1024];
   while(fgets(line, sizeof(line), file))
   {
-    char* pch = NULL;
-    pch = strtok(line, ";");
+    char* pch = strtok(line, ";");
     
-    if(set_fen(board, line) == FALSE)
+    int r = set_fen(board, line);
+    if(r != 0)
     {
       printf("Invalid fen (%s)\n", line);
+      printf("Error code: %i\n", r);
       printf("Skipping test\n");
       continue;
     }
@@ -240,8 +218,8 @@ void perft_suite(s_board* board, int max_depth, const char* filepath)
     
     while((pch = strtok(NULL, ";\n")))
     {
-      int depth = -1;
-      U64 result = -1;
+      int depth = 0;
+      U64 result = 0;
       sscanf(pch+1, "%i %I64u", &depth, &result);
       
       if(depth > max_depth)
@@ -254,6 +232,13 @@ void perft_suite(s_board* board, int max_depth, const char* filepath)
       
       if(moves_total != result)
       {
+        if(pass == TRUE)
+        {
+          printf("failed\n");
+        }
+        
+        printf(" %i: %I64u %I64u\n", depth, moves_total, result);
+        
         pass = FALSE;
       }
     }
@@ -265,19 +250,23 @@ void perft_suite(s_board* board, int max_depth, const char* filepath)
     }
     else
     {
-      printf("failed\n");
+      //printf("failed\n");
       num_failed++;
     }
   }
+  time_taken = ((double)clock()-start)/CLOCKS_PER_SEC;
   
   printf("\n");
   printf("Results:\n");
+  printf("Location: %s\n", filepath);
+  printf("Depth: %i\n", max_depth);
+  printf("Time: %.3fs\n", time_taken);
   printf("Tests:  %i\n", num_tests);
   printf("Passed: %i (%.1f%%)\n", num_passed, 100*(float)num_passed/num_tests);
   printf("Failed: %i (%.1f%%)\n", num_failed, 100*(float)num_failed/num_tests);
 }
 
-void perft(s_board* board, int max_depth, const char* fen)
+void perft(s_board* board, int max_depth, char* fen)
 {
   ASSERT(board != NULL);
   ASSERT(max_depth > 0);
@@ -286,7 +275,7 @@ void perft(s_board* board, int max_depth, const char* fen)
 	time_t start;
 	double time_taken;
   
-  printf("D   Time     Moves       Captures  EP     Castles Checks\n");
+  printf("D   Time      Moves       Captures  EP     Castles Checks\n");
   int d;
   for(d = 1; d <= max_depth; ++d)
   {
@@ -301,7 +290,13 @@ void perft(s_board* board, int max_depth, const char* fen)
     moves_bKSC = 0;
     moves_bQSC = 0;
     
-    set_fen(board, fen);
+    int r = set_fen(board, fen);
+    if(r != 0)
+    {
+      printf("Invalid fen (%s)\n", fen);
+      printf("Error code: %i\n", r);
+      break;
+    }
     
     // Test position
     start = clock();
@@ -312,7 +307,7 @@ void perft(s_board* board, int max_depth, const char* fen)
     if(d < 10)  {printf(" ");}
     
     // Time taken
-    printf("%.3f  ", time_taken);
+    printf("%.3fs  ", time_taken);
          if(time_taken < 10.0)  {printf("  ");}
     else if(time_taken < 100.0) {printf(" ");}
     

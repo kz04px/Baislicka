@@ -14,7 +14,7 @@ void print_move(s_move move)
     if(move.to>>p & 1) {break;}
   }
   printf("%c%c ", POS_TO_COL_CHAR(p), POS_TO_ROW_CHAR(p));
-  
+      
   // Type
   switch(move.type)
   {
@@ -29,6 +29,9 @@ void print_move(s_move move)
       break;
     case EP:
       printf("ep");
+      break;
+    case PROMOTE:
+      printf("promote");
       break;
     case wKSC:
       printf("wKSC");
@@ -147,6 +150,16 @@ void display_board(s_board *board)
 			printf("\n");
 		}
 	}
+  
+  if(board->turn == WHITE) {printf("Turn: w\n");}
+  else {printf("Turn: b\n");}
+  
+  printf("Castling: ");
+  if(board->castling[wKSC]) {printf("K");}
+  if(board->castling[wQSC]) {printf("Q");}
+  if(board->castling[bKSC]) {printf("k");}
+  if(board->castling[bQSC]) {printf("q");}
+  printf("\n");
   
   printf("Ep: %I64u\n", board->ep);
 }

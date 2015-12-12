@@ -498,51 +498,6 @@ int find_moves_white(s_board* board, s_move* move_list)
           num_moves++;
         }
       }
-      
-      /*
-      // Up 1
-      if(~board->pieces_all & (from<<8))
-      {
-        // Check if promotion
-        if((from<<8)&U64_ROW_8)
-        {
-          move_list[num_moves] = add_promotion_move(board, from, from<<8, wP, wQ);
-          num_moves++;
-          move_list[num_moves] = add_promotion_move(board, from, from<<8, wP, wN);
-          num_moves++;
-          move_list[num_moves] = add_promotion_move(board, from, from<<8, wP, wR);
-          num_moves++;
-          move_list[num_moves] = add_promotion_move(board, from, from<<8, wP, wB);
-          num_moves++;
-        }
-        else
-        {
-          move_list[num_moves] = move_add(board, from, from<<8, NORMAL, wP);
-          num_moves++;
-        }
-        
-        // Up 2
-        if((from&U64_ROW_2) && ~board->pieces_all & (from<<16))
-        {
-          move_list[num_moves] = move_add(board, from, from<<16, DOUBLE_MOVE, wP);
-          num_moves++;
-        }
-      }
-      
-      // Up & Right
-      if(board->pieces_colour[BLACK] & ((U64)1<<(p+7)) & (~U64_COL_A))
-      {
-        move_list[num_moves] = move_add(board, from, from<<7, CAPTURE, wP);
-        num_moves++;
-      }
-      
-      // Up & Left
-      if(board->pieces_colour[BLACK] & ((U64)1<<(p+9)) & (~U64_COL_H))
-      {
-        move_list[num_moves] = move_add(board, from, from<<9, CAPTURE, wP);
-        num_moves++;
-      }
-      */
     }
     // Rooks
     else if(board->pieces[wR]&from)
@@ -762,7 +717,7 @@ int find_moves_white(s_board* board, s_move* move_list)
       to = (from<<8) & ~board->pieces_colour[WHITE];
       if(to)
       {
-        if(board->pieces_colour[BLACK]&current)
+        if(board->pieces_colour[BLACK]&to)
         {
           move_list[num_moves] = move_add(board, from, to, CAPTURE, wK);
         }
@@ -776,7 +731,7 @@ int find_moves_white(s_board* board, s_move* move_list)
       to = (from<<7) & ~board->pieces_colour[WHITE] & ~(U64_COL_A);
       if(to)
       {
-        if(board->pieces_colour[BLACK]&current)
+        if(board->pieces_colour[BLACK]&to)
         {
           move_list[num_moves] = move_add(board, from, to, CAPTURE, wK);
         }
@@ -790,7 +745,7 @@ int find_moves_white(s_board* board, s_move* move_list)
       to = (from<<9) & ~board->pieces_colour[WHITE] & ~(U64_COL_H);
       if(to)
       {
-        if(board->pieces_colour[BLACK]&current)
+        if(board->pieces_colour[BLACK]&to)
         {
           move_list[num_moves] = move_add(board, from, to, CAPTURE, wK);
         }
@@ -804,7 +759,7 @@ int find_moves_white(s_board* board, s_move* move_list)
       to = (from>>1) & ~board->pieces_colour[WHITE] & ~(U64_COL_A);
       if(to)
       {
-        if(board->pieces_colour[BLACK]&current)
+        if(board->pieces_colour[BLACK]&to)
         {
           move_list[num_moves] = move_add(board, from, to, CAPTURE, wK);
         }
@@ -818,7 +773,7 @@ int find_moves_white(s_board* board, s_move* move_list)
       to = (from<<1) & ~board->pieces_colour[WHITE] & ~(U64_COL_H);
       if(to)
       {
-        if(board->pieces_colour[BLACK]&current)
+        if(board->pieces_colour[BLACK]&to)
         {
           move_list[num_moves] = move_add(board, from, to, CAPTURE, wK);
         }
@@ -832,7 +787,7 @@ int find_moves_white(s_board* board, s_move* move_list)
       to = (from>>8) & ~board->pieces_colour[WHITE];
       if(to)
       {
-        if(board->pieces_colour[BLACK]&current)
+        if(board->pieces_colour[BLACK]&to)
         {
           move_list[num_moves] = move_add(board, from, to, CAPTURE, wK);
         }
@@ -846,7 +801,7 @@ int find_moves_white(s_board* board, s_move* move_list)
       to = (from>>9) & ~board->pieces_colour[WHITE] & ~(U64_COL_A);
       if(to)
       {
-        if(board->pieces_colour[BLACK]&current)
+        if(board->pieces_colour[BLACK]&to)
         {
           move_list[num_moves] = move_add(board, from, to, CAPTURE, wK);
         }
@@ -860,7 +815,7 @@ int find_moves_white(s_board* board, s_move* move_list)
       to = (from>>7) & ~board->pieces_colour[WHITE] & ~(U64_COL_H);
       if(to)
       {
-        if(board->pieces_colour[BLACK]&current)
+        if(board->pieces_colour[BLACK]&to)
         {
           move_list[num_moves] = move_add(board, from, to, CAPTURE, wK);
         }
@@ -935,32 +890,77 @@ int find_moves_black(s_board* board, s_move* move_list)
     // Pawns
     if(board->pieces[bP]&from)
     {
-      // Down 1
-      if(~board->pieces_all & (from>>8))
+      // Check if we're about to promote)
+      if(from&U64_ROW_2)
       {
-        move_list[num_moves] = move_add(board, from, from>>8, NORMAL, bP);
-        num_moves++;
-        
-        // Down 2
-        if((from&U64_ROW_7) && (~board->pieces_all & (from>>16)))
+        // Down 1
+        if((from>>8) & (~board->pieces_all))
         {
-          move_list[num_moves] = move_add(board, from, from>>16, DOUBLE_MOVE, bP);
+          move_list[num_moves] = add_promotion_move(board, from, from>>8, bP, bQ);
+          num_moves++;
+          move_list[num_moves] = add_promotion_move(board, from, from>>8, bP, bN);
+          num_moves++;
+          move_list[num_moves] = add_promotion_move(board, from, from>>8, bP, bR);
+          num_moves++;
+          move_list[num_moves] = add_promotion_move(board, from, from>>8, bP, bB);
+          num_moves++;
+        }
+        
+        // Down & Right
+        if(board->pieces_colour[WHITE] & (from>>9) & (~U64_COL_A))
+        {
+          move_list[num_moves] = add_promotion_move(board, from, from>>9, bP, bQ);
+          num_moves++;
+          move_list[num_moves] = add_promotion_move(board, from, from>>9, bP, bN);
+          num_moves++;
+          move_list[num_moves] = add_promotion_move(board, from, from>>9, bP, bR);
+          num_moves++;
+          move_list[num_moves] = add_promotion_move(board, from, from>>9, bP, bB);
+          num_moves++;
+        }
+        
+        // Down & Left
+        if(board->pieces_colour[WHITE] & (from>>7) & (~U64_COL_H))
+        {
+          move_list[num_moves] = add_promotion_move(board, from, from>>7, bP, bQ);
+          num_moves++;
+          move_list[num_moves] = add_promotion_move(board, from, from>>7, bP, bN);
+          num_moves++;
+          move_list[num_moves] = add_promotion_move(board, from, from>>7, bP, bR);
+          num_moves++;
+          move_list[num_moves] = add_promotion_move(board, from, from>>7, bP, bB);
           num_moves++;
         }
       }
-      
-      // Down & Right
-      if(board->pieces_colour[WHITE] & (from>>9) & (~U64_COL_A))
+      else
       {
-        move_list[num_moves] = move_add(board, from, from>>9, CAPTURE, bP);
-        num_moves++;
-      }
-      
-      // Down & Left
-      if(board->pieces_colour[WHITE] & (from>>7) & (~U64_COL_H))
-      {
-        move_list[num_moves] = move_add(board, from, from>>7, CAPTURE, bP);
-        num_moves++;
+        // Down 1
+        if(~board->pieces_all & (from>>8))
+        {
+          move_list[num_moves] = move_add(board, from, from>>8, NORMAL, bP);
+          num_moves++;
+          
+          // Down 2
+          if((from&U64_ROW_7) && ~board->pieces_all & (from>>16))
+          {
+            move_list[num_moves] = move_add(board, from, from>>16, DOUBLE_MOVE, bP);
+            num_moves++;
+          }
+        }
+        
+        // Down & Right
+        if(board->pieces_colour[WHITE] & (from>>9) & (~U64_COL_A))
+        {
+          move_list[num_moves] = move_add(board, from, from>>9, CAPTURE, bP);
+          num_moves++;
+        }
+        
+        // Down & Left
+        if(board->pieces_colour[WHITE] & (from>>7) & (~U64_COL_H))
+        {
+          move_list[num_moves] = move_add(board, from, from>>7, CAPTURE, bP);
+          num_moves++;
+        }
       }
     }
     // Rooks

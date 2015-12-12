@@ -13,19 +13,16 @@ int main()
   s_board* board = (s_board*) malloc(1*sizeof(s_board));
   if(board == NULL) {return -1;}
   
-  /*
-  printf("Game:\n");
-  printf("- creating game\n");
-  printf("- setting fen\n");
-  set_fen(board, START_FEN);
-  printf("\n");
-  */
+  //int r = set_fen(board, "8/PPPk4/8/8/8/8/4Kppp/8 b - - 0 1");
+  //display_board(board);
+  //printf("Ret: %i\n", r);
   
   // perft
-  perft(board, 7, START_FEN);
+  //perft(board, 7, "8/PPPk4/8/8/8/8/4Kppp/8 b - - 0 1 ");
   //perft_split(board, 3, "rnbqkbnr/1ppppppp/p7/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2");
-  //perft_split(board, 2, "r1bqkbnr/pppppppp/2n5/8/1P6/2N5/P1PPPPPP/R1BQKBNR b KQkq b3 0 2");
-  //perft_suite(board, 1, "perftsuite.epd");
+  
+  //perft_split(board, 1, "8/PPPk4/8/8/8/8/4Kppp/8 b - - 0 1 ");
+  perft_suite(board, 4, "perftsuite.epd");
   
   printf("Done\n");
   getchar();
