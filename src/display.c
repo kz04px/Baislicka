@@ -14,7 +14,49 @@ void print_move(s_move move)
     if(move.to>>p & 1) {break;}
   }
   printf("%c%c ", POS_TO_COL_CHAR(p), POS_TO_ROW_CHAR(p));
-      
+  
+  switch(move.piece_type)
+  {
+    case wP:
+      printf("(P) ");
+      break;
+    case wN:
+      printf("(N) ");
+      break;
+    case wB:
+      printf("(B) ");
+      break;
+    case wR:
+      printf("(R) ");
+      break;
+    case wQ:
+      printf("(Q) ");
+      break;
+    case wK:
+      printf("(K) ");
+      break;
+    case bP:
+      printf("(p) ");
+      break;
+    case bN:
+      printf("(n) ");
+      break;
+    case bB:
+      printf("(b) ");
+      break;
+    case bR:
+      printf("(r) ");
+      break;
+    case bQ:
+      printf("(q) ");
+      break;
+    case bK:
+      printf("(k) ");
+      break;
+    default:
+      break;
+  }
+  
   // Type
   switch(move.type)
   {
@@ -89,67 +131,67 @@ void print_u64(U64 board)
 
 void display_board(s_board *board)
 {
-	int p;
-	for(p = 63; p >= 0; --p)
-	{
-		if(GETBIT(board->pieces[wP], p))
-		{
-			printf("P");
-		}
-		else if(GETBIT(board->pieces[wN], p))
-		{
-			printf("N");
-		}
-		else if(GETBIT(board->pieces[wB], p))
-		{
-			printf("B");
-		}
-		else if(GETBIT(board->pieces[wR], p))
-		{
-			printf("R");
-		}
-		else if(GETBIT(board->pieces[wQ], p))
-		{
-			printf("Q");
-		}
-		else if(GETBIT(board->pieces[wK], p))
-		{
-			printf("K");
-		}
-		else if(GETBIT(board->pieces[bP], p))
-		{
-			printf("p");
-		}
-		else if(GETBIT(board->pieces[bN], p))
-		{
-			printf("n");
-		}
-		else if(GETBIT(board->pieces[bB], p))
-		{
-			printf("b");
-		}
-		else if(GETBIT(board->pieces[bR], p))
-		{
-			printf("r");
-		}
-		else if(GETBIT(board->pieces[bQ], p))
-		{
-			printf("q");
-		}
-		else if(GETBIT(board->pieces[bK], p))
-		{
-			printf("k");
-		}
-		else
-		{
-			printf("-");
-		}
-		
-		if(p%8 == 0)
-		{
-			printf("\n");
-		}
-	}
+  int p;
+  for(p = 63; p >= 0; --p)
+  {
+    if(GETBIT(board->pieces[wP], p))
+    {
+      printf("P");
+    }
+    else if(GETBIT(board->pieces[wN], p))
+    {
+      printf("N");
+    }
+    else if(GETBIT(board->pieces[wB], p))
+    {
+      printf("B");
+    }
+    else if(GETBIT(board->pieces[wR], p))
+    {
+      printf("R");
+    }
+    else if(GETBIT(board->pieces[wQ], p))
+    {
+      printf("Q");
+    }
+    else if(GETBIT(board->pieces[wK], p))
+    {
+      printf("K");
+    }
+    else if(GETBIT(board->pieces[bP], p))
+    {
+      printf("p");
+    }
+    else if(GETBIT(board->pieces[bN], p))
+    {
+      printf("n");
+    }
+    else if(GETBIT(board->pieces[bB], p))
+    {
+      printf("b");
+    }
+    else if(GETBIT(board->pieces[bR], p))
+    {
+      printf("r");
+    }
+    else if(GETBIT(board->pieces[bQ], p))
+    {
+      printf("q");
+    }
+    else if(GETBIT(board->pieces[bK], p))
+    {
+      printf("k");
+    }
+    else
+    {
+      printf("-");
+    }
+    
+    if(p%8 == 0)
+    {
+      printf("\n");
+    }
+  }
   
   if(board->turn == WHITE) {printf("Turn: w\n");}
   else {printf("Turn: b\n");}

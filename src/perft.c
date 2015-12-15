@@ -29,7 +29,8 @@ void perft_search(s_board* board, int d)
     
     if(board->turn == WHITE)
     {
-      if(calculate_attacked(board, board->pieces[wK], BLACK) == TRUE)
+      if(calculate_attacked_black(board, board->pieces[wK]) == TRUE)
+      //if(calculate_attacked(board, board->pieces[wK], BLACK) == TRUE)
       {
         move_undo(board, &move_list[m]);
         continue;
@@ -37,13 +38,14 @@ void perft_search(s_board* board, int d)
     }
     else
     {
-      if(calculate_attacked(board, board->pieces[bK], WHITE) == TRUE)
+      if(calculate_attacked_white(board, board->pieces[bK]) == TRUE)
+      //if(calculate_attacked(board, board->pieces[bK], WHITE) == TRUE)
       {
         move_undo(board, &move_list[m]);
         continue;
       }
     }
-  
+    
     if(d == 1)
     {
       moves_total++;
@@ -160,8 +162,7 @@ int perft_split(s_board* board, int depth, char* fen)
     }
     
     print_move(move_list[m]);
-    
-    printf("%I64u\n\n", moves_total);
+    printf("%I64u\n", moves_total);
     
     move_undo(board, &move_list[m]);
     
@@ -186,8 +187,8 @@ void perft_suite(s_board* board, int max_depth, char* filepath)
     return;
   }
   
-	time_t start;
-	double time_taken;
+  time_t start;
+  double time_taken;
     
   printf("Starting test suite\n");
   printf("\n");
@@ -272,8 +273,8 @@ void perft(s_board* board, int max_depth, char* fen)
   ASSERT(max_depth > 0);
   ASSERT(fen != NULL);
   
-	time_t start;
-	double time_taken;
+  time_t start;
+  double time_taken;
   
   printf("D   Time      Moves       Captures  EP     Castles Checks\n");
   int d;
@@ -366,4 +367,201 @@ void perft(s_board* board, int max_depth, char* fen)
   printf("\n");
   
   return;
+}
+
+int perft_movegen(s_board* board, const char* filepath)
+{
+  ASSERT(board != NULL);
+  ASSERT(path != NULL);
+  
+  perft(board, 7, START_FEN);
+  
+  time_t start;
+  double time_taken;
+  double time_total;
+  double time_pawn = 0;
+  double time_knight = 0;
+  double time_bishop = 0;
+  double time_rook = 0;
+  double time_queen = 0;
+  double time_king = 0;
+  s_move move_list[MAX_MOVES];
+  int repeats = 5000000;
+  int i;
+  int test = 0;
+  
+  FILE* file = fopen(filepath, "r");
+  if(file == NULL) {return -1;}
+  
+  printf("Test Pawn   Knight Bishop Rook   Queen  King   Total\n");
+  char line[1024];
+  while(fgets(line, sizeof(line), file))
+  {
+    if(test == 20) {break;}
+    time_total = 0;
+    
+    char* pch = strtok(line, ";");
+    
+    int r = set_fen(board, pch);
+    if(r != 0)
+    {
+      printf("Invalid fen (%s)\n", pch);
+      printf("Error code: %i\n", r);
+      printf("Skipping test\n");
+      continue;
+    }
+    
+    printf("%i", test);
+         if(test < 10)   {printf("    ");}
+    else if(test < 100)  {printf("   ");}
+    else if(test < 1000) {printf("  ");}
+    
+    // Pawns
+    start = clock();
+    for(i = 0; i < repeats; ++i)
+    {
+      #ifdef TEST_MOVEGEN
+        test_find_moves_wP(board, move_list);
+        test_find_moves_bP(board, move_list);
+      #else
+        find_moves_wP(board, move_list);
+        find_moves_bP(board, move_list);
+      #endif
+    }
+    time_taken = ((double)clock()-start)/CLOCKS_PER_SEC;
+    time_total += time_taken;
+    time_pawn += time_taken;
+    printf("%.3f", time_taken);
+    
+    // Knight
+    start = clock();
+    for(i = 0; i < repeats; ++i)
+    {
+      #ifdef TEST_MOVEGEN
+        test_find_moves_wN(board, move_list);
+        test_find_moves_bN(board, move_list);
+      #else
+        find_moves_wN(board, move_list);
+        find_moves_bN(board, move_list);
+      #endif
+    }
+    time_taken = ((double)clock()-start)/CLOCKS_PER_SEC;
+    time_total += time_taken;
+    time_knight += time_taken;
+    printf("  %.3f", time_taken);
+    
+    // Bishop & Queen
+    start = clock();
+    for(i = 0; i < repeats; ++i)
+    {
+      find_moves_wB_wQ(board, move_list);
+      find_moves_bB_bQ(board, move_list);
+    }
+    time_taken = ((double)clock()-start)/CLOCKS_PER_SEC;
+    time_total += time_taken;
+    time_bishop += time_taken;
+    printf("  %.3f", time_taken);
+    
+    // Rook & Queen
+    start = clock();
+    for(i = 0; i < repeats; ++i)
+    {
+      find_moves_wR_wQ(board, move_list);
+      find_moves_bR_bQ(board, move_list);
+    }
+    time_taken = ((double)clock()-start)/CLOCKS_PER_SEC;
+    time_total += time_taken;
+    time_rook += time_taken;
+    printf("  %.3f", time_taken);
+    
+    printf("  x.xxx");
+    
+    /*
+    // Bishop
+    start = clock();
+    for(i = 0; i < repeats; ++i)
+    {
+      #ifdef TEST_MOVEGEN
+        test_find_moves_wB(board, move_list);
+        test_find_moves_bB(board, move_list);
+      #else
+        find_moves_wB(board, move_list);
+        find_moves_bB(board, move_list);
+      #endif
+    }
+    time_taken = ((double)clock()-start)/CLOCKS_PER_SEC;
+    time_total += time_taken;
+    time_bishop += time_taken;
+    printf("  %.3f", time_taken);
+    
+    // Rook
+    start = clock();
+    for(i = 0; i < repeats; ++i)
+    {
+      #ifdef TEST_MOVEGEN
+        test_find_moves_wR(board, move_list);
+        test_find_moves_bR(board, move_list);
+      #else
+        find_moves_wR(board, move_list);
+        find_moves_bR(board, move_list);
+      #endif
+    }
+    time_taken = ((double)clock()-start)/CLOCKS_PER_SEC;
+    time_total += time_taken;
+    time_rook += time_taken;
+    printf("  %.3f", time_taken);
+    
+    // Queen
+    start = clock();
+    for(i = 0; i < repeats; ++i)
+    {
+      #ifdef TEST_MOVEGEN
+        test_find_moves_wQ(board, move_list);
+        test_find_moves_bQ(board, move_list);
+      #else
+        find_moves_wQ(board, move_list);
+        find_moves_bQ(board, move_list);
+      #endif
+    }
+    time_taken = ((double)clock()-start)/CLOCKS_PER_SEC;
+    time_total += time_taken;
+    time_queen += time_taken;
+    printf("  %.3f", time_taken);
+    */
+    
+    // King
+    start = clock();
+    for(i = 0; i < repeats; ++i)
+    {
+      #ifdef TEST_MOVEGEN
+        test_find_moves_wK(board, move_list);
+        test_find_moves_bK(board, move_list);
+      #else
+        find_moves_wK(board, move_list);
+        find_moves_bK(board, move_list);
+      #endif
+    }
+    time_taken = ((double)clock()-start)/CLOCKS_PER_SEC;
+    time_total += time_taken;
+    time_king += time_taken;
+    printf("  %.3f", time_taken);
+    
+    printf("  %.3f", time_total);
+    
+    printf("\n");
+    test++;
+  }
+  
+  printf("Sum  ");
+  printf("%.3f", time_pawn);   if(time_pawn < 10)   {printf(" ");} printf(" ");
+  printf("%.3f", time_knight); if(time_knight < 10) {printf(" ");} printf(" ");
+  printf("%.3f", time_bishop); if(time_bishop < 10) {printf(" ");} printf(" ");
+  printf("%.3f", time_rook);   if(time_rook < 10)   {printf(" ");} printf(" ");
+  printf("%.3f", time_queen);  if(time_queen < 10)  {printf(" ");} printf(" ");
+  printf("%.3f", time_king);   if(time_king < 10)   {printf(" ");} printf(" ");
+  printf("%.3f", time_pawn + time_knight + time_bishop + time_rook + time_queen + time_king);
+  
+  printf("\n");
+  
+  return 0;
 }

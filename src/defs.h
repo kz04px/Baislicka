@@ -5,7 +5,8 @@
 #include <stdlib.h>
 #include <inttypes.h>
 
-#define ENGINE_NAME "Baislicka 2.0"
+#define ENGINE_NAME "Baislicka"
+#define ENGINE_VERSION "2.0"
 #define ENGINE_AUTHOR "Twipply"
 #define START_FEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 #define TEST1_FEN "k7/5n2/8/8/5R2/8/3b1P2/K7 w - - 0 0"
@@ -48,6 +49,15 @@
 #define U64_G1 (U64_COL_G & U64_ROW_1)
 #define U64_H1 (U64_COL_H & U64_ROW_1)
 
+#define U64_A4 (U64_COL_A & U64_ROW_4)
+#define U64_B4 (U64_COL_B & U64_ROW_4)
+#define U64_C4 (U64_COL_C & U64_ROW_4)
+#define U64_D4 (U64_COL_D & U64_ROW_4)
+#define U64_E4 (U64_COL_E & U64_ROW_4)
+#define U64_F4 (U64_COL_F & U64_ROW_4)
+#define U64_G4 (U64_COL_G & U64_ROW_4)
+#define U64_H4 (U64_COL_H & U64_ROW_4)
+
 #define U64_A5 (U64_COL_A & U64_ROW_5)
 #define U64_B5 (U64_COL_B & U64_ROW_5)
 #define U64_C5 (U64_COL_C & U64_ROW_5)
@@ -66,7 +76,8 @@
 #define U64_G8 (U64_COL_G & U64_ROW_8)
 #define U64_H8 (U64_COL_H & U64_ROW_8)
 
-#define DEBUG
+//#define DEBUG
+//#define TEST_MOVEGEN
 
 #ifndef DEBUG
   #define ASSERT(n)
@@ -98,19 +109,19 @@ enum {H1= 0, G1, F1, E1, D1, C1, B1, A1};
 
 typedef struct
 {
-	U64 from;
-	U64 to;
-	int taken;
-	int piece_type;
-	int piece_num;
-	int type;
-	int promotion;
-	
-	int ep_old;
-	int wKSC_old;
-	int wQSC_old;
-	int bKSC_old;
-	int bQSC_old;
+  U64 from;
+  U64 to;
+  int taken;
+  int piece_type;
+  int piece_num;
+  int type;
+  int promotion;
+  
+  int ep_old;
+  int wKSC_old;
+  int wQSC_old;
+  int bKSC_old;
+  int bQSC_old;
 } s_move;
 
 typedef struct
@@ -123,15 +134,44 @@ typedef struct
   U64 pieces_all;
 } s_board;
 
+// attack.c
+int calculate_attacked(s_board *board, U64 sq, int attacking_colour);
+int calculate_attacked_white(s_board* board, U64 pos);
+int calculate_attacked_black(s_board* board, U64 pos);
+
 // bitboards.c
 void generateOccupancyVariations(int isRook);
 void generateMoveDatabase(int isRook);
-int calculate_attacked(s_board *board, U64 sq, int attacking_colour);
-int find_moves_white(s_board* board, s_move* move_list);
-int find_moves_black(s_board* board, s_move* move_list);
+void generateKnightMoves();
+U64 magic_moves_hor_ver(U64 pieces_all, int pos);
+U64 magic_moves_diagonal(U64 pieces_all, int pos);
+U64 magic_moves_knight(int pos);
+int u64_to_sq(U64 pos);
 
 // movegen.c
+int find_moves_white(s_board* board, s_move* move_list);
+int find_moves_black(s_board* board, s_move* move_list);
 int find_moves(s_board* board, s_move* move_list, int colour);
+
+// movegen_white.c
+int find_moves_wP(s_board* board, s_move* move_list);
+int find_moves_wN(s_board* board, s_move* move_list);
+int find_moves_wB(s_board* board, s_move* move_list);
+int find_moves_wR(s_board* board, s_move* move_list);
+int find_moves_wQ(s_board* board, s_move* move_list);
+int find_moves_wK(s_board* board, s_move* move_list);
+int find_moves_wB_wQ(s_board* board, s_move* move_list);
+int find_moves_wR_wQ(s_board* board, s_move* move_list);
+
+// movegen_black.c
+int find_moves_bP(s_board* board, s_move* move_list);
+int find_moves_bN(s_board* board, s_move* move_list);
+int find_moves_bB(s_board* board, s_move* move_list);
+int find_moves_bR(s_board* board, s_move* move_list);
+int find_moves_bQ(s_board* board, s_move* move_list);
+int find_moves_bK(s_board* board, s_move* move_list);
+int find_moves_bB_bQ(s_board* board, s_move* move_list);
+int find_moves_bR_bQ(s_board* board, s_move* move_list);
 
 // fen.c
 int set_fen(s_board *board, const char *fen);
@@ -140,9 +180,14 @@ int set_fen(s_board *board, const char *fen);
 void perft(s_board* board, int max_depth, char* fen);
 int perft_split(s_board* board, int depth, char* fen);
 void perft_suite(s_board* board, int max_depth, char* filepath);
+int perft_movegen(s_board* board, const char* filepath);
 
 // move.c
 s_move move_add(s_board *board, U64 from, U64 to, int type, int piece_type);
+int move_add_pawn_white(s_board* board, s_move* move_list, U64 from, U64 to);
+s_move add_movecapture_white(s_board* board, U64 from, U64 to, int piece_type);
+int move_add_pawn_black(s_board* board, s_move* move_list, U64 from, U64 to);
+s_move add_movecapture_black(s_board* board, U64 from, U64 to, int piece_type);
 s_move add_promotion_move(s_board *board, U64 from, U64 to, int piece_type, int promo_piece);
 void move_make(s_board *board, s_move *move);
 void move_undo(s_board *board, s_move *move);
@@ -152,5 +197,22 @@ void print_move(s_move move);
 void print_move_list(s_move* move_list, int num_moves);
 void print_u64(U64 board);
 void display_board(s_board *board);
+
+// test.c
+int test_find_moves_wP(s_board* board, s_move* move_list);
+int test_find_moves_wN(s_board* board, s_move* move_list);
+int test_find_moves_wB(s_board* board, s_move* move_list);
+int test_find_moves_wR(s_board* board, s_move* move_list);
+int test_find_moves_wQ(s_board* board, s_move* move_list);
+int test_find_moves_wK(s_board* board, s_move* move_list);
+int test_find_white_moves(s_board *board, s_move *moves);
+int test_find_moves_bP(s_board* board, s_move* move_list);
+int test_find_moves_bN(s_board* board, s_move* move_list);
+int test_find_moves_bB(s_board* board, s_move* move_list);
+int test_find_moves_bR(s_board* board, s_move* move_list);
+int test_find_moves_bQ(s_board* board, s_move* move_list);
+int test_find_moves_bK(s_board* board, s_move* move_list);
+int test_find_black_moves(s_board *board, s_move *moves);
+int test_find_moves(s_board *board, s_move *moves);
 
 #endif // DEFS_H_INCLUDED
