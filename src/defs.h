@@ -135,7 +135,6 @@ typedef struct
 } s_board;
 
 // attack.c
-int calculate_attacked(s_board *board, U64 sq, int attacking_colour);
 int calculate_attacked_white(s_board* board, U64 pos);
 int calculate_attacked_black(s_board* board, U64 pos);
 

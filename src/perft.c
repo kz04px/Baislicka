@@ -30,7 +30,6 @@ void perft_search(s_board* board, int d)
     if(board->turn == WHITE)
     {
       if(calculate_attacked_black(board, board->pieces[wK]) == TRUE)
-      //if(calculate_attacked(board, board->pieces[wK], BLACK) == TRUE)
       {
         move_undo(board, &move_list[m]);
         continue;
@@ -39,7 +38,6 @@ void perft_search(s_board* board, int d)
     else
     {
       if(calculate_attacked_white(board, board->pieces[bK]) == TRUE)
-      //if(calculate_attacked(board, board->pieces[bK], WHITE) == TRUE)
       {
         move_undo(board, &move_list[m]);
         continue;
@@ -50,7 +48,7 @@ void perft_search(s_board* board, int d)
     {
       moves_total++;
       
-      if(calculate_attacked(board, board->pieces[bK], WHITE) == TRUE || calculate_attacked(board, board->pieces[wK], BLACK) == TRUE)
+      if(calculate_attacked_white(board, board->pieces[bK]) == TRUE || calculate_attacked_black(board, board->pieces[wK]) == TRUE)
       {
         moves_check++;
         //display_board(board);
@@ -128,7 +126,7 @@ int perft_split(s_board* board, int depth, char* fen)
     
     if(board->turn == WHITE)
     {
-      if(calculate_attacked(board, board->pieces[wK], BLACK) == TRUE)
+      if(calculate_attacked_black(board, board->pieces[wK]) == TRUE)
       {
         move_undo(board, &move_list[m]);
         continue;
@@ -136,7 +134,7 @@ int perft_split(s_board* board, int depth, char* fen)
     }
     else
     {
-      if(calculate_attacked(board, board->pieces[bK], WHITE) == TRUE)
+      if(calculate_attacked_white(board, board->pieces[bK]) == TRUE)
       {
         move_undo(board, &move_list[m]);
         continue;
@@ -374,7 +372,7 @@ int perft_movegen(s_board* board, const char* filepath)
   ASSERT(board != NULL);
   ASSERT(path != NULL);
   
-  perft(board, 7, START_FEN);
+  perft(board, 6, START_FEN);
   
   time_t start;
   double time_taken;

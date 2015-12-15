@@ -568,12 +568,9 @@ int test_find_moves_wK(s_board *board, s_move *moves)
 	if(board->castling[wKSC] == TRUE &&
 	   GETBIT(board->pieces_all, F1) == FALSE &&
 	   GETBIT(board->pieces_all, G1) == FALSE &&
-	   calculate_attacked(board, U64_E1, BLACK) == FALSE &&
-	   calculate_attacked(board, U64_F1, BLACK) == FALSE &&
-	   calculate_attacked(board, U64_G1, BLACK) == FALSE)
-	   //black_attacking(board, U64_E1) == FALSE &&
-	   //black_attacking(board, U64_F1) == FALSE &&
-	   //black_attacking(board, U64_G1) == FALSE)
+	   calculate_attacked_black(board, U64_E1) == FALSE &&
+	   calculate_attacked_black(board, U64_F1) == FALSE &&
+	   calculate_attacked_black(board, U64_G1) == FALSE)
 	{
 		moves[num_moves] = move_add(board, from, from>>2, wKSC, wK);
 		num_moves++;
@@ -584,12 +581,9 @@ int test_find_moves_wK(s_board *board, s_move *moves)
 	   GETBIT(board->pieces_all, D1) == FALSE &&
 	   GETBIT(board->pieces_all, C1) == FALSE &&
 	   GETBIT(board->pieces_all, B1) == FALSE &&
-	   calculate_attacked(board, U64_E1, BLACK) == FALSE &&
-	   calculate_attacked(board, U64_D1, BLACK) == FALSE &&
-	   calculate_attacked(board, U64_C1, BLACK) == FALSE)
-	   //black_attacking(board, U64_E1) == FALSE &&
-	   //black_attacking(board, U64_D1) == FALSE &&
-	   //black_attacking(board, U64_C1) == FALSE)
+	   calculate_attacked_black(board, U64_E1) == FALSE &&
+	   calculate_attacked_black(board, U64_D1) == FALSE &&
+	   calculate_attacked_black(board, U64_C1) == FALSE)
 	{
 		moves[num_moves] = move_add(board, from, from<<2, wQSC, wK);
 		num_moves++;
@@ -750,12 +744,9 @@ int test_find_moves_bK(s_board *board, s_move *moves)
 	if(board->castling[bKSC] == TRUE &&
 	   GETBIT(board->pieces_all, F8) == FALSE &&
 	   GETBIT(board->pieces_all, G8) == FALSE &&
-	   calculate_attacked(board, U64_E8, WHITE) == FALSE &&
-	   calculate_attacked(board, U64_F8, WHITE) == FALSE &&
-	   calculate_attacked(board, U64_G8, WHITE) == FALSE)
-	   //white_attacking(board, U64_E8) == FALSE &&
-	   //white_attacking(board, U64_F8) == FALSE &&
-	   //white_attacking(board, U64_G8) == FALSE)
+	   calculate_attacked_white(board, U64_E8) == FALSE &&
+	   calculate_attacked_white(board, U64_F8) == FALSE &&
+	   calculate_attacked_white(board, U64_G8) == FALSE)
 	{
 		moves[num_moves] = move_add(board, from, from>>2, bKSC, bK);
 		num_moves++;
@@ -766,12 +757,9 @@ int test_find_moves_bK(s_board *board, s_move *moves)
 	   GETBIT(board->pieces_all, D8) == FALSE &&
 	   GETBIT(board->pieces_all, C8) == FALSE &&
 	   GETBIT(board->pieces_all, B8) == FALSE &&
-	   calculate_attacked(board, U64_E8, WHITE) == FALSE &&
-	   calculate_attacked(board, U64_D8, WHITE) == FALSE &&
-	   calculate_attacked(board, U64_C8, WHITE) == FALSE)
-	   //white_attacking(board, U64_E8) == FALSE &&
-	   //white_attacking(board, U64_D8) == FALSE &&
-	   //white_attacking(board, U64_C8) == FALSE)
+	   calculate_attacked_white(board, U64_E8) == FALSE &&
+	   calculate_attacked_white(board, U64_D8) == FALSE &&
+	   calculate_attacked_white(board, U64_C8) == FALSE)
 	{
 		moves[num_moves] = move_add(board, from, from<<2, bQSC, bK);
 		num_moves++;

@@ -202,9 +202,9 @@ int find_moves_bK(s_board* board, s_move* move_list)
   if(board->castling[bKSC] == TRUE &&
      !(board->pieces_all&U64_F8) &&
      !(board->pieces_all&U64_G8) &&
-     calculate_attacked(board, U64_E8, WHITE) == FALSE &&
-     calculate_attacked(board, U64_F8, WHITE) == FALSE &&
-     calculate_attacked(board, U64_G8, WHITE) == FALSE)
+     calculate_attacked_white(board, U64_E8) == FALSE &&
+     calculate_attacked_white(board, U64_F8) == FALSE &&
+     calculate_attacked_white(board, U64_G8) == FALSE)
   {
     move_list[num_moves] = move_add(board, U64_E8, U64_G8, bKSC, bK);
     num_moves++;
@@ -213,9 +213,9 @@ int find_moves_bK(s_board* board, s_move* move_list)
      !(board->pieces_all&U64_B8) &&
      !(board->pieces_all&U64_C8) &&
      !(board->pieces_all&U64_D8) &&
-     calculate_attacked(board, U64_E8, WHITE) == FALSE &&
-     calculate_attacked(board, U64_D8, WHITE) == FALSE &&
-     calculate_attacked(board, U64_C8, WHITE) == FALSE)
+     calculate_attacked_white(board, U64_E8) == FALSE &&
+     calculate_attacked_white(board, U64_D8) == FALSE &&
+     calculate_attacked_white(board, U64_C8) == FALSE)
   {
     move_list[num_moves] = move_add(board, U64_E8, U64_C8, bQSC, bK);
     num_moves++;

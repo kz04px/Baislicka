@@ -225,3 +225,28 @@ U64 magic_moves_knight(int pos)
   
   return magicMovesKnight[pos];
 }
+
+int u64_to_sq(U64 pos)
+{
+  int result = 0;
+  
+       if(pos&U64_ROW_1) {result =  0;}
+  else if(pos&U64_ROW_2) {result =  8;}
+  else if(pos&U64_ROW_3) {result = 16;}
+  else if(pos&U64_ROW_4) {result = 24;}
+  else if(pos&U64_ROW_5) {result = 32;}
+  else if(pos&U64_ROW_6) {result = 40;}
+  else if(pos&U64_ROW_7) {result = 48;}
+  else if(pos&U64_ROW_8) {result = 56;}
+  
+       if(pos&U64_COL_A) {result += 7;}
+  else if(pos&U64_COL_B) {result += 6;}
+  else if(pos&U64_COL_C) {result += 5;}
+  else if(pos&U64_COL_D) {result += 4;}
+  else if(pos&U64_COL_E) {result += 3;}
+  else if(pos&U64_COL_F) {result += 2;}
+  else if(pos&U64_COL_G) {result += 1;}
+  else if(pos&U64_COL_H) {result += 0;}
+  
+  return result;
+}
