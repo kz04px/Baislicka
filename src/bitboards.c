@@ -34,9 +34,11 @@ U64 magicMovesRook[64][4096] = {{0}}; // Tested: 4095
 U64 magicMovesBishop[64][512] = {{0}}; // Tested: 511
 U64 magicMovesKnight[64];
 
-U64 occupancyVariation[64][4096] = {{0}}; // Tested: 095
+U64 occupancyVariation[64][4096] = {{0}}; // Tested: 4095
 U64 rookOccupancyAttackSet[64][4096] = {{0}}; // Tested: 4095
 U64 bishopOccupancyAttackSet[64][512] = {{0}}; // Tested: 511
+
+int LUT[257];
 
 void generateKnightMoves()
 {
@@ -228,25 +230,33 @@ U64 magic_moves_knight(int pos)
 
 int u64_to_sq(U64 pos)
 {
-  int result = 0;
+  ASSERT(pos);
   
-       if(pos&U64_ROW_1) {result =  0;}
-  else if(pos&U64_ROW_2) {result =  8;}
-  else if(pos&U64_ROW_3) {result = 16;}
-  else if(pos&U64_ROW_4) {result = 24;}
-  else if(pos&U64_ROW_5) {result = 32;}
-  else if(pos&U64_ROW_6) {result = 40;}
-  else if(pos&U64_ROW_7) {result = 48;}
-  else if(pos&U64_ROW_8) {result = 56;}
+  if(pos&0xFF)            {return LUT[pos&0xFF];}            // Row 1
+  else if((pos>>56)&0xFF) {return LUT[(pos>>56)&0xFF] + 56;} // Row 8
+  else if((pos>>8)&0xFF)  {return LUT[(pos>>8)&0xFF]  + 8;}  // Row 2
+  else if((pos>>48)&0xFF) {return LUT[(pos>>48)&0xFF] + 48;} // Row 7
+  else if((pos>>16)&0xFF) {return LUT[(pos>>16)&0xFF] + 16;} // Row 3
+  else if((pos>>40)&0xFF) {return LUT[(pos>>40)&0xFF] + 40;} // Row 6
+  else if((pos>>24)&0xFF) {return LUT[(pos>>24)&0xFF] + 24;} // Row 4
+  else                    {return LUT[(pos>>32)&0xFF] + 32;} // Row 5
+}
+
+void bitboards_init()
+{
+  generateOccupancyVariations(0);
+  generateMoveDatabase(0);
+  generateOccupancyVariations(1);
+  generateMoveDatabase(1);
+  generateKnightMoves();
   
-       if(pos&U64_COL_A) {result += 7;}
-  else if(pos&U64_COL_B) {result += 6;}
-  else if(pos&U64_COL_C) {result += 5;}
-  else if(pos&U64_COL_D) {result += 4;}
-  else if(pos&U64_COL_E) {result += 3;}
-  else if(pos&U64_COL_F) {result += 2;}
-  else if(pos&U64_COL_G) {result += 1;}
-  else if(pos&U64_COL_H) {result += 0;}
-  
-  return result;
+  LUT[1] = 0;
+  LUT[2] = 1;
+  LUT[4] = 2;
+  LUT[8] = 3;
+  LUT[16] = 4;
+  LUT[32] = 5;
+  LUT[64] = 6;
+  LUT[128] = 7;
+  LUT[256] = 8;
 }

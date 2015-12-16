@@ -60,10 +60,10 @@ void print_move(s_move move)
   // Type
   switch(move.type)
   {
-    case NORMAL:
+    case QUIET:
       printf("normal");
       break;
-    case DOUBLE_MOVE:
+    case DOUBLE_PAWN:
       printf("double_move");
       break;
     case CAPTURE:

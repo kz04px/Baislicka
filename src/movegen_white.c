@@ -33,7 +33,7 @@ int find_moves_wP(s_board* board, s_move* move_list)
     // Up 2
     if((to&U64_ROW_3) && ((to<<8)&(~board->pieces_all)))
     {
-      move_list[num_moves] = move_add(board, to>>8, to<<8, DOUBLE_MOVE, wP);
+      move_list[num_moves] = move_add(board, to>>8, to<<8, DOUBLE_PAWN, wP);
       num_moves++;
     }
     
@@ -70,19 +70,6 @@ int find_moves_wN(s_board* board, s_move* move_list)
   {
     from = copy & ~(copy-1);
     moves = magic_moves_knight(u64_to_sq(from)) & (~board->pieces_colour[WHITE]);
-    
-    /*
-    from = copy & ~(copy-1);
-    moves  = (from<<17) & (~U64_COL_H); // Up 2 left 1
-    moves |= (from<<15) & (~U64_COL_A); // Up 2 right 1
-    moves |= (from>>17) & (~U64_COL_A); // Down 2 right 1
-    moves |= (from>>15) & (~U64_COL_H); // down 2 left 1
-    moves |= (from<<10) & ~(U64_COL_G|U64_COL_H); // Left 2 up 1
-    moves |= (from>>6)  & ~(U64_COL_G|U64_COL_H); // Left 2 down 1
-    moves |= (from<<6)  & ~(U64_COL_A|U64_COL_B); // Right 2 up 1
-    moves |= (from>>10) & ~(U64_COL_A|U64_COL_B); // Right 2 down 1
-    moves &= ~board->pieces_colour[WHITE];
-    */
     
     while(moves)
     {

@@ -96,7 +96,7 @@
 
 enum {WHITE, BLACK, BOTH};
 enum {wP, wN, wB, wR, wQ, wK, bP, bN, bB, bR, bQ, bK, EMPTY};
-enum {wKSC, wQSC, bKSC, bQSC, NORMAL, DOUBLE_MOVE, CAPTURE, PROMOTE, EP};
+enum {wKSC, wQSC, bKSC, bQSC, QUIET, DOUBLE_PAWN, CAPTURE, PROMOTE, EP};
 
 enum {H8=56, G8, F8, E8, D8, C8, B8, A8};
 enum {H7=48, G7, F7, E7, D7, C7, B7, A7};
@@ -113,15 +113,11 @@ typedef struct
   U64 to;
   int taken;
   int piece_type;
-  int piece_num;
   int type;
   int promotion;
   
-  int ep_old;
-  int wKSC_old;
-  int wQSC_old;
-  int bKSC_old;
-  int bQSC_old;
+  U64 ep_old;
+  int castling[4];
 } s_move;
 
 typedef struct
@@ -139,9 +135,7 @@ int calculate_attacked_white(s_board* board, U64 pos);
 int calculate_attacked_black(s_board* board, U64 pos);
 
 // bitboards.c
-void generateOccupancyVariations(int isRook);
-void generateMoveDatabase(int isRook);
-void generateKnightMoves();
+void bitboards_init();
 U64 magic_moves_hor_ver(U64 pieces_all, int pos);
 U64 magic_moves_diagonal(U64 pieces_all, int pos);
 U64 magic_moves_knight(int pos);
@@ -190,6 +184,7 @@ s_move add_movecapture_black(s_board* board, U64 from, U64 to, int piece_type);
 s_move add_promotion_move(s_board *board, U64 from, U64 to, int piece_type, int promo_piece);
 void move_make(s_board *board, s_move *move);
 void move_undo(s_board *board, s_move *move);
+void test_move_make(s_board *board, s_move *move);
 
 // display.c
 void print_move(s_move move);

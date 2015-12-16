@@ -33,14 +33,14 @@ int test_find_moves_wP(s_board *board, s_move *moves)
 		}
 		else
 		{
-			moves[num_moves] = move_add(board, pos>>8, pos, NORMAL, wP);
+			moves[num_moves] = move_add(board, pos>>8, pos, QUIET, wP);
 			num_moves++;
 		}
 		moves1 = moves1^pos;
 	}
 	while((pos = (moves2 & ~(moves2-1))))
 	{
-		moves[num_moves] = move_add(board, pos>>16, pos, DOUBLE_MOVE, wP);
+		moves[num_moves] = move_add(board, pos>>16, pos, DOUBLE_PAWN, wP);
 		num_moves++;
 		moves2 = moves2^pos;
 	}
@@ -114,14 +114,14 @@ int test_find_moves_bP(s_board *board, s_move *moves)
 		}
 		else
 		{
-			moves[num_moves] = move_add(board, pos<<8, pos, NORMAL, bP);
+			moves[num_moves] = move_add(board, pos<<8, pos, QUIET, bP);
 			num_moves++;
 		}
 		moves1 = moves1^pos;
 	}
 	while((pos = (moves2 & ~(moves2-1))))
 	{
-		moves[num_moves] = move_add(board, pos<<16, pos, DOUBLE_MOVE, bP);
+		moves[num_moves] = move_add(board, pos<<16, pos, DOUBLE_PAWN, bP);
 		num_moves++;
 		moves2 = moves2^pos;
 	}
@@ -196,7 +196,7 @@ int test_find_moves_knight(s_board *board, s_move *moves, int colour)
 		}
 		else
 		{
-			moves[num_moves] = move_add(board, pos>>17, pos, NORMAL, type);
+			moves[num_moves] = move_add(board, pos>>17, pos, QUIET, type);
 		}
 		num_moves++;
 		moves1 = moves1^pos;
@@ -210,7 +210,7 @@ int test_find_moves_knight(s_board *board, s_move *moves, int colour)
 		}
 		else
 		{
-			moves[num_moves] = move_add(board, pos>>15, pos, NORMAL, type);
+			moves[num_moves] = move_add(board, pos>>15, pos, QUIET, type);
 		}
 		num_moves++;
 		moves2 = moves2^pos;
@@ -223,7 +223,7 @@ int test_find_moves_knight(s_board *board, s_move *moves, int colour)
 		}
 		else
 		{
-			moves[num_moves] = move_add(board, pos<<17, pos, NORMAL, type);
+			moves[num_moves] = move_add(board, pos<<17, pos, QUIET, type);
 		}
 		num_moves++;
 		moves3 = moves3^pos;
@@ -236,7 +236,7 @@ int test_find_moves_knight(s_board *board, s_move *moves, int colour)
 		}
 		else
 		{
-			moves[num_moves] = move_add(board, pos<<15, pos, NORMAL, type);
+			moves[num_moves] = move_add(board, pos<<15, pos, QUIET, type);
 		}
 		num_moves++;
 		moves4 = moves4^pos;
@@ -249,7 +249,7 @@ int test_find_moves_knight(s_board *board, s_move *moves, int colour)
 		}
 		else
 		{
-			moves[num_moves] = move_add(board, pos>>10, pos, NORMAL, type);
+			moves[num_moves] = move_add(board, pos>>10, pos, QUIET, type);
 		}
 		num_moves++;
 		moves5 = moves5^pos;
@@ -262,7 +262,7 @@ int test_find_moves_knight(s_board *board, s_move *moves, int colour)
 		}
 		else
 		{
-			moves[num_moves] = move_add(board, pos<<6, pos, NORMAL, type);
+			moves[num_moves] = move_add(board, pos<<6, pos, QUIET, type);
 		}
 		num_moves++;
 		moves6 = moves6^pos;
@@ -275,7 +275,7 @@ int test_find_moves_knight(s_board *board, s_move *moves, int colour)
 		}
 		else
 		{
-			moves[num_moves] = move_add(board, pos>>6, pos, NORMAL, type);
+			moves[num_moves] = move_add(board, pos>>6, pos, QUIET, type);
 		}
 		num_moves++;
 		moves7 = moves7^pos;
@@ -288,7 +288,7 @@ int test_find_moves_knight(s_board *board, s_move *moves, int colour)
 		}
 		else
 		{
-			moves[num_moves] = move_add(board, pos<<10, pos, NORMAL, type);
+			moves[num_moves] = move_add(board, pos<<10, pos, QUIET, type);
 		}
 		num_moves++;
 		moves8 = moves8^pos;
@@ -326,7 +326,7 @@ int find_diagonal_moves(s_board *board, s_move *moves, int colour, int type)
 			}
 			else
 			{
-				moves[num_moves] = move_add(board, from, to, NORMAL, type);
+				moves[num_moves] = move_add(board, from, to, QUIET, type);
 				num_moves++;
 			}
 			
@@ -348,7 +348,7 @@ int find_diagonal_moves(s_board *board, s_move *moves, int colour, int type)
 			}
 			else
 			{
-				moves[num_moves] = move_add(board, from, to, NORMAL, type);
+				moves[num_moves] = move_add(board, from, to, QUIET, type);
 				num_moves++;
 			}
 			
@@ -370,7 +370,7 @@ int find_diagonal_moves(s_board *board, s_move *moves, int colour, int type)
 			}
 			else
 			{
-				moves[num_moves] = move_add(board, from, to, NORMAL, type);
+				moves[num_moves] = move_add(board, from, to, QUIET, type);
 				num_moves++;
 			}
 			
@@ -392,7 +392,7 @@ int find_diagonal_moves(s_board *board, s_move *moves, int colour, int type)
 			}
 			else
 			{
-				moves[num_moves] = move_add(board, from, to, NORMAL, type);
+				moves[num_moves] = move_add(board, from, to, QUIET, type);
 				num_moves++;
 			}
 			
@@ -434,7 +434,7 @@ int find_horizontal_moves(s_board *board, s_move *moves, int colour, int type)
 			}
 			else
 			{
-				moves[num_moves] = move_add(board, from, to, NORMAL, type);
+				moves[num_moves] = move_add(board, from, to, QUIET, type);
 				num_moves++;
 			}
 			
@@ -456,7 +456,7 @@ int find_horizontal_moves(s_board *board, s_move *moves, int colour, int type)
 			}
 			else
 			{
-				moves[num_moves] = move_add(board, from, to, NORMAL, type);
+				moves[num_moves] = move_add(board, from, to, QUIET, type);
 				num_moves++;
 			}
 			
@@ -478,7 +478,7 @@ int find_horizontal_moves(s_board *board, s_move *moves, int colour, int type)
 			}
 			else
 			{
-				moves[num_moves] = move_add(board, from, to, NORMAL, type);
+				moves[num_moves] = move_add(board, from, to, QUIET, type);
 				num_moves++;
 			}
 			
@@ -500,7 +500,7 @@ int find_horizontal_moves(s_board *board, s_move *moves, int colour, int type)
 			}
 			else
 			{
-				moves[num_moves] = move_add(board, from, to, NORMAL, type);
+				moves[num_moves] = move_add(board, from, to, QUIET, type);
 				num_moves++;
 			}
 			
@@ -602,7 +602,7 @@ int test_find_moves_wK(s_board *board, s_move *moves)
 		}
 		else
 		{
-			moves[num_moves] = move_add(board, board->pieces[wK], board->pieces[wK]<<8, NORMAL, wK);
+			moves[num_moves] = move_add(board, board->pieces[wK], board->pieces[wK]<<8, QUIET, wK);
 			num_moves++;
 		}
 	}
@@ -620,7 +620,7 @@ int test_find_moves_wK(s_board *board, s_move *moves)
 		}
 		else
 		{
-			moves[num_moves] = move_add(board, board->pieces[wK], board->pieces[wK]<<7, NORMAL, wK);
+			moves[num_moves] = move_add(board, board->pieces[wK], board->pieces[wK]<<7, QUIET, wK);
 			num_moves++;
 		}
 	}
@@ -638,7 +638,7 @@ int test_find_moves_wK(s_board *board, s_move *moves)
 		}
 		else
 		{
-			moves[num_moves] = move_add(board, board->pieces[wK], board->pieces[wK]<<9, NORMAL, wK);
+			moves[num_moves] = move_add(board, board->pieces[wK], board->pieces[wK]<<9, QUIET, wK);
 			num_moves++;
 		}
 	}
@@ -656,7 +656,7 @@ int test_find_moves_wK(s_board *board, s_move *moves)
 		}
 		else
 		{
-			moves[num_moves] = move_add(board, board->pieces[wK], board->pieces[wK]>>8, NORMAL, wK);
+			moves[num_moves] = move_add(board, board->pieces[wK], board->pieces[wK]>>8, QUIET, wK);
 			num_moves++;
 		}
 	}
@@ -674,7 +674,7 @@ int test_find_moves_wK(s_board *board, s_move *moves)
 		}
 		else
 		{
-			moves[num_moves] = move_add(board, board->pieces[wK], board->pieces[wK]>>7, NORMAL, wK);
+			moves[num_moves] = move_add(board, board->pieces[wK], board->pieces[wK]>>7, QUIET, wK);
 			num_moves++;
 		}
 	}
@@ -692,7 +692,7 @@ int test_find_moves_wK(s_board *board, s_move *moves)
 		}
 		else
 		{
-			moves[num_moves] = move_add(board, board->pieces[wK], board->pieces[wK]>>9, NORMAL, wK);
+			moves[num_moves] = move_add(board, board->pieces[wK], board->pieces[wK]>>9, QUIET, wK);
 			num_moves++;
 		}
 	}
@@ -710,7 +710,7 @@ int test_find_moves_wK(s_board *board, s_move *moves)
 		}
 		else
 		{
-			moves[num_moves] = move_add(board, board->pieces[wK], board->pieces[wK]<<1, NORMAL, wK);
+			moves[num_moves] = move_add(board, board->pieces[wK], board->pieces[wK]<<1, QUIET, wK);
 			num_moves++;
 		}
 	}
@@ -728,7 +728,7 @@ int test_find_moves_wK(s_board *board, s_move *moves)
 		}
 		else
 		{
-			moves[num_moves] = move_add(board, board->pieces[wK], board->pieces[wK]>>1, NORMAL, wK);
+			moves[num_moves] = move_add(board, board->pieces[wK], board->pieces[wK]>>1, QUIET, wK);
 			num_moves++;
 		}
 	}
@@ -778,7 +778,7 @@ int test_find_moves_bK(s_board *board, s_move *moves)
 		}
 		else
 		{
-			moves[num_moves] = move_add(board, board->pieces[bK], board->pieces[bK]<<8, NORMAL, bK);
+			moves[num_moves] = move_add(board, board->pieces[bK], board->pieces[bK]<<8, QUIET, bK);
 			num_moves++;
 		}
 	}
@@ -796,7 +796,7 @@ int test_find_moves_bK(s_board *board, s_move *moves)
 		}
 		else
 		{
-			moves[num_moves] = move_add(board, board->pieces[bK], board->pieces[bK]<<7, NORMAL, bK);
+			moves[num_moves] = move_add(board, board->pieces[bK], board->pieces[bK]<<7, QUIET, bK);
 			num_moves++;
 		}
 	}
@@ -814,7 +814,7 @@ int test_find_moves_bK(s_board *board, s_move *moves)
 		}
 		else
 		{
-			moves[num_moves] = move_add(board, board->pieces[bK], board->pieces[bK]<<9, NORMAL, bK);
+			moves[num_moves] = move_add(board, board->pieces[bK], board->pieces[bK]<<9, QUIET, bK);
 			num_moves++;
 		}
 	}
@@ -832,7 +832,7 @@ int test_find_moves_bK(s_board *board, s_move *moves)
 		}
 		else
 		{
-			moves[num_moves] = move_add(board, board->pieces[bK], board->pieces[bK]>>8, NORMAL, bK);
+			moves[num_moves] = move_add(board, board->pieces[bK], board->pieces[bK]>>8, QUIET, bK);
 			num_moves++;
 		}
 	}
@@ -850,7 +850,7 @@ int test_find_moves_bK(s_board *board, s_move *moves)
 		}
 		else
 		{
-			moves[num_moves] = move_add(board, board->pieces[bK], board->pieces[bK]>>7, NORMAL, bK);
+			moves[num_moves] = move_add(board, board->pieces[bK], board->pieces[bK]>>7, QUIET, bK);
 			num_moves++;
 		}
 	}
@@ -868,7 +868,7 @@ int test_find_moves_bK(s_board *board, s_move *moves)
 		}
 		else
 		{
-			moves[num_moves] = move_add(board, board->pieces[bK], board->pieces[bK]>>9, NORMAL, bK);
+			moves[num_moves] = move_add(board, board->pieces[bK], board->pieces[bK]>>9, QUIET, bK);
 			num_moves++;
 		}
 	}
@@ -886,7 +886,7 @@ int test_find_moves_bK(s_board *board, s_move *moves)
 		}
 		else
 		{
-			moves[num_moves] = move_add(board, board->pieces[bK], board->pieces[bK]<<1, NORMAL, bK);
+			moves[num_moves] = move_add(board, board->pieces[bK], board->pieces[bK]<<1, QUIET, bK);
 			num_moves++;
 		}
 	}
@@ -904,7 +904,7 @@ int test_find_moves_bK(s_board *board, s_move *moves)
 		}
 		else
 		{
-			moves[num_moves] = move_add(board, board->pieces[bK], board->pieces[bK]>>1, NORMAL, bK);
+			moves[num_moves] = move_add(board, board->pieces[bK], board->pieces[bK]>>1, QUIET, bK);
 			num_moves++;
 		}
 	}

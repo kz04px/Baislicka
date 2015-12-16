@@ -4,7 +4,7 @@
 #include <time.h>
 
 U64 moves_total;
-U64 moves_normal;
+U64 moves_quiet;
 U64 moves_capture;
 U64 moves_ep;
 U64 moves_check;
@@ -26,6 +26,7 @@ void perft_search(s_board* board, int d)
   for(m = 0; m < num_moves; ++m)
   {
     move_make(board, &move_list[m]);
+    //test_move_make(board, &move_list[m]);
     
     if(board->turn == WHITE)
     {
@@ -51,14 +52,12 @@ void perft_search(s_board* board, int d)
       if(calculate_attacked_white(board, board->pieces[bK]) == TRUE || calculate_attacked_black(board, board->pieces[wK]) == TRUE)
       {
         moves_check++;
-        //display_board(board);
-        //getchar();
       }
       
       switch(move_list[m].type)
       {
-        case NORMAL:
-          moves_normal++;
+        case QUIET:
+          moves_quiet++;
           break;
         case CAPTURE:
           moves_capture++;
@@ -141,9 +140,9 @@ int perft_split(s_board* board, int depth, char* fen)
       }
     }
   
-    // Reset position & stats
+    // Reset position and stats
     moves_total = 0;
-    moves_normal = 0;
+    moves_quiet = 0;
     moves_capture = 0;
     moves_ep = 0;
     moves_check = 0;
@@ -249,7 +248,6 @@ void perft_suite(s_board* board, int max_depth, char* filepath)
     }
     else
     {
-      //printf("failed\n");
       num_failed++;
     }
   }
@@ -280,7 +278,7 @@ void perft(s_board* board, int max_depth, char* fen)
   {
     // Reset position & stats
     moves_total = 0;
-    moves_normal = 0;
+    moves_quiet = 0;
     moves_capture = 0;
     moves_ep = 0;
     moves_check = 0;
@@ -371,8 +369,6 @@ int perft_movegen(s_board* board, const char* filepath)
 {
   ASSERT(board != NULL);
   ASSERT(path != NULL);
-  
-  perft(board, 6, START_FEN);
   
   time_t start;
   double time_taken;
