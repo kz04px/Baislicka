@@ -2,5 +2,3 @@ To do:
 - Combine piece type check (move vs capture) into seperate moves so you can just & the enemy pieces one time
 - Clear up the sq vs pos issue
 -
-
-int u64_to_sq(U64 pos)

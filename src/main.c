@@ -20,10 +20,13 @@ int main()
   printf("\n");
   
   // Test some stuff
-  if(u64_to_sq(U64_C4) != C4)
+  int i;
+  for(i = 0; i < 64; ++i)
   {
-    printf("Error:\n");
-    printf("%i %i\n", u64_to_sq(U64_C4), C4);
+    if(u64_to_sq((U64)1<<i) != i)
+    {
+      printf("u64_to_sq() mismatch: %i %i\n", u64_to_sq(i), i);
+    }
   }
   
   s_board* board = (s_board*) malloc(1*sizeof(s_board));
@@ -31,9 +34,9 @@ int main()
   
   // perft
   //perft_movegen(board, "perftsuite.epd");
-  //perft(board, 7, START_FEN);
+  perft(board, 7, START_FEN);
   //perft_split(board, 1, "rnbqkbnr/ppppppp1/7p/8/8/6PP/PPPPPP2/RNBQKBNR b KQkq - 0 2");
-  perft_suite(board, 5, "perftsuite.epd");
+  //perft_suite(board, 5, "perftsuite.epd");
   
   printf("Done\n");
   getchar();

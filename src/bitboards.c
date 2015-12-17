@@ -38,7 +38,16 @@ U64 occupancyVariation[64][4096] = {{0}}; // Tested: 4095
 U64 rookOccupancyAttackSet[64][4096] = {{0}}; // Tested: 4095
 U64 bishopOccupancyAttackSet[64][512] = {{0}}; // Tested: 511
 
-int LUT[257];
+const int index64[64] = {
+    0, 47,  1, 56, 48, 27,  2, 60,
+   57, 49, 41, 37, 28, 16,  3, 61,
+   54, 58, 35, 52, 50, 42, 21, 44,
+   38, 32, 29, 23, 17, 11,  4, 62,
+   46, 55, 26, 59, 40, 36, 15, 53,
+   34, 51, 20, 43, 31, 22, 10, 45,
+   25, 39, 14, 33, 19, 30,  9, 24,
+   13, 18,  8, 12,  7,  6,  5, 63
+};
 
 void generateKnightMoves()
 {
@@ -232,14 +241,7 @@ int u64_to_sq(U64 pos)
 {
   ASSERT(pos);
   
-  if(pos&0xFF)            {return LUT[pos&0xFF];}            // Row 1
-  else if((pos>>56)&0xFF) {return LUT[(pos>>56)&0xFF] + 56;} // Row 8
-  else if((pos>>8)&0xFF)  {return LUT[(pos>>8)&0xFF]  + 8;}  // Row 2
-  else if((pos>>48)&0xFF) {return LUT[(pos>>48)&0xFF] + 48;} // Row 7
-  else if((pos>>16)&0xFF) {return LUT[(pos>>16)&0xFF] + 16;} // Row 3
-  else if((pos>>40)&0xFF) {return LUT[(pos>>40)&0xFF] + 40;} // Row 6
-  else if((pos>>24)&0xFF) {return LUT[(pos>>24)&0xFF] + 24;} // Row 4
-  else                    {return LUT[(pos>>32)&0xFF] + 32;} // Row 5
+  return index64[((pos ^ (pos-1)) * 0x03f79d71b4cb0a89) >> 58];
 }
 
 void bitboards_init()
@@ -250,13 +252,6 @@ void bitboards_init()
   generateMoveDatabase(1);
   generateKnightMoves();
   
-  LUT[1] = 0;
-  LUT[2] = 1;
-  LUT[4] = 2;
-  LUT[8] = 3;
-  LUT[16] = 4;
-  LUT[32] = 5;
-  LUT[64] = 6;
-  LUT[128] = 7;
-  LUT[256] = 8;
+  printf("Rook table: %I64uKB\n", sizeof(magicMovesRook)/1024);
+  printf("Bishop table: %I64uKB\n", sizeof(magicMovesBishop)/1024);
 }
