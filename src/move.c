@@ -1,6 +1,6 @@
 #include "defs.h"
 
-int move_add_pawn_white(s_board* board, s_move* move_list, U64 from, U64 to)
+int move_add_pawn_white(s_board* board, s_move* move_list, uint64_t from, uint64_t to)
 {
   ASSERT(board != NULL);
   ASSERT(move_list != NULL);
@@ -20,7 +20,7 @@ int move_add_pawn_white(s_board* board, s_move* move_list, U64 from, U64 to)
   }
 }
 
-int move_add_pawn_black(s_board* board, s_move* move_list, U64 from, U64 to)
+int move_add_pawn_black(s_board* board, s_move* move_list, uint64_t from, uint64_t to)
 {
   ASSERT(board != NULL);
   ASSERT(move_list != NULL);
@@ -40,30 +40,38 @@ int move_add_pawn_black(s_board* board, s_move* move_list, U64 from, U64 to)
   }
 }
 
-s_move add_promotion_move(s_board *board, U64 from, U64 to, int piece_type, int promo_piece)
+s_move add_promotion_move(s_board *board, uint64_t from, uint64_t to, int piece_type, int promo_piece)
 {
   ASSERT(board != NULL);
+  ASSERT(from);
+  ASSERT(to);
   
-  int taken = EMPTY;
+  s_move move;
+  
+  move.taken = EMPTY;
   int n;
   for(n = 0; n < 12; ++n)
   {
-    if(board->pieces[n]&to) {taken = n; break;}
+    if(board->pieces[n]&to)
+    {
+      move.taken = n;
+      break;
+    }
   }
   
-  s_move move;
   move.from = from;
   move.to = to;
   move.type = PROMOTE;
-  move.taken = taken;
   move.piece_type = piece_type;
   move.promotion = promo_piece;
   return move;
 }
 
-s_move add_movecapture_white(s_board* board, U64 from, U64 to, int piece_type)
+s_move add_movecapture_white(s_board* board, uint64_t from, uint64_t to, int piece_type)
 {
   ASSERT(board != NULL);
+  ASSERT(from);
+  ASSERT(to);
   ASSERT(piece_type == wP || piece_type == wN || piece_type == wB || piece_type == wR || piece_type == wQ || piece_type == wK);
   
   if(board->pieces_colour[BLACK]&to)
@@ -76,9 +84,11 @@ s_move add_movecapture_white(s_board* board, U64 from, U64 to, int piece_type)
   }
 }
 
-s_move add_movecapture_black(s_board* board, U64 from, U64 to, int piece_type)
+s_move add_movecapture_black(s_board* board, uint64_t from, uint64_t to, int piece_type)
 {
   ASSERT(board != NULL);
+  ASSERT(from);
+  ASSERT(to);
   ASSERT(piece_type == bP || piece_type == bN || piece_type == bB || piece_type == bR || piece_type == bQ || piece_type == bK);
   
   if(board->pieces_colour[WHITE]&to)
@@ -91,9 +101,11 @@ s_move add_movecapture_black(s_board* board, U64 from, U64 to, int piece_type)
   }
 }
 
-s_move move_add(s_board *board, U64 from, U64 to, int type, int piece_type)
+s_move move_add(s_board *board, uint64_t from, uint64_t to, int type, int piece_type)
 {
   ASSERT(board != NULL);
+  ASSERT(from);
+  ASSERT(to);
   
   int taken = EMPTY;
   if(type == CAPTURE)
@@ -125,110 +137,6 @@ s_move move_add(s_board *board, U64 from, U64 to, int type, int piece_type)
   return move;
 }
 
-void test_move_make(s_board *board, s_move *move)
-{
-  ASSERT(board != NULL);
-  ASSERT(move != NULL);
-  
-  // set old permissions
-  move->ep_old = board->ep;
-  move->castling[wKSC] = board->castling[wKSC];
-  move->castling[wQSC] = board->castling[wQSC];
-  move->castling[bKSC] = board->castling[bKSC];
-  move->castling[bQSC] = board->castling[bQSC];
-  board->ep = 0;
-  
-  // White king has moved
-  board->castling[wKSC] = board->castling[wKSC] && !(move->from == U64_E1);
-  board->castling[wQSC] = board->castling[wQSC] && !(move->from == U64_E1);
-  // A1 has moved
-  board->castling[wQSC] = board->castling[wQSC] && !(move->from == U64_A1 || move->to == U64_A1);
-  // H1 has moved
-  board->castling[wKSC] = board->castling[wKSC] && !(move->from == U64_H1 || move->to == U64_H1);
-  
-  // Black king has moved
-  board->castling[bKSC] = board->castling[bKSC] && !(move->from == U64_E8);
-  board->castling[bQSC] = board->castling[bQSC] && !(move->from == U64_E8);
-  // A1 has moved
-  board->castling[bQSC] = board->castling[bQSC] && !(move->from == U64_A8 || move->to == U64_A8);
-  // H1 has moved
-  board->castling[bKSC] = board->castling[bKSC] && !(move->from == U64_H8 || move->to == U64_H8);
-  
-  switch(move->type)
-  {
-    case QUIET:
-      board->pieces[move->piece_type] ^= move->from;
-      board->pieces[move->piece_type] ^= move->to;
-      break;
-    case CAPTURE:
-      board->pieces[move->piece_type] ^= move->from;
-      board->pieces[move->piece_type] ^= move->to;
-      board->pieces[move->taken] ^= move->to;
-      break;
-    case DOUBLE_PAWN:
-      board->pieces[move->piece_type] ^= move->from;
-      board->pieces[move->piece_type] ^= move->to;
-      // Add ep square
-      if(move->piece_type == wP)
-      {
-        board->ep = (move->to)>>8;
-      }
-      else
-      {
-        board->ep = (move->to)<<8;
-      }      
-      break;
-    case PROMOTE:
-      board->pieces[move->piece_type] ^= move->from;
-      board->pieces[move->promotion] ^= move->to;
-      if(move->taken != EMPTY)
-      {
-        board->pieces[move->taken] ^= move->to;
-      }
-      break;
-    case EP:
-      board->pieces[move->piece_type] ^= move->from;
-      board->pieces[move->piece_type] ^= move->to;
-      if(move->piece_type == wP)
-      {
-        board->pieces[bP] ^= (move->to)>>8;
-      }
-      else
-      {
-        board->pieces[wP] ^= (move->to)<<8;
-      }
-      break;
-    case wKSC:
-      board->pieces[wK] = U64_G1;
-      board->pieces[wR] ^= U64_H1;
-      board->pieces[wR] ^= U64_F1;
-      break;
-    case wQSC:
-      board->pieces[wK] = U64_C1;
-      board->pieces[wR] ^= U64_A1;
-      board->pieces[wR] ^= U64_D1;
-      break;
-    case bKSC:
-      board->pieces[bK] = U64_G8;
-      board->pieces[bR] ^= U64_H8;
-      board->pieces[bR] ^= U64_F8;
-      break;
-    case bQSC:
-      board->pieces[bK] = U64_C8;
-      board->pieces[bR] ^= U64_A8;
-      board->pieces[bR] ^= U64_D8;
-      break;
-  }
-  
-  board->pieces_colour[WHITE] = board->pieces[wP] | board->pieces[wN] | board->pieces[wB] |
-                                board->pieces[wR] | board->pieces[wQ] | board->pieces[wK];
-  
-  board->pieces_colour[BLACK] = board->pieces[bP] | board->pieces[bN] | board->pieces[bB] |
-                                board->pieces[bR] | board->pieces[bQ] | board->pieces[bK];
-  
-  board->pieces_all = board->pieces_colour[WHITE] | board->pieces_colour[BLACK];
-}
-
 void move_make(s_board *board, s_move *move)
 {
   ASSERT(board != NULL);
@@ -245,31 +153,35 @@ void move_make(s_board *board, s_move *move)
   // White king move
   if((move->from) & U64_E1)
   {
-    board->castling[wQSC] = FALSE;
-    board->castling[wKSC] = FALSE;
+    board->castling[wQSC] = 0;
+    board->castling[wKSC] = 0;
   }
-  else if((move->to&U64_A1) || (move->from&U64_A1)) // A1 move
+  // A1 move
+  else if((move->to&U64_A1) || (move->from&U64_A1))
   {
-    board->castling[wQSC] = FALSE;
+    board->castling[wQSC] = 0;
   }
-  else if((move->to&U64_H1) || (move->from&U64_H1)) // H1 move
+  // H1 move
+  else if((move->to&U64_H1) || (move->from&U64_H1))
   {
-    board->castling[wKSC] = FALSE;
+    board->castling[wKSC] = 0;
   }
   
   // Black king move
   if(move->from & U64_E8)
   {
-    board->castling[bQSC] = FALSE;
-    board->castling[bKSC] = FALSE;
+    board->castling[bQSC] = 0;
+    board->castling[bKSC] = 0;
   }
-  else if((move->to&U64_A8) || (move->from&U64_A8)) // A8 move
+  // A8 move
+  else if((move->to&U64_A8) || (move->from&U64_A8))
   {
-    board->castling[bQSC] = FALSE;
+    board->castling[bQSC] = 0;
   }
-  else if((move->to&U64_H8) || (move->from&U64_H8)) // H8 move
+  // H8 move
+  else if((move->to&U64_H8) || (move->from&U64_H8))
   {
-    board->castling[bKSC] = FALSE;
+    board->castling[bKSC] = 0;
   }
   
   switch(move->type)

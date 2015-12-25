@@ -3,11 +3,11 @@
 int test_find_moves_wP(s_board *board, s_move *moves)
 {
 	int num_moves = 0;
-	U64 pos = 0;
-	U64 moves1 = (board->pieces[wP]<<8)&(~board->pieces_all);  // Up 1
-	U64 moves2 = ((moves1&U64_ROW_3)<<8)&(~board->pieces_all); // Up 2
-	U64 moves3 = (board->pieces[wP]<<7)&(board->pieces_colour[BLACK])&(~U64_COL_A); // Up 1 right 1
-	U64 moves4 = (board->pieces[wP]<<9)&(board->pieces_colour[BLACK])&(~U64_COL_H); // Up 1 left 1
+	uint64_t pos = 0;
+	uint64_t moves1 = (board->pieces[wP]<<8)&(~board->pieces_all);  // Up 1
+	uint64_t moves2 = ((moves1&U64_ROW_3)<<8)&(~board->pieces_all); // Up 2
+	uint64_t moves3 = (board->pieces[wP]<<7)&(board->pieces_colour[BLACK])&(~U64_COL_A); // Up 1 right 1
+	uint64_t moves4 = (board->pieces[wP]<<9)&(board->pieces_colour[BLACK])&(~U64_COL_H); // Up 1 left 1
 	
 	// En passant
 	if((board->pieces[wP]<<7) & (~U64_COL_A) & (board->ep))
@@ -84,11 +84,11 @@ int test_find_moves_wP(s_board *board, s_move *moves)
 int test_find_moves_bP(s_board *board, s_move *moves)
 {
 	int num_moves = 0;
-	U64 pos = 0;
-	U64 moves1 = (board->pieces[bP]>>8)&(~board->pieces_all);  // Down 1
-	U64 moves2 = ((moves1&U64_ROW_6)>>8)&(~board->pieces_all); // Down 2
-	U64 moves3 = (board->pieces[bP]>>7)&(board->pieces_colour[WHITE])&(~U64_COL_H); // Down 1 left 1
-	U64 moves4 = (board->pieces[bP]>>9)&(board->pieces_colour[WHITE])&(~U64_COL_A); // Down 1 right 1
+	uint64_t pos = 0;
+	uint64_t moves1 = (board->pieces[bP]>>8)&(~board->pieces_all);  // Down 1
+	uint64_t moves2 = ((moves1&U64_ROW_6)>>8)&(~board->pieces_all); // Down 2
+	uint64_t moves3 = (board->pieces[bP]>>7)&(board->pieces_colour[WHITE])&(~U64_COL_H); // Down 1 left 1
+	uint64_t moves4 = (board->pieces[bP]>>9)&(board->pieces_colour[WHITE])&(~U64_COL_A); // Down 1 right 1
 	
 	// En passant
 	if((board->pieces[bP]>>7) & (~U64_COL_H) & (board->ep))
@@ -165,7 +165,7 @@ int test_find_moves_bP(s_board *board, s_move *moves)
 int test_find_moves_knight(s_board *board, s_move *moves, int colour)
 {
 	int num_moves = 0;
-	U64 pos = 0;
+	uint64_t pos = 0;
 	int type;
 	int other_colour;
 	if(colour == WHITE)
@@ -179,14 +179,14 @@ int test_find_moves_knight(s_board *board, s_move *moves, int colour)
 		other_colour = WHITE;
 	}
 	
-	U64 moves1 = (board->pieces[type]<<17) & (~board->pieces_colour[colour]) & (~U64_COL_H); // Up 2 left 1
-	U64 moves2 = (board->pieces[type]<<15) & (~board->pieces_colour[colour]) & (~U64_COL_A); // Up 2 right 1
-	U64 moves3 = (board->pieces[type]>>17) & (~board->pieces_colour[colour]) & (~U64_COL_A); // Down 2 right 1
-	U64 moves4 = (board->pieces[type]>>15) & (~board->pieces_colour[colour]) & (~U64_COL_H); // Down 2 left 1
-	U64 moves5 = (board->pieces[type]<<10) & (~board->pieces_colour[colour]) & ~(U64_COL_G|U64_COL_H); // Left 2 up 1
-	U64 moves6 = (board->pieces[type]>>6)  & (~board->pieces_colour[colour]) & ~(U64_COL_G|U64_COL_H); // Left 2 down 1
-	U64 moves7 = (board->pieces[type]<<6)  & (~board->pieces_colour[colour]) & ~(U64_COL_A|U64_COL_B); // Right 2 up 1
-	U64 moves8 = (board->pieces[type]>>10) & (~board->pieces_colour[colour]) & ~(U64_COL_A|U64_COL_B); // Right 2 down 1
+	uint64_t moves1 = (board->pieces[type]<<17) & (~board->pieces_colour[colour]) & (~U64_COL_H); // Up 2 left 1
+	uint64_t moves2 = (board->pieces[type]<<15) & (~board->pieces_colour[colour]) & (~U64_COL_A); // Up 2 right 1
+	uint64_t moves3 = (board->pieces[type]>>17) & (~board->pieces_colour[colour]) & (~U64_COL_A); // Down 2 right 1
+	uint64_t moves4 = (board->pieces[type]>>15) & (~board->pieces_colour[colour]) & (~U64_COL_H); // Down 2 left 1
+	uint64_t moves5 = (board->pieces[type]<<10) & (~board->pieces_colour[colour]) & ~(U64_COL_G|U64_COL_H); // Left 2 up 1
+	uint64_t moves6 = (board->pieces[type]>>6)  & (~board->pieces_colour[colour]) & ~(U64_COL_G|U64_COL_H); // Left 2 down 1
+	uint64_t moves7 = (board->pieces[type]<<6)  & (~board->pieces_colour[colour]) & ~(U64_COL_A|U64_COL_B); // Right 2 up 1
+	uint64_t moves8 = (board->pieces[type]>>10) & (~board->pieces_colour[colour]) & ~(U64_COL_A|U64_COL_B); // Right 2 down 1
 	
 	while((pos = (moves1 & ~(moves1-1))))
 	{
@@ -300,9 +300,9 @@ int test_find_moves_knight(s_board *board, s_move *moves, int colour)
 int find_diagonal_moves(s_board *board, s_move *moves, int colour, int type)
 {
 	int num_moves = 0;
-	U64 to = 0;
-	U64 from = 0;
-	U64 pos = board->pieces[type];
+	uint64_t to = 0;
+	uint64_t from = 0;
+	uint64_t pos = board->pieces[type];
 	int opposite_colour = WHITE;
 	if(colour == WHITE)
 	{
@@ -408,9 +408,9 @@ int find_diagonal_moves(s_board *board, s_move *moves, int colour, int type)
 int find_horizontal_moves(s_board *board, s_move *moves, int colour, int type)
 {
 	int num_moves = 0;
-	U64 to = 0;
-	U64 from = 0;
-	U64 pos = board->pieces[type];
+	uint64_t to = 0;
+	uint64_t from = 0;
+	uint64_t pos = board->pieces[type];
 	int opposite_colour = WHITE;
 	if(colour == WHITE)
 	{
@@ -562,28 +562,28 @@ int test_find_moves_bQ(s_board *board, s_move *moves)
 int test_find_moves_wK(s_board *board, s_move *moves)
 {
 	int num_moves = 0;
-	U64 from = board->pieces[wK];
+	uint64_t from = board->pieces[wK];
 	
 	// wKSC
-	if(board->castling[wKSC] == TRUE &&
-	   GETBIT(board->pieces_all, F1) == FALSE &&
-	   GETBIT(board->pieces_all, G1) == FALSE &&
-	   calculate_attacked_black(board, U64_E1) == FALSE &&
-	   calculate_attacked_black(board, U64_F1) == FALSE &&
-	   calculate_attacked_black(board, U64_G1) == FALSE)
+	if(board->castling[wKSC] &&
+	   GETBIT(board->pieces_all, F1) != 0 &&
+	   GETBIT(board->pieces_all, G1) != 0 &&
+	   calculate_attacked_black(board, U64_E1) != 0 &&
+	   calculate_attacked_black(board, U64_F1) != 0 &&
+	   calculate_attacked_black(board, U64_G1) != 0)
 	{
 		moves[num_moves] = move_add(board, from, from>>2, wKSC, wK);
 		num_moves++;
 	}
 	
 	// wQSC
-	if(board->castling[wQSC] == TRUE &&
-	   GETBIT(board->pieces_all, D1) == FALSE &&
-	   GETBIT(board->pieces_all, C1) == FALSE &&
-	   GETBIT(board->pieces_all, B1) == FALSE &&
-	   calculate_attacked_black(board, U64_E1) == FALSE &&
-	   calculate_attacked_black(board, U64_D1) == FALSE &&
-	   calculate_attacked_black(board, U64_C1) == FALSE)
+	if(board->castling[wQSC] &&
+	   GETBIT(board->pieces_all, D1) != 0 &&
+	   GETBIT(board->pieces_all, C1) != 0 &&
+	   GETBIT(board->pieces_all, B1) != 0 &&
+	   calculate_attacked_black(board, U64_E1) != 0 &&
+	   calculate_attacked_black(board, U64_D1) != 0 &&
+	   calculate_attacked_black(board, U64_C1) != 0)
 	{
 		moves[num_moves] = move_add(board, from, from<<2, wQSC, wK);
 		num_moves++;
@@ -738,28 +738,28 @@ int test_find_moves_wK(s_board *board, s_move *moves)
 int test_find_moves_bK(s_board *board, s_move *moves)
 {
 	int num_moves = 0;
-	U64 from = board->pieces[bK];
+	uint64_t from = board->pieces[bK];
 	
 	// bKSC
-	if(board->castling[bKSC] == TRUE &&
-	   GETBIT(board->pieces_all, F8) == FALSE &&
-	   GETBIT(board->pieces_all, G8) == FALSE &&
-	   calculate_attacked_white(board, U64_E8) == FALSE &&
-	   calculate_attacked_white(board, U64_F8) == FALSE &&
-	   calculate_attacked_white(board, U64_G8) == FALSE)
+	if(board->castling[bKSC] &&
+	   GETBIT(board->pieces_all, F8) != 0 &&
+	   GETBIT(board->pieces_all, G8) != 0 &&
+	   calculate_attacked_white(board, U64_E8) != 0 &&
+	   calculate_attacked_white(board, U64_F8) != 0 &&
+	   calculate_attacked_white(board, U64_G8) != 0)
 	{
 		moves[num_moves] = move_add(board, from, from>>2, bKSC, bK);
 		num_moves++;
 	}
 	
 	// bQSC
-	if(board->castling[bQSC] == TRUE &&
-	   GETBIT(board->pieces_all, D8) == FALSE &&
-	   GETBIT(board->pieces_all, C8) == FALSE &&
-	   GETBIT(board->pieces_all, B8) == FALSE &&
-	   calculate_attacked_white(board, U64_E8) == FALSE &&
-	   calculate_attacked_white(board, U64_D8) == FALSE &&
-	   calculate_attacked_white(board, U64_C8) == FALSE)
+	if(board->castling[bQSC] &&
+	   GETBIT(board->pieces_all, D8) != 0 &&
+	   GETBIT(board->pieces_all, C8) != 0 &&
+	   GETBIT(board->pieces_all, B8) != 0 &&
+	   calculate_attacked_white(board, U64_E8) != 0 &&
+	   calculate_attacked_white(board, U64_D8) != 0 &&
+	   calculate_attacked_white(board, U64_C8) != 0)
 	{
 		moves[num_moves] = move_add(board, from, from<<2, bQSC, bK);
 		num_moves++;

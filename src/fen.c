@@ -21,10 +21,10 @@ int set_fen(s_board *board, const char *fen)
   
   board->ep = 0;
   
-  board->castling[wKSC] = FALSE;
-  board->castling[wQSC] = FALSE;
-  board->castling[bKSC] = FALSE;
-  board->castling[bQSC] = FALSE;
+  board->castling[wKSC] = 0;
+  board->castling[wQSC] = 0;
+  board->castling[bKSC] = 0;
+  board->castling[bQSC] = 0;
   
   /*
   int i, j;
@@ -174,22 +174,22 @@ int set_fen(s_board *board, const char *fen)
     {
       case 'K':
       {
-        board->castling[wKSC] = TRUE;
+        board->castling[wKSC] = 1;
         break;
       }
       case 'Q':
       {
-        board->castling[wQSC] = TRUE;
+        board->castling[wQSC] = 1;
         break;
       }
       case 'k':
       {
-        board->castling[bKSC] = TRUE;
+        board->castling[bKSC] = 1;
         break;
       }
       case 'q':
       {
-        board->castling[bQSC] = TRUE;
+        board->castling[bQSC] = 1;
         break;
       }
       case '-':
@@ -209,7 +209,7 @@ int set_fen(s_board *board, const char *fen)
   {
     int col = fen[n] - 'a';
     int row = fen[n+1] - '1';
-    board->ep = (U64)1<<(row*8 + 7 - col);
+    board->ep = (uint64_t)1<<(row*8 + 7 - col);
     n++;
   }
   n += 2;

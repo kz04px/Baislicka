@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <inttypes.h>
+#include <time.h>
 
 #define ENGINE_NAME "Baislicka"
 #define ENGINE_VERSION "2.0"
@@ -13,32 +14,28 @@
 #define TEST2_FEN "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1"
 #define TEST3_FEN "8/3K4/8/3k4/8/8/8/7N w - - 0 0"
 #define TEST4_FEN "8/1kp1p3/6N1/4B3/8/8/R3K2R/8 w - - 0 0"
-#define U64 unsigned long long int
-#define SETBIT(x, n) ((x) = (x) | ((U64)1<<(n)))
+#define SETBIT(x, n) ((x) = (x) | ((uint64_t)1<<(n)))
 #define GETBIT(x, n) (((x)>>(n))&1)
 #define MAX_MOVES 256
 #define POS_TO_COL_CHAR(x) ('h'-(x%8))
 #define POS_TO_ROW_CHAR(x) ((x/8)+'1')
 
-#define FALSE 0
-#define TRUE !FALSE
-
-#define U64_COL_H 0x0101010101010101
-#define U64_COL_G 0x0202020202020202
-#define U64_COL_F 0x0404040404040404
-#define U64_COL_E 0x0808080808080808
-#define U64_COL_D 0x1010101010101010
-#define U64_COL_C 0x2020202020202020
-#define U64_COL_B 0x4040404040404040
-#define U64_COL_A 0x8080808080808080
-#define U64_ROW_1 0x00000000000000FF
-#define U64_ROW_2 0x000000000000FF00
-#define U64_ROW_3 0x0000000000FF0000
-#define U64_ROW_4 0x00000000FF000000
-#define U64_ROW_5 0x000000FF00000000
-#define U64_ROW_6 0x0000FF0000000000
-#define U64_ROW_7 0x00FF000000000000
-#define U64_ROW_8 0xFF00000000000000
+#define U64_COL_H 0x0101010101010101ULL
+#define U64_COL_G 0x0202020202020202ULL
+#define U64_COL_F 0x0404040404040404ULL
+#define U64_COL_E 0x0808080808080808ULL
+#define U64_COL_D 0x1010101010101010ULL
+#define U64_COL_C 0x2020202020202020ULL
+#define U64_COL_B 0x4040404040404040ULL
+#define U64_COL_A 0x8080808080808080ULL
+#define U64_ROW_1 0x00000000000000FFULL
+#define U64_ROW_2 0x000000000000FF00ULL
+#define U64_ROW_3 0x0000000000FF0000ULL
+#define U64_ROW_4 0x00000000FF000000ULL
+#define U64_ROW_5 0x000000FF00000000ULL
+#define U64_ROW_6 0x0000FF0000000000ULL
+#define U64_ROW_7 0x00FF000000000000ULL
+#define U64_ROW_8 0xFF00000000000000ULL
 
 #define U64_A1 (U64_COL_A & U64_ROW_1)
 #define U64_B1 (U64_COL_B & U64_ROW_1)
@@ -76,8 +73,10 @@
 #define U64_G8 (U64_COL_G & U64_ROW_8)
 #define U64_H8 (U64_COL_H & U64_ROW_8)
 
-//#define DEBUG
+#define DEBUG
+#define MINIMAX
 //#define TEST_MOVEGEN
+//#define GET_PV
 
 #ifndef DEBUG
   #define ASSERT(n)
@@ -85,11 +84,11 @@
 #define ASSERT(n) \
   if(!(n)) \
   { \
-    fprintf(stdout, "\n%s - Failed\n", #n); \
-    fprintf(stdout, "On %s\n", __DATE__); \
-    fprintf(stdout, "At %s\n", __TIME__); \
-    fprintf(stdout, "In File %s\n", __FILE__); \
-    fprintf(stdout, "At Line %d\n", __LINE__); \
+    printf("\n%s - Failed\n", #n); \
+    printf("On %s\n", __DATE__); \
+    printf("At %s\n", __TIME__); \
+    printf("In File %s\n", __FILE__); \
+    printf("At Line %d\n", __LINE__); \
     getchar(); \
   }
 #endif
@@ -109,14 +108,14 @@ enum {H1= 0, G1, F1, E1, D1, C1, B1, A1};
 
 typedef struct
 {
-  U64 from;
-  U64 to;
+  uint64_t from;
+  uint64_t to;
   int taken;
   int piece_type;
   int type;
   int promotion;
   
-  U64 ep_old;
+  uint64_t ep_old;
   int castling[4];
 } s_move;
 
@@ -124,22 +123,31 @@ typedef struct
 {
   int turn;
   int castling[4];
-  U64 ep;
-  U64 pieces[12];
-  U64 pieces_colour[2];
-  U64 pieces_all;
+  uint64_t ep;
+  uint64_t pieces[12];
+  uint64_t pieces_colour[2];
+  uint64_t pieces_all;
 } s_board;
 
 // attack.c
-int calculate_attacked_white(s_board* board, U64 pos);
-int calculate_attacked_black(s_board* board, U64 pos);
+int calculate_attacked_white(s_board* board, uint64_t pos);
+int calculate_attacked_black(s_board* board, uint64_t pos);
 
 // bitboards.c
 void bitboards_init();
-U64 magic_moves_hor_ver(U64 pieces_all, int pos);
-U64 magic_moves_diagonal(U64 pieces_all, int pos);
-U64 magic_moves_knight(int pos);
-int u64_to_sq(U64 pos);
+uint64_t magic_moves_hor_ver(uint64_t pieces_all, int pos);
+uint64_t magic_moves_diagonal(uint64_t pieces_all, int pos);
+uint64_t magic_moves_knight(int pos);
+int u64_to_sq(uint64_t pos);
+uint64_t pinned_pieces_white(s_board* board, int sq);
+uint64_t pinned_pieces_black(s_board* board, int sq);
+
+// search.c
+void search(s_board* board, int depth);
+int minimax(s_board* board, int depth);
+
+// eval.c
+int eval(s_board* board);
 
 // movegen.c
 int find_moves_white(s_board* board, s_move* move_list);
@@ -176,20 +184,19 @@ void perft_suite(s_board* board, int max_depth, char* filepath);
 int perft_movegen(s_board* board, const char* filepath);
 
 // move.c
-s_move move_add(s_board *board, U64 from, U64 to, int type, int piece_type);
-int move_add_pawn_white(s_board* board, s_move* move_list, U64 from, U64 to);
-s_move add_movecapture_white(s_board* board, U64 from, U64 to, int piece_type);
-int move_add_pawn_black(s_board* board, s_move* move_list, U64 from, U64 to);
-s_move add_movecapture_black(s_board* board, U64 from, U64 to, int piece_type);
-s_move add_promotion_move(s_board *board, U64 from, U64 to, int piece_type, int promo_piece);
+s_move move_add(s_board *board, uint64_t from, uint64_t to, int type, int piece_type);
+int move_add_pawn_white(s_board* board, s_move* move_list, uint64_t from, uint64_t to);
+s_move add_movecapture_white(s_board* board, uint64_t from, uint64_t to, int piece_type);
+int move_add_pawn_black(s_board* board, s_move* move_list, uint64_t from, uint64_t to);
+s_move add_movecapture_black(s_board* board, uint64_t from, uint64_t to, int piece_type);
+s_move add_promotion_move(s_board *board, uint64_t from, uint64_t to, int piece_type, int promo_piece);
 void move_make(s_board *board, s_move *move);
 void move_undo(s_board *board, s_move *move);
-void test_move_make(s_board *board, s_move *move);
 
 // display.c
 void print_move(s_move move);
 void print_move_list(s_move* move_list, int num_moves);
-void print_u64(U64 board);
+void print_u64(uint64_t board);
 void display_board(s_board *board);
 
 // test.c

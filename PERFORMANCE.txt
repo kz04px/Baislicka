@@ -1,4 +1,6 @@
-Stockfish-6-sse42 perft for comparison:
+------------------------------------------------------------------
+Stockfish-6-sse42 perft
+------------------------------------------------------------------
 D   Time
 1   0.009
 2   0.023
@@ -9,7 +11,9 @@ D   Time
 7   17.180
 8   467.339   ~182m NPS
 
-
+------------------------------------------------------------------
+Perft Results
+------------------------------------------------------------------
 Baislicka 2.0
 
 Normal movegen
@@ -61,3 +65,51 @@ Test Pawn   Knight Bishop Rook   Queen  King   Total
 18   0.047  0.030  0.037  1.541  x.xxx  1.022  2.677
 19   0.048  0.029  0.036  0.393  x.xxx  0.619  1.125
 Sum  2.131  1.819  1.954  17.481 0.000  16.024 39.409
+
+
+------------------------------------------------------------------
+Minimax Search
+------------------------------------------------------------------
+Baislicka 2.0
+
+Rook table: 2048KB
+Bishop table: 256KB
+Normal movegen
+sizeof(s_board): 152B
+sizeof(s_move):  56B
+
+D   Time      NPS     Moves       Captures  EP     Castles Checks
+1   0.000s    -       20          0         0      0       0
+2   0.000s    -       400         0         0      0       0
+3   0.001s    -       8902        34        0      0       12
+4   0.017s    11.6m   197281      1576      0      0       469
+
+h2 h3 (P) normal
+Eval: 0
+Time: 0.000s
+
+h2 h3 (P) normal
+Eval: 0
+Time: 0.000s
+
+h2 h3 (P) normal
+Eval: 0
+Time: 0.003s
+
+h2 h3 (P) normal
+Eval: 0
+Time: 0.062s
+
+g2 g3 (P) normal
+Eval: 100
+Time: 1.463s
+
+h2 h3 (P) normal
+Eval: -100
+Time: 36.569s
+
+h2 h3 (P) normal
+Eval: 100
+Time: 938.735s
+
+Done

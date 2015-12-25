@@ -1,7 +1,7 @@
 #include "defs.h"
 
 void print_move(s_move move)
-{
+{  
   int p;
   for(p = 0; p <= 63; ++p)
   {
@@ -96,7 +96,6 @@ void print_move(s_move move)
       
       printf("to:\n");
       print_u64(move.to);
-      
       break;
   }
     
@@ -117,7 +116,7 @@ void print_move_list(s_move* move_list, int num_moves)
   }
 }
 
-void print_u64(U64 board)
+void print_u64(uint64_t board)
 {
   int i;
   for(i = 63; i >= 0; --i)
@@ -203,5 +202,5 @@ void display_board(s_board *board)
   if(board->castling[bQSC]) {printf("q");}
   printf("\n");
   
-  printf("Ep: %I64u\n", board->ep);
+  printf("Ep: %"PRIdPTR"\n", board->ep);
 }

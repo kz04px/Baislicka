@@ -3,15 +3,15 @@
 #include <string.h>
 #include <time.h>
 
-U64 moves_total;
-U64 moves_quiet;
-U64 moves_capture;
-U64 moves_ep;
-U64 moves_check;
-U64 moves_wKSC;
-U64 moves_wQSC;
-U64 moves_bKSC;
-U64 moves_bQSC;
+uint64_t moves_total;
+uint64_t moves_quiet;
+uint64_t moves_capture;
+uint64_t moves_ep;
+uint64_t moves_check;
+uint64_t moves_wKSC;
+uint64_t moves_wQSC;
+uint64_t moves_bKSC;
+uint64_t moves_bQSC;
 
 void perft_search(s_board* board, int d)
 {
@@ -24,13 +24,12 @@ void perft_search(s_board* board, int d)
   
   int m;
   for(m = 0; m < num_moves; ++m)
-  {
+  {    
     move_make(board, &move_list[m]);
-    //test_move_make(board, &move_list[m]);
     
     if(board->turn == WHITE)
     {
-      if(calculate_attacked_black(board, board->pieces[wK]) == TRUE)
+      if(calculate_attacked_black(board, board->pieces[wK]))
       {
         move_undo(board, &move_list[m]);
         continue;
@@ -38,7 +37,7 @@ void perft_search(s_board* board, int d)
     }
     else
     {
-      if(calculate_attacked_white(board, board->pieces[bK]) == TRUE)
+      if(calculate_attacked_white(board, board->pieces[bK]))
       {
         move_undo(board, &move_list[m]);
         continue;
@@ -49,10 +48,26 @@ void perft_search(s_board* board, int d)
     {
       moves_total++;
       
-      if(calculate_attacked_white(board, board->pieces[bK]) == TRUE || calculate_attacked_black(board, board->pieces[wK]) == TRUE)
+      if(board->turn == WHITE)
+      {
+        if(calculate_attacked_white(board, board->pieces[bK]))
+        {
+          moves_check++;
+        }
+      }
+      else
+      {
+        if(calculate_attacked_black(board, board->pieces[wK]))
+        {
+          moves_check++;
+        }
+      }
+      /*
+      if(calculate_attacked_white(board, board->pieces[bK]) || calculate_attacked_black(board, board->pieces[wK]))
       {
         moves_check++;
       }
+      */
       
       switch(move_list[m].type)
       {
@@ -83,7 +98,7 @@ void perft_search(s_board* board, int d)
       }
     }
     else
-    {      
+    {
       board->turn = 1-(board->turn);
       perft_search(board, d-1);
       board->turn = 1-(board->turn);
@@ -125,7 +140,7 @@ int perft_split(s_board* board, int depth, char* fen)
     
     if(board->turn == WHITE)
     {
-      if(calculate_attacked_black(board, board->pieces[wK]) == TRUE)
+      if(calculate_attacked_black(board, board->pieces[wK]))
       {
         move_undo(board, &move_list[m]);
         continue;
@@ -133,7 +148,7 @@ int perft_split(s_board* board, int depth, char* fen)
     }
     else
     {
-      if(calculate_attacked_white(board, board->pieces[bK]) == TRUE)
+      if(calculate_attacked_white(board, board->pieces[bK]))
       {
         move_undo(board, &move_list[m]);
         continue;
@@ -212,12 +227,12 @@ void perft_suite(s_board* board, int max_depth, char* filepath)
     
     printf("Test %i: ", num_tests);
     
-    int pass = TRUE;
+    int pass = 1;
     
     while((pch = strtok(NULL, ";\n")))
     {
       int depth = 0;
-      U64 result = 0;
+      uint64_t result = 0;
       sscanf(pch+1, "%i %I64u", &depth, &result);
       
       if(depth > max_depth)
@@ -230,18 +245,18 @@ void perft_suite(s_board* board, int max_depth, char* filepath)
       
       if(moves_total != result)
       {
-        if(pass == TRUE)
+        if(pass)
         {
           printf("failed\n");
         }
         
         printf(" %i: %I64u %I64u\n", depth, moves_total, result);
         
-        pass = FALSE;
+        pass = 0;
       }
     }
     
-    if(pass == TRUE)
+    if(pass)
     {
       printf("passed\n");
       num_passed++;
@@ -272,7 +287,7 @@ void perft(s_board* board, int max_depth, char* fen)
   time_t start;
   double time_taken;
   
-  printf("D   Time      Moves       Captures  EP     Castles Checks\n");
+  printf("D   Time      NPS     Moves       Captures  EP     Castles Checks\n");
   int d;
   for(d = 1; d <= max_depth; ++d)
   {
@@ -307,6 +322,19 @@ void perft(s_board* board, int max_depth, char* fen)
     printf("%.3fs  ", time_taken);
          if(time_taken < 10.0)  {printf("  ");}
     else if(time_taken < 100.0) {printf(" ");}
+    
+    // NPS
+    if(time_taken < 0.005)
+    {
+      printf("-       ");
+    }
+    else
+    {
+      printf("%.1fm  ", (moves_total/time_taken)/1000000);
+           if((moves_total/time_taken)/1000000 < 1)   {printf("   ");}
+      else if((moves_total/time_taken)/1000000 < 10)  {printf("  ");}
+      else if((moves_total/time_taken)/1000000 < 100) {printf(" ");}
+    }
     
     printf("%I64u", moves_total);
          if(moves_total < 10)           {printf("           ");}
@@ -368,7 +396,7 @@ void perft(s_board* board, int max_depth, char* fen)
 int perft_movegen(s_board* board, const char* filepath)
 {
   ASSERT(board != NULL);
-  ASSERT(path != NULL);
+  ASSERT(filepath != NULL);
   
   time_t start;
   double time_taken;
