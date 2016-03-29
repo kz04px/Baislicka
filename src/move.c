@@ -1,50 +1,50 @@
 #include "defs.h"
 
-int move_add_pawn_white(s_board* board, s_move* move_list, uint64_t from, uint64_t to)
+int move_add_pawn_white(s_board* board, s_move* moves, uint64_t from, uint64_t to)
 {
-  ASSERT(board != NULL);
-  ASSERT(move_list != NULL);
+  assert(board != NULL);
+  assert(moves != NULL);
   
   if(to&U64_ROW_8)
   {
-    move_list[0] = add_promotion_move(board, from, to, wP, wQ);
-    move_list[1] = add_promotion_move(board, from, to, wP, wN);
-    move_list[2] = add_promotion_move(board, from, to, wP, wR);
-    move_list[3] = add_promotion_move(board, from, to, wP, wB);
+    moves[0] = add_promotion_move(board, from, to, wP, wQ);
+    moves[1] = add_promotion_move(board, from, to, wP, wN);
+    moves[2] = add_promotion_move(board, from, to, wP, wR);
+    moves[3] = add_promotion_move(board, from, to, wP, wB);
     return 4;
   }
   else
   {
-    move_list[0] = add_movecapture_white(board, from, to, wP);
+    moves[0] = add_movecapture_white(board, from, to, wP);
     return 1;
   }
 }
 
-int move_add_pawn_black(s_board* board, s_move* move_list, uint64_t from, uint64_t to)
+int move_add_pawn_black(s_board* board, s_move* moves, uint64_t from, uint64_t to)
 {
-  ASSERT(board != NULL);
-  ASSERT(move_list != NULL);
+  assert(board != NULL);
+  assert(moves != NULL);
   
   if(to&U64_ROW_1)
   {
-    move_list[0] = add_promotion_move(board, from, to, bP, bQ);
-    move_list[1] = add_promotion_move(board, from, to, bP, bN);
-    move_list[2] = add_promotion_move(board, from, to, bP, bR);
-    move_list[3] = add_promotion_move(board, from, to, bP, bB);
+    moves[0] = add_promotion_move(board, from, to, bP, bQ);
+    moves[1] = add_promotion_move(board, from, to, bP, bN);
+    moves[2] = add_promotion_move(board, from, to, bP, bR);
+    moves[3] = add_promotion_move(board, from, to, bP, bB);
     return 4;
   }
   else
   {
-    move_list[0] = add_movecapture_black(board, from, to, bP);
+    moves[0] = add_movecapture_black(board, from, to, bP);
     return 1;
   }
 }
 
 s_move add_promotion_move(s_board *board, uint64_t from, uint64_t to, int piece_type, int promo_piece)
 {
-  ASSERT(board != NULL);
-  ASSERT(from);
-  ASSERT(to);
+  assert(board != NULL);
+  assert(from);
+  assert(to);
   
   s_move move;
   
@@ -69,10 +69,10 @@ s_move add_promotion_move(s_board *board, uint64_t from, uint64_t to, int piece_
 
 s_move add_movecapture_white(s_board* board, uint64_t from, uint64_t to, int piece_type)
 {
-  ASSERT(board != NULL);
-  ASSERT(from);
-  ASSERT(to);
-  ASSERT(piece_type == wP || piece_type == wN || piece_type == wB || piece_type == wR || piece_type == wQ || piece_type == wK);
+  assert(board != NULL);
+  assert(from);
+  assert(to);
+  assert(piece_type == wP || piece_type == wN || piece_type == wB || piece_type == wR || piece_type == wQ || piece_type == wK);
   
   if(board->pieces_colour[BLACK]&to)
   {
@@ -86,10 +86,10 @@ s_move add_movecapture_white(s_board* board, uint64_t from, uint64_t to, int pie
 
 s_move add_movecapture_black(s_board* board, uint64_t from, uint64_t to, int piece_type)
 {
-  ASSERT(board != NULL);
-  ASSERT(from);
-  ASSERT(to);
-  ASSERT(piece_type == bP || piece_type == bN || piece_type == bB || piece_type == bR || piece_type == bQ || piece_type == bK);
+  assert(board != NULL);
+  assert(from);
+  assert(to);
+  assert(piece_type == bP || piece_type == bN || piece_type == bB || piece_type == bR || piece_type == bQ || piece_type == bK);
   
   if(board->pieces_colour[WHITE]&to)
   {
@@ -103,9 +103,9 @@ s_move add_movecapture_black(s_board* board, uint64_t from, uint64_t to, int pie
 
 s_move move_add(s_board *board, uint64_t from, uint64_t to, int type, int piece_type)
 {
-  ASSERT(board != NULL);
-  ASSERT(from);
-  ASSERT(to);
+  assert(board != NULL);
+  assert(from);
+  assert(to);
   
   int taken = EMPTY;
   if(type == CAPTURE)
@@ -139,8 +139,8 @@ s_move move_add(s_board *board, uint64_t from, uint64_t to, int type, int piece_
 
 void move_make(s_board *board, s_move *move)
 {
-  ASSERT(board != NULL);
-  ASSERT(move != NULL);
+  assert(board != NULL);
+  assert(move != NULL);
   
   // set old permissions
   move->ep_old = board->ep;

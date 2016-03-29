@@ -1,7 +1,6 @@
 #include "defs.h"
 
 #include <string.h>
-#include <time.h>
 
 uint64_t moves_total;
 uint64_t moves_quiet;
@@ -15,23 +14,23 @@ uint64_t moves_bQSC;
 
 void perft_search(s_board* board, int d)
 {
-  ASSERT(board != NULL);
-  ASSERT(d > 0);
-  ASSERT(board->turn == WHITE || board->turn == BLACK);
+  assert(board != NULL);
+  assert(d > 0);
+  assert(board->turn == WHITE || board->turn == BLACK);
   
-  s_move move_list[MAX_MOVES];
-  int num_moves = find_moves(board, move_list, board->turn);
+  s_move moves[MAX_MOVES];
+  int num_moves = find_moves(board, moves, board->turn);
   
   int m;
   for(m = 0; m < num_moves; ++m)
   {    
-    move_make(board, &move_list[m]);
+    move_make(board, &moves[m]);
     
     if(board->turn == WHITE)
     {
       if(calculate_attacked_black(board, board->pieces[wK]))
       {
-        move_undo(board, &move_list[m]);
+        move_undo(board, &moves[m]);
         continue;
       }
     }
@@ -39,7 +38,7 @@ void perft_search(s_board* board, int d)
     {
       if(calculate_attacked_white(board, board->pieces[bK]))
       {
-        move_undo(board, &move_list[m]);
+        move_undo(board, &moves[m]);
         continue;
       }
     }
@@ -69,7 +68,7 @@ void perft_search(s_board* board, int d)
       }
       */
       
-      switch(move_list[m].type)
+      switch(moves[m].type)
       {
         case QUIET:
           moves_quiet++;
@@ -104,7 +103,7 @@ void perft_search(s_board* board, int d)
       board->turn = 1-(board->turn);
     }
     
-    move_undo(board, &move_list[m]);
+    move_undo(board, &moves[m]);
   }
   
   return;
@@ -112,9 +111,9 @@ void perft_search(s_board* board, int d)
 
 int perft_split(s_board* board, int depth, char* fen)
 {
-  ASSERT(board != NULL);
-  ASSERT(depth > 0);
-  ASSERT(fen != NULL);
+  assert(board != NULL);
+  assert(depth > 0);
+  assert(fen != NULL);
   
   int combined_total = 0;
   int r = set_fen(board, fen);
@@ -128,21 +127,21 @@ int perft_split(s_board* board, int depth, char* fen)
   printf("Board:\n");
   display_board(board);
   
-  s_move move_list[MAX_MOVES];
-  int num_moves = find_moves(board, move_list, board->turn);
+  s_move moves[MAX_MOVES];
+  int num_moves = find_moves(board, moves, board->turn);
   
   printf("Num moves: %i\n\n", num_moves);
   
   int m;
   for(m = 0; m < num_moves; ++m)
   {
-    move_make(board, &move_list[m]);
+    move_make(board, &moves[m]);
     
     if(board->turn == WHITE)
     {
       if(calculate_attacked_black(board, board->pieces[wK]))
       {
-        move_undo(board, &move_list[m]);
+        move_undo(board, &moves[m]);
         continue;
       }
     }
@@ -150,7 +149,7 @@ int perft_split(s_board* board, int depth, char* fen)
     {
       if(calculate_attacked_white(board, board->pieces[bK]))
       {
-        move_undo(board, &move_list[m]);
+        move_undo(board, &moves[m]);
         continue;
       }
     }
@@ -173,10 +172,10 @@ int perft_split(s_board* board, int depth, char* fen)
       board->turn = 1-(board->turn);
     }
     
-    print_move(move_list[m]);
+    print_move(moves[m]);
     printf("%I64u\n", moves_total);
     
-    move_undo(board, &move_list[m]);
+    move_undo(board, &moves[m]);
     
     combined_total += moves_total;
   }
@@ -187,9 +186,9 @@ int perft_split(s_board* board, int depth, char* fen)
 
 void perft_suite(s_board* board, int max_depth, char* filepath)
 {
-  ASSERT(board != NULL);
-  ASSERT(max_depth > 0);
-  ASSERT(filepath != NULL);
+  assert(board != NULL);
+  assert(max_depth > 0);
+  assert(filepath != NULL);
   
   FILE* file = fopen(filepath, "r");
   if(!file)
@@ -280,9 +279,9 @@ void perft_suite(s_board* board, int max_depth, char* filepath)
 
 void perft(s_board* board, int max_depth, char* fen)
 {
-  ASSERT(board != NULL);
-  ASSERT(max_depth > 0);
-  ASSERT(fen != NULL);
+  assert(board != NULL);
+  assert(max_depth > 0);
+  assert(fen != NULL);
   
   time_t start;
   double time_taken;
@@ -393,10 +392,95 @@ void perft(s_board* board, int max_depth, char* fen)
   return;
 }
 
+/*
+ * The validity of this function might be questionable, as the
+ * number of pieces and total moves for each side of the board
+ * are not necessarily the same or even close. Use a large
+ * enough number of positions and any positional variance should
+ * balance out - if the times are still not approximately the
+ * same then presumably the movegen functions are imbalanced
+ */
+int perft_movegen_sides(s_board* board, const char* filepath)
+{
+  assert(board != NULL);
+  assert(filepath != NULL);
+  
+  time_t start;
+  double time_taken;
+  double time_total = 0;
+  double time_white = 0;
+  double time_black = 0;
+  s_move moves[MAX_MOVES];
+  int repeats = 5000000;
+  int i;
+  int test = 0;
+  
+  FILE* file = fopen(filepath, "r");
+  if(file == NULL) {return -1;}
+  
+  printf("Test White  Black\n");
+  char line[1024];
+  while(fgets(line, sizeof(line), file))
+  {
+    //if(test == 20) {break;}
+    
+    char* pch = strtok(line, ";");
+    
+    int r = set_fen(board, pch);
+    if(r != 0)
+    {
+      printf("Invalid fen (%s)\n", pch);
+      printf("Error code: %i\n", r);
+      printf("Skipping test\n");
+      continue;
+    }
+    
+    printf("%i", test);
+         if(test < 10)   {printf("    ");}
+    else if(test < 100)  {printf("   ");}
+    else if(test < 1000) {printf("  ");}
+    
+    // White
+    start = clock();
+    for(i = 0; i < repeats; ++i)
+    {
+      find_moves_white(board, moves);
+    }
+    time_taken = ((double)clock()-start)/CLOCKS_PER_SEC;
+    time_total += time_taken;
+    time_white += time_taken;
+    printf("%.3f", time_taken);
+    
+    // Black
+    start = clock();
+    for(i = 0; i < repeats; ++i)
+    {
+      find_moves_black(board, moves);
+    }
+    time_taken = ((double)clock()-start)/CLOCKS_PER_SEC;
+    time_total += time_taken;
+    time_black += time_taken;
+    printf("  %.3f", time_taken);
+    
+    printf("\n");
+    test++;
+  }
+  
+  printf("\n");
+  
+  printf("Total: %.3f\n", time_total);
+  printf("White: %.3f\n", time_white);
+  printf("Black: %.3f\n", time_black);
+  
+  printf("\n");
+  
+  return 0;
+}
+
 int perft_movegen(s_board* board, const char* filepath)
 {
-  ASSERT(board != NULL);
-  ASSERT(filepath != NULL);
+  assert(board != NULL);
+  assert(filepath != NULL);
   
   time_t start;
   double time_taken;
@@ -407,7 +491,7 @@ int perft_movegen(s_board* board, const char* filepath)
   double time_rook = 0;
   double time_queen = 0;
   double time_king = 0;
-  s_move move_list[MAX_MOVES];
+  s_move moves[MAX_MOVES];
   int repeats = 5000000;
   int i;
   int test = 0;
@@ -442,13 +526,8 @@ int perft_movegen(s_board* board, const char* filepath)
     start = clock();
     for(i = 0; i < repeats; ++i)
     {
-      #ifdef TEST_MOVEGEN
-        test_find_moves_wP(board, move_list);
-        test_find_moves_bP(board, move_list);
-      #else
-        find_moves_wP(board, move_list);
-        find_moves_bP(board, move_list);
-      #endif
+      find_moves_wP(board, moves);
+      find_moves_bP(board, moves);
     }
     time_taken = ((double)clock()-start)/CLOCKS_PER_SEC;
     time_total += time_taken;
@@ -459,13 +538,8 @@ int perft_movegen(s_board* board, const char* filepath)
     start = clock();
     for(i = 0; i < repeats; ++i)
     {
-      #ifdef TEST_MOVEGEN
-        test_find_moves_wN(board, move_list);
-        test_find_moves_bN(board, move_list);
-      #else
-        find_moves_wN(board, move_list);
-        find_moves_bN(board, move_list);
-      #endif
+      find_moves_wN(board, moves);
+      find_moves_bN(board, moves);
     }
     time_taken = ((double)clock()-start)/CLOCKS_PER_SEC;
     time_total += time_taken;
@@ -476,8 +550,8 @@ int perft_movegen(s_board* board, const char* filepath)
     start = clock();
     for(i = 0; i < repeats; ++i)
     {
-      find_moves_wB_wQ(board, move_list);
-      find_moves_bB_bQ(board, move_list);
+      find_moves_wB_wQ(board, moves);
+      find_moves_bB_bQ(board, moves);
     }
     time_taken = ((double)clock()-start)/CLOCKS_PER_SEC;
     time_total += time_taken;
@@ -488,8 +562,8 @@ int perft_movegen(s_board* board, const char* filepath)
     start = clock();
     for(i = 0; i < repeats; ++i)
     {
-      find_moves_wR_wQ(board, move_list);
-      find_moves_bR_bQ(board, move_list);
+      find_moves_wR_wQ(board, moves);
+      find_moves_bR_bQ(board, moves);
     }
     time_taken = ((double)clock()-start)/CLOCKS_PER_SEC;
     time_total += time_taken;
@@ -503,13 +577,8 @@ int perft_movegen(s_board* board, const char* filepath)
     start = clock();
     for(i = 0; i < repeats; ++i)
     {
-      #ifdef TEST_MOVEGEN
-        test_find_moves_wB(board, move_list);
-        test_find_moves_bB(board, move_list);
-      #else
-        find_moves_wB(board, move_list);
-        find_moves_bB(board, move_list);
-      #endif
+      find_moves_wB(board, moves);
+      find_moves_bB(board, moves);
     }
     time_taken = ((double)clock()-start)/CLOCKS_PER_SEC;
     time_total += time_taken;
@@ -520,13 +589,8 @@ int perft_movegen(s_board* board, const char* filepath)
     start = clock();
     for(i = 0; i < repeats; ++i)
     {
-      #ifdef TEST_MOVEGEN
-        test_find_moves_wR(board, move_list);
-        test_find_moves_bR(board, move_list);
-      #else
-        find_moves_wR(board, move_list);
-        find_moves_bR(board, move_list);
-      #endif
+      find_moves_wR(board, moves);
+      find_moves_bR(board, moves);
     }
     time_taken = ((double)clock()-start)/CLOCKS_PER_SEC;
     time_total += time_taken;
@@ -537,13 +601,8 @@ int perft_movegen(s_board* board, const char* filepath)
     start = clock();
     for(i = 0; i < repeats; ++i)
     {
-      #ifdef TEST_MOVEGEN
-        test_find_moves_wQ(board, move_list);
-        test_find_moves_bQ(board, move_list);
-      #else
-        find_moves_wQ(board, move_list);
-        find_moves_bQ(board, move_list);
-      #endif
+      find_moves_wQ(board, moves);
+      find_moves_bQ(board, moves);
     }
     time_taken = ((double)clock()-start)/CLOCKS_PER_SEC;
     time_total += time_taken;
@@ -555,13 +614,8 @@ int perft_movegen(s_board* board, const char* filepath)
     start = clock();
     for(i = 0; i < repeats; ++i)
     {
-      #ifdef TEST_MOVEGEN
-        test_find_moves_wK(board, move_list);
-        test_find_moves_bK(board, move_list);
-      #else
-        find_moves_wK(board, move_list);
-        find_moves_bK(board, move_list);
-      #endif
+      find_moves_wK(board, moves);
+      find_moves_bK(board, moves);
     }
     time_taken = ((double)clock()-start)/CLOCKS_PER_SEC;
     time_total += time_taken;

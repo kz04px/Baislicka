@@ -4,8 +4,18 @@
 
 void search(s_board* board, int depth)
 {
-  ASSERT(board != NULL);
-  ASSERT(depth > 0);
+  assert(board != NULL);
+  assert(depth >= 0);
+  
+  if(depth == 0)
+  {
+    // Results
+    printf("Depth: %i\n", depth);
+    printf("Eval: %i\n", eval(board));
+    printf("\n");
+    
+    return;
+  }
   
   time_t start;
   double time_taken;
@@ -23,18 +33,18 @@ void search(s_board* board, int depth)
   }
   
   s_move* best_move = NULL;
-  s_move move_list[MAX_MOVES];
-  int num_moves = find_moves(board, move_list, board->turn);
+  s_move moves[MAX_MOVES];
+  int num_moves = find_moves(board, moves, board->turn);
   int m;
   for(m = 0; m < num_moves; ++m)
   {    
-    move_make(board, &move_list[m]);
+    move_make(board, &moves[m]);
     
     if(board->turn == WHITE)
     {
       if(calculate_attacked_black(board, board->pieces[wK]))
       {
-        move_undo(board, &move_list[m]);
+        move_undo(board, &moves[m]);
         continue;
       }
     }
@@ -42,20 +52,14 @@ void search(s_board* board, int depth)
     {
       if(calculate_attacked_white(board, board->pieces[bK]))
       {
-        move_undo(board, &move_list[m]);
+        move_undo(board, &moves[m]);
         continue;
       }
     }
     
     board->turn = 1-(board->turn);
-    
-    #ifdef MINIMAX
-      int score = minimax(board, depth-1);
-    #elif ALPHA_BETA
-      //int score = alpha_beta();
-    #else
-      // insert default search method
-    #endif
+      
+    int score = alpha_beta(board, -INF, INF, depth-1);
     
     board->turn = 1-(board->turn);
     
@@ -64,7 +68,7 @@ void search(s_board* board, int depth)
       if(score > best_score)
       {
         best_score = score;
-        best_move = &move_list[m];
+        best_move = &moves[m];
       }
     }
     else
@@ -72,11 +76,11 @@ void search(s_board* board, int depth)
       if(score < best_score)
       {
         best_score = score;
-        best_move = &move_list[m];
+        best_move = &moves[m];
       }
     }
     
-    move_undo(board, &move_list[m]);
+    move_undo(board, &moves[m]);
   }
   
   time_taken = ((double)clock()-start)/CLOCKS_PER_SEC;
@@ -89,39 +93,29 @@ void search(s_board* board, int depth)
   printf("\n");
 }
 
-int minimax(s_board* board, int depth)
+int alpha_beta(s_board* board, int alpha, int beta, int depth)
 {
-  ASSERT(board != NULL);
-  ASSERT(depth >= 0);
+  assert(board != NULL);
+  assert(depth >= 0);
   
-  if(depth == 0)
-  {
-    return eval(board);
-  }
+  if(depth == 0) {return eval(board);}
+  //if(depth == 0) {return quiesce(board, alpha, beta);}
   
-  int best_score;
-  if(board->turn == WHITE)
-  {
-    best_score = -INF;
-  }
-  else
-  {
-    best_score = INF;
-  }
+  int score;
   
-  s_move move_list[MAX_MOVES];
-  int num_moves = find_moves(board, move_list, board->turn);
+  s_move moves[MAX_MOVES];
+  int num_moves = find_moves(board, moves, board->turn);
   
   int m;
   for(m = 0; m < num_moves; ++m)
-  {    
-    move_make(board, &move_list[m]);
+  {
+    move_make(board, &moves[m]);
     
     if(board->turn == WHITE)
     {
       if(calculate_attacked_black(board, board->pieces[wK]))
       {
-        move_undo(board, &move_list[m]);
+        move_undo(board, &moves[m]);
         continue;
       }
     }
@@ -129,34 +123,29 @@ int minimax(s_board* board, int depth)
     {
       if(calculate_attacked_white(board, board->pieces[bK]))
       {
-        move_undo(board, &move_list[m]);
+        move_undo(board, &moves[m]);
         continue;
       }
     }
     
     board->turn = 1-(board->turn);
     
-    int score = minimax(board, depth-1);
+    score = -alpha_beta(board, -beta, -alpha, depth-1);
     
     board->turn = 1-(board->turn);
     
-    if(board->turn == WHITE)
+    if(score >= beta)
     {
-      if(score > best_score)
-      {
-        best_score = score;
-      }
+      move_undo(board, &moves[m]);
+      return beta;
     }
-    else
+    if(score > alpha)
     {
-      if(score < best_score)
-      {
-        best_score = score;
-      }
+      alpha = score;
     }
     
-    move_undo(board, &move_list[m]);
+    move_undo(board, &moves[m]);
   }
   
-  return best_score;
+  return alpha;
 }

@@ -213,7 +213,7 @@ void generateMoveDatabase(int isRook)
 
 uint64_t magic_moves_hor_ver(uint64_t pieces_all, int pos)
 {
-  ASSERT(0 <= pos && pos <= 63);
+  assert(0 <= pos && pos <= 63);
   
   uint64_t blockers = pieces_all & occupancyMaskRook[pos];
   int index = (blockers * magicNumberRook[pos]) >> magicNumberShiftsRook[pos];
@@ -222,7 +222,7 @@ uint64_t magic_moves_hor_ver(uint64_t pieces_all, int pos)
 
 uint64_t magic_moves_diagonal(uint64_t pieces_all, int pos)
 {
-  ASSERT(0 <= pos && pos <= 63);
+  assert(0 <= pos && pos <= 63);
   
   uint64_t blockers = pieces_all & occupancyMaskBishop[pos];
   int index = (blockers * magicNumberBishop[pos]) >> magicNumberShiftsBishop[pos];
@@ -231,22 +231,24 @@ uint64_t magic_moves_diagonal(uint64_t pieces_all, int pos)
 
 uint64_t magic_moves_knight(int pos)
 {
-  ASSERT(0 <= pos && pos <= 63);
+  assert(0 <= pos && pos <= 63);
   
   return magicMovesKnight[pos];
 }
 
 int u64_to_sq(uint64_t pos)
 {
-  ASSERT(pos);
+  assert(pos);
   
   return index64[((pos ^ (pos-1)) * 0x03f79d71b4cb0a89) >> 58];
 }
 
 void bitboards_init()
 {
+  #ifndef NDEBUG
   printf("Rook table: %"PRIdPTR"KB\n", sizeof(magicMovesRook)/1024);
   printf("Bishop table: %"PRIdPTR"KB\n", sizeof(magicMovesBishop)/1024);
+  #endif
   
   generateOccupancyVariations(0);
   generateMoveDatabase(0);
@@ -257,8 +259,8 @@ void bitboards_init()
 
 uint64_t pinned_pieces_white(s_board* board, int sq)
 {
-  ASSERT(board != NULL);
-  ASSERT(0 <= sq && sq <= 63);
+  assert(board != NULL);
+  assert(0 <= sq && sq <= 63);
   
   uint64_t pinned = 0;
   uint64_t pos;
@@ -299,8 +301,8 @@ uint64_t pinned_pieces_white(s_board* board, int sq)
 
 uint64_t pinned_pieces_black(s_board* board, int sq)
 {
-  ASSERT(board != NULL);
-  ASSERT(0 <= sq && sq <= 63);
+  assert(board != NULL);
+  assert(0 <= sq && sq <= 63);
   
   uint64_t pinned = 0;
   uint64_t pos;

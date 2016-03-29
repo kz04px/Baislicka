@@ -1,4 +1,7 @@
 To do:
-- Combine piece type check (move vs capture) into seperate moves so you can just & the enemy pieces one time
+- Combine piece type check (move vs capture) into separate moves so you can just & the enemy pieces one time
 - Clear up the sq vs pos issue
+- Extract PV from search
+ - Can be done with transposition tables later on
+ -
 -

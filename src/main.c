@@ -7,15 +7,12 @@ int main()
   // Initialise magic bitboards
   bitboards_init();
   
+  #ifndef NDEBUG
   // Print some details
-  #ifdef TEST_MOVEGEN
-    printf("Test movegen\n");
-  #else
-    printf("Normal movegen\n");
-  #endif
   printf("sizeof(s_board): %"PRIdPTR"B\n", sizeof(s_board)); // 152
   printf("sizeof(s_move):  %"PRIdPTR"B\n", sizeof(s_move));  //  56
   printf("\n");
+  #endif
   
   // Test some stuff
   int i;
@@ -32,16 +29,20 @@ int main()
   
   // perft
   //perft_movegen(board, "perftsuite.epd");
-  perft(board, 4, START_FEN);
-  //perft_split(board, 1, "rnbqkbnr/ppppppp1/7p/8/8/6PP/PPPPPP2/RNBQKBNR b KQkq - 0 2");
-  //perft_suite(board, 5, "perftsuite.epd");
+  //perft_movegen_sides(board, "perftsuite.epd");
+  //perft(board, 7, START_FEN);
+  //perft_split(board, 1, START_FEN);
+  perft_suite(board, 4, "perftsuite.epd");
   
+  /*
   // search
-  for(i = 1; i <= 7; ++i)
+  for(i = 0; i <= 9; ++i)
   {
+    
     set_fen(board, START_FEN);
     search(board, i);
   }
+  */
   
   printf("Done\n");
   getchar();

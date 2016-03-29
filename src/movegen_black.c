@@ -2,6 +2,9 @@
 
 int find_moves_bP(s_board* board, s_move* move_list)
 {
+  assert(board != NULL);
+  assert(move_list != NULL);
+  
   int num_moves = 0;
   uint64_t moves;
   uint64_t to;
@@ -59,6 +62,9 @@ int find_moves_bP(s_board* board, s_move* move_list)
 
 int find_moves_bN(s_board* board, s_move* move_list)
 {
+  assert(board != NULL);
+  assert(move_list != NULL);
+  
   int num_moves = 0;
   uint64_t moves;
   uint64_t from;
@@ -86,6 +92,9 @@ int find_moves_bN(s_board* board, s_move* move_list)
 
 int find_moves_bB(s_board* board, s_move* move_list)
 {
+  assert(board != NULL);
+  assert(move_list != NULL);
+  
   int num_moves = 0;
   uint64_t moves;
   uint64_t from;
@@ -112,6 +121,9 @@ int find_moves_bB(s_board* board, s_move* move_list)
 
 int find_moves_bR(s_board* board, s_move* move_list)
 {
+  assert(board != NULL);
+  assert(move_list != NULL);
+  
   int num_moves = 0;
   uint64_t moves;
   uint64_t from;
@@ -138,6 +150,9 @@ int find_moves_bR(s_board* board, s_move* move_list)
 
 int find_moves_bQ(s_board* board, s_move* move_list)
 {
+  assert(board != NULL);
+  assert(move_list != NULL);
+  
   int num_moves = 0;
   uint64_t moves;
   uint64_t from;
@@ -181,6 +196,9 @@ int find_moves_bQ(s_board* board, s_move* move_list)
 
 int find_moves_bK(s_board* board, s_move* move_list)
 {
+  assert(board != NULL);
+  assert(move_list != NULL);
+  
   int num_moves = 0;
   uint64_t moves;
   uint64_t to;
@@ -189,9 +207,9 @@ int find_moves_bK(s_board* board, s_move* move_list)
   if(board->castling[bKSC] &&
      !(board->pieces_all&U64_F8) &&
      !(board->pieces_all&U64_G8) &&
-     calculate_attacked_white(board, U64_E8) != 0 &&
-     calculate_attacked_white(board, U64_F8) != 0 &&
-     calculate_attacked_white(board, U64_G8) != 0)
+     calculate_attacked_white(board, U64_E8) == 0 &&
+     calculate_attacked_white(board, U64_F8) == 0 &&
+     calculate_attacked_white(board, U64_G8) == 0)
   {
     move_list[num_moves] = move_add(board, U64_E8, U64_G8, bKSC, bK);
     num_moves++;
@@ -200,9 +218,9 @@ int find_moves_bK(s_board* board, s_move* move_list)
      !(board->pieces_all&U64_B8) &&
      !(board->pieces_all&U64_C8) &&
      !(board->pieces_all&U64_D8) &&
-     calculate_attacked_white(board, U64_E8) != 0 &&
-     calculate_attacked_white(board, U64_D8) != 0 &&
-     calculate_attacked_white(board, U64_C8) != 0)
+     calculate_attacked_white(board, U64_E8) == 0 &&
+     calculate_attacked_white(board, U64_D8) == 0 &&
+     calculate_attacked_white(board, U64_C8) == 0)
   {
     move_list[num_moves] = move_add(board, U64_E8, U64_C8, bQSC, bK);
     num_moves++;
@@ -230,6 +248,9 @@ int find_moves_bK(s_board* board, s_move* move_list)
 
 int find_moves_bB_bQ(s_board* board, s_move* move_list)
 {
+  assert(board != NULL);
+  assert(move_list != NULL);
+  
   int num_moves = 0;
   uint64_t moves;
   uint64_t from;
@@ -273,6 +294,9 @@ int find_moves_bB_bQ(s_board* board, s_move* move_list)
 
 int find_moves_bR_bQ(s_board* board, s_move* move_list)
 {
+  assert(board != NULL);
+  assert(move_list != NULL);
+  
   int num_moves = 0;
   uint64_t moves;
   uint64_t from;

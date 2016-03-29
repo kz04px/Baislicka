@@ -2,8 +2,8 @@
 
 int set_fen(s_board *board, const char *fen)
 {
-  ASSERT(board != NULL);
-  ASSERT(fen != NULL);
+  assert(board != NULL);
+  assert(fen != NULL);
   
   board->pieces[wP] = 0;
   board->pieces[wN] = 0;

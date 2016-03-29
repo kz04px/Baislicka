@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <inttypes.h>
 #include <time.h>
+#include <assert.h>
 
 #define ENGINE_NAME "Baislicka"
 #define ENGINE_VERSION "2.0"
@@ -73,25 +74,8 @@
 #define U64_G8 (U64_COL_G & U64_ROW_8)
 #define U64_H8 (U64_COL_H & U64_ROW_8)
 
-#define DEBUG
-#define MINIMAX
-//#define TEST_MOVEGEN
+#define ALPHA_BETA
 //#define GET_PV
-
-#ifndef DEBUG
-  #define ASSERT(n)
-#else
-#define ASSERT(n) \
-  if(!(n)) \
-  { \
-    printf("\n%s - Failed\n", #n); \
-    printf("On %s\n", __DATE__); \
-    printf("At %s\n", __TIME__); \
-    printf("In File %s\n", __FILE__); \
-    printf("At Line %d\n", __LINE__); \
-    getchar(); \
-  }
-#endif
 
 enum {WHITE, BLACK, BOTH};
 enum {wP, wN, wB, wR, wQ, wK, bP, bN, bB, bR, bQ, bK, EMPTY};
@@ -144,7 +128,7 @@ uint64_t pinned_pieces_black(s_board* board, int sq);
 
 // search.c
 void search(s_board* board, int depth);
-int minimax(s_board* board, int depth);
+int alpha_beta(s_board* board, int alpha, int beta, int depth);
 
 // eval.c
 int eval(s_board* board);
@@ -182,6 +166,7 @@ void perft(s_board* board, int max_depth, char* fen);
 int perft_split(s_board* board, int depth, char* fen);
 void perft_suite(s_board* board, int max_depth, char* filepath);
 int perft_movegen(s_board* board, const char* filepath);
+int perft_movegen_sides(s_board* board, const char* filepath);
 
 // move.c
 s_move move_add(s_board *board, uint64_t from, uint64_t to, int type, int piece_type);
@@ -198,22 +183,5 @@ void print_move(s_move move);
 void print_move_list(s_move* move_list, int num_moves);
 void print_u64(uint64_t board);
 void display_board(s_board *board);
-
-// test.c
-int test_find_moves_wP(s_board* board, s_move* move_list);
-int test_find_moves_wN(s_board* board, s_move* move_list);
-int test_find_moves_wB(s_board* board, s_move* move_list);
-int test_find_moves_wR(s_board* board, s_move* move_list);
-int test_find_moves_wQ(s_board* board, s_move* move_list);
-int test_find_moves_wK(s_board* board, s_move* move_list);
-int test_find_white_moves(s_board *board, s_move *moves);
-int test_find_moves_bP(s_board* board, s_move* move_list);
-int test_find_moves_bN(s_board* board, s_move* move_list);
-int test_find_moves_bB(s_board* board, s_move* move_list);
-int test_find_moves_bR(s_board* board, s_move* move_list);
-int test_find_moves_bQ(s_board* board, s_move* move_list);
-int test_find_moves_bK(s_board* board, s_move* move_list);
-int test_find_black_moves(s_board *board, s_move *moves);
-int test_find_moves(s_board *board, s_move *moves);
 
 #endif // DEFS_H_INCLUDED

@@ -2,8 +2,8 @@
 
 uint64_t calculate_attacking_white(s_board* board, uint64_t pos)
 {
-  ASSERT(board != NULL);
-  ASSERT(pos);
+  assert(board != NULL);
+  assert(pos);
   
   int sq = u64_to_sq(pos);
   uint64_t attackers = 0;  
@@ -36,8 +36,8 @@ uint64_t calculate_attacking_white(s_board* board, uint64_t pos)
 
 int calculate_attacked_white(s_board* board, uint64_t pos)
 {
-  ASSERT(board != NULL);
-  ASSERT(pos);
+  assert(board != NULL);
+  assert(pos);
   
   int sq = u64_to_sq(pos);
   
@@ -69,8 +69,8 @@ int calculate_attacked_white(s_board* board, uint64_t pos)
 
 int calculate_attacked_black(s_board* board, uint64_t pos)
 {
-  ASSERT(board != NULL);
-  ASSERT(pos);
+  assert(board != NULL);
+  assert(pos);
   
   int sq = u64_to_sq(pos);
   

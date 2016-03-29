@@ -102,9 +102,9 @@ void print_move(s_move move)
   printf("\n");
 }
 
-void print_move_list(s_move* move_list, int num_moves)
+void print_moves(s_move* moves, int num_moves)
 {
-  ASSERT(move_list != NULL);
+  assert(moves != NULL);
   
   int i;
   for(i = 0; i < num_moves; ++i)
@@ -112,7 +112,7 @@ void print_move_list(s_move* move_list, int num_moves)
     if(i+1 < 10) {printf(" ");}
     printf("%i: ", i+1);
     
-    print_move(move_list[i]);
+    print_move(moves[i]);
   }
 }
 
