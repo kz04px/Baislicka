@@ -141,24 +141,15 @@ const int piece_location_bonus[12][64] = {
 }
 };
 
-const int wKSC_value =  75;
-const int wQSC_value =  50;
-const int bKSC_value = -75;
-const int bQSC_value = -50;
-
 const int bishop_pair_value = 75;
 const int knight_pair_value = 50;
+
+const int doubled_pawn_value = -50;
 
 int eval(s_board* board)
 {
   int score = 0;
-  // King safety
-  /*
-       if(U64_G1 & board->pieces[wK]) {score += wKSC_value;}
-  else if(U64_C1 & board->pieces[wK]) {score += wQSC_value;}
-       if(U64_G8 & board->pieces[bK]) {score += bKSC_value;}
-  else if(U64_C8 & board->pieces[bK]) {score += bQSC_value;}
-  */
+  uint64_t pawns_in_col = 0;
   
   // Piece pairs
   if(board->pieces[wB] & (board->pieces[wB]-1)) {score += bishop_pair_value;}
@@ -166,32 +157,117 @@ int eval(s_board* board)
   if(board->pieces[wN] & (board->pieces[wN]-1)) {score += knight_pair_value;}
   if(board->pieces[bN] & (board->pieces[bN]-1)) {score -= knight_pair_value;}
   
+  // Doubled pawns - white
+  if((pawns_in_col = U64_COL_A & (board->pieces[wP])))
+  {
+    if(pawns_in_col ^ (pawns_in_col & ~(pawns_in_col-1))) {score += doubled_pawn_value;}
+  }
+  if((pawns_in_col = U64_COL_B & (board->pieces[wP])))
+  {
+    if(pawns_in_col ^ (pawns_in_col & ~(pawns_in_col-1))) {score += doubled_pawn_value;}
+  }
+  if((pawns_in_col = U64_COL_C & (board->pieces[wP])))
+  {
+    if(pawns_in_col ^ (pawns_in_col & ~(pawns_in_col-1))) {score += doubled_pawn_value;}
+  }
+  if((pawns_in_col = U64_COL_D & (board->pieces[wP])))
+  {
+    if(pawns_in_col ^ (pawns_in_col & ~(pawns_in_col-1))) {score += doubled_pawn_value;}
+  }
+  if((pawns_in_col = U64_COL_E & (board->pieces[wP])))
+  {
+    if(pawns_in_col ^ (pawns_in_col & ~(pawns_in_col-1))) {score += doubled_pawn_value;}
+  }
+  if((pawns_in_col = U64_COL_F & (board->pieces[wP])))
+  {
+    if(pawns_in_col ^ (pawns_in_col & ~(pawns_in_col-1))) {score += doubled_pawn_value;}
+  }
+  if((pawns_in_col = U64_COL_G & (board->pieces[wP])))
+  {
+    if(pawns_in_col ^ (pawns_in_col & ~(pawns_in_col-1))) {score += doubled_pawn_value;}
+  }
+  if((pawns_in_col = U64_COL_H & (board->pieces[wP])))
+  {
+    if(pawns_in_col ^ (pawns_in_col & ~(pawns_in_col-1))) {score += doubled_pawn_value;}
+  }
+  
+  // Doubled pawns - black
+  if((pawns_in_col = U64_COL_A & (board->pieces[bP])))
+  {
+    if(pawns_in_col ^ (pawns_in_col & ~(pawns_in_col-1))) {score -= doubled_pawn_value;}
+  }
+  if((pawns_in_col = U64_COL_B & (board->pieces[bP])))
+  {
+    if(pawns_in_col ^ (pawns_in_col & ~(pawns_in_col-1))) {score -= doubled_pawn_value;}
+  }
+  if((pawns_in_col = U64_COL_C & (board->pieces[bP])))
+  {
+    if(pawns_in_col ^ (pawns_in_col & ~(pawns_in_col-1))) {score -= doubled_pawn_value;}
+  }
+  if((pawns_in_col = U64_COL_D & (board->pieces[bP])))
+  {
+    if(pawns_in_col ^ (pawns_in_col & ~(pawns_in_col-1))) {score -= doubled_pawn_value;}
+  }
+  if((pawns_in_col = U64_COL_E & (board->pieces[bP])))
+  {
+    if(pawns_in_col ^ (pawns_in_col & ~(pawns_in_col-1))) {score -= doubled_pawn_value;}
+  }
+  if((pawns_in_col = U64_COL_F & (board->pieces[bP])))
+  {
+    if(pawns_in_col ^ (pawns_in_col & ~(pawns_in_col-1))) {score -= doubled_pawn_value;}
+  }
+  if((pawns_in_col = U64_COL_G & (board->pieces[bP])))
+  {
+    if(pawns_in_col ^ (pawns_in_col & ~(pawns_in_col-1))) {score -= doubled_pawn_value;}
+  }
+  if((pawns_in_col = U64_COL_H & (board->pieces[bP])))
+  {
+    if(pawns_in_col ^ (pawns_in_col & ~(pawns_in_col-1))) {score -= doubled_pawn_value;}
+  }
+  
   int sq;
   for(sq = 0; sq < 64; ++sq)
   {
     int p;
     
-    // White pieces
-    for(p = 0; p < 6; ++p)
+    if((board->pieces_colour[WHITE]>>sq)&1)
     {
-      if((board->pieces[p]>>sq)&1)
+      // White pieces
+      for(p = 0; p < 6; ++p)
       {
-        score += piece_values[p];
-        score += piece_location_bonus[p][sq];
-        break;
+        if((board->pieces[p]>>sq)&1)
+        {
+          score += piece_values[p];
+          score += piece_location_bonus[p][sq];
+          break;
+        }
       }
     }
-    // Black pieces
-    for(p = 6; p < 12; ++p)
+    else
     {
-      if((board->pieces[p]>>sq)&1)
+      int sq_reverse = 8*(7-(sq/8)) + sq%8;
+     
+      assert(sq_reverse >= 0);
+      assert(sq_reverse <= 63);
+      
+      // Black pieces
+      for(p = 6; p < 12; ++p)
       {
-        score += piece_values[p];
-        score -= piece_location_bonus[p][sq];
-        break;
+        if((board->pieces[p]>>sq)&1)
+        {
+          score += piece_values[p];
+          score -= piece_location_bonus[p-6][sq_reverse];
+          break;
+        }
       }
     }
   }
   
-  return score;
+  // We need this for negamax with alphabeta
+  if(board->turn == WHITE)
+    return score;
+  else
+    return -score;
+  
+  //return score;
 }

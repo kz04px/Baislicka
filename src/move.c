@@ -1,5 +1,131 @@
 #include "defs.h"
 
+int moves_sort(s_move* moves, int num)
+{
+  assert(moves != NULL);
+  assert(num >= 0);
+  assert(num <= MAX_MOVES);
+  
+  s_move store;
+  
+  int pos = 0;
+  
+  int i;
+  
+  // Put all captures first
+  for(i = 0; i < num; ++i)
+  {
+    if(moves[i].type == CAPTURE)
+    {
+      store = moves[pos];
+      moves[pos] = moves[i];
+      moves[i] = store;
+      
+      pos++;
+    }
+  }
+  
+  // Put all queen captures first
+  int pos_queen = 0;
+  for(i = 0; i < pos; ++i)
+  {
+    if(moves[i].taken == wQ || moves[i].taken == bQ)
+    {
+      store = moves[pos_queen];
+      moves[pos_queen] = moves[i];
+      moves[i] = store;
+      
+      pos_queen++;
+    }
+  }
+  
+      int capturing_piece = 0;
+      
+      // Put all pawns capturing first o_O
+      for(i = 0; i < pos_queen; ++i)
+      {
+        if(moves[i].piece_type == wP || moves[i].piece_type == bP)
+        {
+          store = moves[capturing_piece];
+          moves[capturing_piece] = moves[i];
+          moves[i] = store;
+          
+          capturing_piece++;
+        }
+      }
+      // Put all knights & bishops next o_O
+      for(i = capturing_piece; i < pos_queen; ++i)
+      {
+        if(moves[i].piece_type == wN || moves[i].piece_type == bN || moves[i].piece_type == wB || moves[i].piece_type == bB)
+        {
+          store = moves[capturing_piece];
+          moves[capturing_piece] = moves[i];
+          moves[i] = store;
+          
+          capturing_piece++;
+        }
+      }
+  
+  // Put all rook captures second
+  int pos_rook = pos_queen;
+  for(i = pos_queen; i < pos; ++i)
+  {
+    if(moves[i].taken == wR || moves[i].taken == bR)
+    {
+      store = moves[pos_rook];
+      moves[pos_rook] = moves[i];
+      moves[i] = store;
+      
+      pos_rook++;
+    }
+  }
+  
+      capturing_piece = pos_queen;
+      
+      // Put all pawns capturing first o_O
+      for(i = pos_queen; i < pos_rook; ++i)
+      {
+        if(moves[i].piece_type == wP || moves[i].piece_type == bP)
+        {
+          store = moves[capturing_piece];
+          moves[capturing_piece] = moves[i];
+          moves[i] = store;
+          
+          capturing_piece++;
+        }
+      }
+      // Put all knights & bishops next o_O
+      for(i = capturing_piece; i < pos_rook; ++i)
+      {
+        if(moves[i].piece_type == wN || moves[i].piece_type == bN || moves[i].piece_type == wB || moves[i].piece_type == bB)
+        {
+          store = moves[capturing_piece];
+          moves[capturing_piece] = moves[i];
+          moves[i] = store;
+          
+          capturing_piece++;
+        }
+      }
+  
+  /*
+  // Put all bishops & knights captures third
+  int pos_bn = 0;
+  for(i = pos_rook; i < pos; ++i)
+  {
+    if(moves[i].taken == wB || moves[i].taken == bB || moves[i].taken == wN || moves[i].taken == bN)
+    {
+      store = moves[pos_bn];
+      moves[pos_bn] = moves[i];
+      moves[i] = store;
+      
+      pos_bn++;
+    }
+  }
+  */
+  
+  return 0;
+}
+
 int move_add_pawn_white(s_board* board, s_move* moves, uint64_t from, uint64_t to)
 {
   assert(board != NULL);

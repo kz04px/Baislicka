@@ -18,6 +18,7 @@
 #define SETBIT(x, n) ((x) = (x) | ((uint64_t)1<<(n)))
 #define GETBIT(x, n) (((x)>>(n))&1)
 #define MAX_MOVES 256
+#define MAX_DEPTH 16
 #define POS_TO_COL_CHAR(x) ('h'-(x%8))
 #define POS_TO_ROW_CHAR(x) ((x/8)+'1')
 
@@ -75,6 +76,7 @@
 #define U64_H8 (U64_COL_H & U64_ROW_8)
 
 #define ALPHA_BETA
+#define QUIESCENCE_SEARCH
 //#define GET_PV
 
 enum {WHITE, BLACK, BOTH};
@@ -177,10 +179,11 @@ s_move add_movecapture_black(s_board* board, uint64_t from, uint64_t to, int pie
 s_move add_promotion_move(s_board *board, uint64_t from, uint64_t to, int piece_type, int promo_piece);
 void move_make(s_board *board, s_move *move);
 void move_undo(s_board *board, s_move *move);
+int moves_sort(s_move* moves, int num);
 
 // display.c
 void print_move(s_move move);
-void print_move_list(s_move* move_list, int num_moves);
+void print_moves(s_move* moves, int num_moves);
 void print_u64(uint64_t board);
 void display_board(s_board *board);
 

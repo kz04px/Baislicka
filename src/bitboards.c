@@ -246,8 +246,10 @@ int u64_to_sq(uint64_t pos)
 void bitboards_init()
 {
   #ifndef NDEBUG
+  printf("Bitboard debug info:\n");
   printf("Rook table: %"PRIdPTR"KB\n", sizeof(magicMovesRook)/1024);
   printf("Bishop table: %"PRIdPTR"KB\n", sizeof(magicMovesBishop)/1024);
+  printf("\n");
   #endif
   
   generateOccupancyVariations(0);
