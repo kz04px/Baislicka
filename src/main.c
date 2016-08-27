@@ -2,10 +2,17 @@
 
 int main()
 {
+  srand(time(0));
   printf("%s %s\n\n", ENGINE_NAME, ENGINE_VERSION);
   
   // Initialise magic bitboards
   bitboards_init();
+  
+  #ifdef HASHTABLE
+    hashtable = malloc(1*sizeof(*hashtable));
+    key_init();
+    hashtable_init(hashtable, 1024);
+  #endif
   
   #ifndef NDEBUG
     printf("Search debug info:\n");
@@ -17,12 +24,22 @@ int main()
     
     #ifdef QUIESCENCE_SEARCH
       printf("Quiescence search enabled\n");
-    #elif
+    #else
       printf("Quiescence search disabled\n");
     #endif
     
     printf("Max search depth: %i\n", MAX_DEPTH);
     
+    printf("\n");
+    
+    printf("Transposition table:\n");
+    #ifdef HASHTABLE
+      printf("Total size: %iMB\n", hashtable->size_bytes/1024/1024);
+      printf("Entry size: %iB\n", sizeof(s_hashtable_entry));
+      printf("Max entries: %i\n", hashtable->max_entries);
+    #else
+      printf("Disabled\n");
+    #endif
     printf("\n");
     
     printf("Other info:\n");
@@ -44,6 +61,9 @@ int main()
   s_board* board = (s_board*) malloc(1*sizeof(s_board));
   if(board == NULL) {return -1;}
   
+  //perft_suite(board, 5, "perftsuite.epd");
+  //getchar();
+  
   // perft
   //perft_movegen(board, "perftsuite.epd");
   //perft_movegen_sides(board, "perftsuite.epd");
@@ -58,6 +78,7 @@ int main()
   printf("Eval: %i\n", eval(board));
   printf("\n");
   */
+  
   
   char input_fen[256] = {0};
   
@@ -76,6 +97,7 @@ int main()
     }
   }
   
+  
   /*
   char input_fen[256] = {0};
   
@@ -89,12 +111,16 @@ int main()
   }
   */
   
+  /*
+  set_fen(board, "8/4kp2/7p/1pq2p2/3p4/1P1Pb1P1/1BP3QP/7K w - -");
+  search(board, 5);
+  */
   
   /*
   // search
   for(i = 0; i <= 9; ++i)
   {
-    set_fen(board, "Q1b5/4B1pk/4p2p/pp2P3/4N3/5N2/PP2K1PP/R4R2 w - - 1 23");
+    set_fen(board, "rnqr2k1/pb2bppp/1p6/4p3/8/2N1BN2/PPP2PPP/R2Q1RK1 w - -");
     search(board, i);
   }
   */

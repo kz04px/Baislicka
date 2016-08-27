@@ -243,6 +243,20 @@ int u64_to_sq(uint64_t pos)
   return index64[((pos ^ (pos-1)) * 0x03f79d71b4cb0a89) >> 58];
 }
 
+int u64_col(uint64_t pos)
+{
+  assert(pos);
+  
+  if(pos&U64_COL_A) {return 0;}
+  if(pos&U64_COL_B) {return 1;}
+  if(pos&U64_COL_C) {return 2;}
+  if(pos&U64_COL_D) {return 3;}
+  if(pos&U64_COL_E) {return 4;}
+  if(pos&U64_COL_F) {return 5;}
+  if(pos&U64_COL_G) {return 6;}
+  return 7;
+}
+
 void bitboards_init()
 {
   #ifndef NDEBUG

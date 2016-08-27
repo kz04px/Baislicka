@@ -77,11 +77,13 @@
 
 #define ALPHA_BETA
 #define QUIESCENCE_SEARCH
+#define HASHTABLE
 //#define GET_PV
 
 enum {WHITE, BLACK, BOTH};
 enum {wP, wN, wB, wR, wQ, wK, bP, bN, bB, bR, bQ, bK, EMPTY};
 enum {wKSC, wQSC, bKSC, bQSC, QUIET, DOUBLE_PAWN, CAPTURE, PROMOTE, EP};
+enum {EXACT, LOWERBOUND, UPPERBOUND};
 
 enum {H8=56, G8, F8, E8, D8, C8, B8, A8};
 enum {H7=48, G7, F7, E7, D7, C7, B7, A7};
@@ -101,6 +103,9 @@ typedef struct
   int type;
   int promotion;
   
+  #ifdef HASHTABLE
+    uint64_t key_old;
+  #endif
   uint64_t ep_old;
   int castling[4];
 } s_move;
@@ -113,7 +118,33 @@ typedef struct
   uint64_t pieces[12];
   uint64_t pieces_colour[2];
   uint64_t pieces_all;
+  #ifdef HASHTABLE
+    uint64_t key;
+  #endif
 } s_board;
+
+typedef struct
+{
+  int flags;
+  uint64_t key;
+  int depth;
+  int eval;
+  int pv;
+} s_hashtable_entry;
+
+typedef struct
+{
+  s_hashtable_entry *entries;
+  int num_entries;
+  int max_entries;
+  int size_bytes;
+} s_hashtable;
+
+s_hashtable *hashtable;
+uint64_t key_piece_positions[12][10*12];
+uint64_t key_turn;
+uint64_t key_castling[4];
+uint64_t key_ep_col[8];
 
 // attack.c
 int calculate_attacked_white(s_board* board, uint64_t pos);
@@ -125,12 +156,22 @@ uint64_t magic_moves_hor_ver(uint64_t pieces_all, int pos);
 uint64_t magic_moves_diagonal(uint64_t pieces_all, int pos);
 uint64_t magic_moves_knight(int pos);
 int u64_to_sq(uint64_t pos);
+int u64_col(uint64_t pos);
 uint64_t pinned_pieces_white(s_board* board, int sq);
 uint64_t pinned_pieces_black(s_board* board, int sq);
 
 // search.c
 void search(s_board* board, int depth);
 int alpha_beta(s_board* board, int alpha, int beta, int depth);
+
+// hash_table.c
+void key_init();
+uint64_t create_key_board(s_board *board);
+int hashtable_init(s_hashtable *hashtable, int size_megabytes);
+void hashtable_clear(s_hashtable *hashtable);
+void hashtable_free(s_hashtable *hashtable);
+s_hashtable_entry *hashtable_poll(s_hashtable *hashtable, uint64_t key);
+s_hashtable_entry *hashtable_add(s_hashtable *hashtable, int flags, uint64_t key, int depth, int eval, int pv);
 
 // eval.c
 int eval(s_board* board);

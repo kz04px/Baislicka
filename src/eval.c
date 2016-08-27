@@ -31,14 +31,14 @@ const int piece_location_bonus[12][64] = {
 },{
 // White Bishops
 // H   G   F   E   D   C   B   A
- -10,-10,-10,-10,-10,-10,-10,-10, // 1
+ -30,-10,-10,-10,-10,-10,-10,-30, // 1
    0, 30,  0, 30, 30,  0, 30,  0, // 2
    0,  0,  0, 30, 30,  0,  0,  0, // 3
    0,  0,  0,  0,  0,  0,  0,  0, // 4
    0,  0,  0,  0,  0,  0,  0,  0, // 5
    0,  0,  0,  0,  0,  0,  0,  0, // 6
    0,  0,  0,  0,  0,  0,  0,  0, // 7
- -10,-10,-10,-10,-10,-10,-10,-10  // 8
+ -30,-10,-10,-10,-10,-10,-10,-30  // 8
 },{
 // White Rooks
 // H   G   F   E   D   C   B   A
@@ -97,14 +97,14 @@ const int piece_location_bonus[12][64] = {
 },{
 // Black Bishops
 // H   G   F   E   D   C   B   A
- -10,-10,-10,-10,-10,-10,-10,-10, // 8
+ -30,-10,-10,-10,-10,-10,-10,-30, // 8
    0,  0,  0,  0,  0,  0,  0,  0, // 7
    0,  0,  0,  0,  0,  0,  0,  0, // 6
    0,  0,  0,  0,  0,  0,  0,  0, // 5
    0,  0,  0,  0,  0,  0,  0,  0, // 4
    0,  0,  0, 30, 30,  0,  0,  0, // 3
    0, 30,  0, 30, 30,  0, 30,  0, // 2
- -10,-10,-10,-10,-10,-10,-10,-10  // 1
+ -30,-10,-10,-10,-10,-10,-10,-30  // 1
 },{
 // Black Rooks
 // H   G   F   E   D   C   B   A
@@ -141,15 +141,17 @@ const int piece_location_bonus[12][64] = {
 }
 };
 
-const int bishop_pair_value = 75;
-const int knight_pair_value = 50;
+const int bishop_pair_value = 25;
+const int knight_pair_value = 15;
 
-const int doubled_pawn_value = -50;
+const int doubled_pawn_value  = -25;
+const int isolated_pawn_value = -50;
+
+const int open_file_value = 25;
 
 int eval(s_board* board)
 {
   int score = 0;
-  uint64_t pawns_in_col = 0;
   
   // Piece pairs
   if(board->pieces[wB] & (board->pieces[wB]-1)) {score += bishop_pair_value;}
@@ -157,72 +159,304 @@ int eval(s_board* board)
   if(board->pieces[wN] & (board->pieces[wN]-1)) {score += knight_pair_value;}
   if(board->pieces[bN] & (board->pieces[bN]-1)) {score -= knight_pair_value;}
   
-  // Doubled pawns - white
-  if((pawns_in_col = U64_COL_A & (board->pieces[wP])))
+  uint64_t white_pawns_col_a = U64_COL_A & (board->pieces[wP]);
+  uint64_t white_pawns_col_b = U64_COL_B & (board->pieces[wP]);
+  uint64_t white_pawns_col_c = U64_COL_C & (board->pieces[wP]);
+  uint64_t white_pawns_col_d = U64_COL_D & (board->pieces[wP]);
+  uint64_t white_pawns_col_e = U64_COL_E & (board->pieces[wP]);
+  uint64_t white_pawns_col_f = U64_COL_F & (board->pieces[wP]);
+  uint64_t white_pawns_col_g = U64_COL_G & (board->pieces[wP]);
+  uint64_t white_pawns_col_h = U64_COL_H & (board->pieces[wP]);
+  
+  uint64_t black_pawns_col_a = U64_COL_A & (board->pieces[bP]);
+  uint64_t black_pawns_col_b = U64_COL_B & (board->pieces[bP]);
+  uint64_t black_pawns_col_c = U64_COL_C & (board->pieces[bP]);
+  uint64_t black_pawns_col_d = U64_COL_D & (board->pieces[bP]);
+  uint64_t black_pawns_col_e = U64_COL_E & (board->pieces[bP]);
+  uint64_t black_pawns_col_f = U64_COL_F & (board->pieces[bP]);
+  uint64_t black_pawns_col_g = U64_COL_G & (board->pieces[bP]);
+  uint64_t black_pawns_col_h = U64_COL_H & (board->pieces[bP]);
+  
+  if(white_pawns_col_a)
   {
-    if(pawns_in_col ^ (pawns_in_col & ~(pawns_in_col-1))) {score += doubled_pawn_value;}
-  }
-  if((pawns_in_col = U64_COL_B & (board->pieces[wP])))
-  {
-    if(pawns_in_col ^ (pawns_in_col & ~(pawns_in_col-1))) {score += doubled_pawn_value;}
-  }
-  if((pawns_in_col = U64_COL_C & (board->pieces[wP])))
-  {
-    if(pawns_in_col ^ (pawns_in_col & ~(pawns_in_col-1))) {score += doubled_pawn_value;}
-  }
-  if((pawns_in_col = U64_COL_D & (board->pieces[wP])))
-  {
-    if(pawns_in_col ^ (pawns_in_col & ~(pawns_in_col-1))) {score += doubled_pawn_value;}
-  }
-  if((pawns_in_col = U64_COL_E & (board->pieces[wP])))
-  {
-    if(pawns_in_col ^ (pawns_in_col & ~(pawns_in_col-1))) {score += doubled_pawn_value;}
-  }
-  if((pawns_in_col = U64_COL_F & (board->pieces[wP])))
-  {
-    if(pawns_in_col ^ (pawns_in_col & ~(pawns_in_col-1))) {score += doubled_pawn_value;}
-  }
-  if((pawns_in_col = U64_COL_G & (board->pieces[wP])))
-  {
-    if(pawns_in_col ^ (pawns_in_col & ~(pawns_in_col-1))) {score += doubled_pawn_value;}
-  }
-  if((pawns_in_col = U64_COL_H & (board->pieces[wP])))
-  {
-    if(pawns_in_col ^ (pawns_in_col & ~(pawns_in_col-1))) {score += doubled_pawn_value;}
+    // Check if doubled
+    if(white_pawns_col_a ^ (white_pawns_col_a & ~(white_pawns_col_a-1)))
+    {
+      score += doubled_pawn_value;
+    }
+    
+    // Check if isolated
+    if(!white_pawns_col_b)
+    {
+      score += isolated_pawn_value;
+    }
   }
   
-  // Doubled pawns - black
-  if((pawns_in_col = U64_COL_A & (board->pieces[bP])))
+  if(white_pawns_col_b)
   {
-    if(pawns_in_col ^ (pawns_in_col & ~(pawns_in_col-1))) {score -= doubled_pawn_value;}
+    // Check if doubled
+    if(white_pawns_col_b ^ (white_pawns_col_b & ~(white_pawns_col_b-1)))
+    {
+      score += doubled_pawn_value;
+    }
+    
+    // Check if isolated
+    if(!white_pawns_col_a && !white_pawns_col_c)
+    {
+      score += isolated_pawn_value;
+    }
   }
-  if((pawns_in_col = U64_COL_B & (board->pieces[bP])))
+  
+  if(white_pawns_col_c)
   {
-    if(pawns_in_col ^ (pawns_in_col & ~(pawns_in_col-1))) {score -= doubled_pawn_value;}
+    // Check if doubled
+    if(white_pawns_col_c ^ (white_pawns_col_c & ~(white_pawns_col_c-1)))
+    {
+      score += doubled_pawn_value;
+    }
+    
+    // Check if isolated
+    if(!white_pawns_col_b && !white_pawns_col_d)
+    {
+      score += isolated_pawn_value;
+    }
   }
-  if((pawns_in_col = U64_COL_C & (board->pieces[bP])))
+  
+  if(white_pawns_col_d)
   {
-    if(pawns_in_col ^ (pawns_in_col & ~(pawns_in_col-1))) {score -= doubled_pawn_value;}
+    // Check if doubled
+    if(white_pawns_col_d ^ (white_pawns_col_d & ~(white_pawns_col_d-1)))
+    {
+      score += doubled_pawn_value;
+    }
+    
+    // Check if isolated
+    if(!white_pawns_col_c && !white_pawns_col_e)
+    {
+      score += isolated_pawn_value;
+    }
   }
-  if((pawns_in_col = U64_COL_D & (board->pieces[bP])))
+  
+  if(white_pawns_col_e)
   {
-    if(pawns_in_col ^ (pawns_in_col & ~(pawns_in_col-1))) {score -= doubled_pawn_value;}
+    // Check if doubled
+    if(white_pawns_col_e ^ (white_pawns_col_e & ~(white_pawns_col_e-1)))
+    {
+      score += doubled_pawn_value;
+    }
+    
+    // Check if isolated
+    if(!white_pawns_col_d && !white_pawns_col_f)
+    {
+      score += isolated_pawn_value;
+    }
   }
-  if((pawns_in_col = U64_COL_E & (board->pieces[bP])))
+  
+  if(white_pawns_col_f)
   {
-    if(pawns_in_col ^ (pawns_in_col & ~(pawns_in_col-1))) {score -= doubled_pawn_value;}
+    // Check if doubled
+    if(white_pawns_col_f ^ (white_pawns_col_f & ~(white_pawns_col_f-1)))
+    {
+      score += doubled_pawn_value;
+    }
+    
+    // Check if isolated
+    if(!white_pawns_col_e && !white_pawns_col_g)
+    {
+      score += isolated_pawn_value;
+    }
   }
-  if((pawns_in_col = U64_COL_F & (board->pieces[bP])))
+  
+  if(white_pawns_col_g)
   {
-    if(pawns_in_col ^ (pawns_in_col & ~(pawns_in_col-1))) {score -= doubled_pawn_value;}
+    // Check if doubled
+    if(white_pawns_col_g ^ (white_pawns_col_g & ~(white_pawns_col_g-1)))
+    {
+      score += doubled_pawn_value;
+    }
+    
+    // Check if isolated
+    if(!white_pawns_col_f && !white_pawns_col_h)
+    {
+      score += isolated_pawn_value;
+    }
   }
-  if((pawns_in_col = U64_COL_G & (board->pieces[bP])))
+  
+  if(white_pawns_col_h)
   {
-    if(pawns_in_col ^ (pawns_in_col & ~(pawns_in_col-1))) {score -= doubled_pawn_value;}
+    // Check if doubled
+    if(white_pawns_col_h ^ (white_pawns_col_h & ~(white_pawns_col_h-1)))
+    {
+      score += doubled_pawn_value;
+    }
+    
+    // Check if isolated
+    if(!white_pawns_col_g)
+    {
+      score += isolated_pawn_value;
+    }
   }
-  if((pawns_in_col = U64_COL_H & (board->pieces[bP])))
+  
+  if(black_pawns_col_a)
   {
-    if(pawns_in_col ^ (pawns_in_col & ~(pawns_in_col-1))) {score -= doubled_pawn_value;}
+    // Check if doubled
+    if(black_pawns_col_a ^ (black_pawns_col_a & ~(black_pawns_col_a-1)))
+    {
+      score -= doubled_pawn_value;
+    }
+    
+    // Check if isolated
+    if(!black_pawns_col_b)
+    {
+      score += isolated_pawn_value;
+    }
+  }
+  
+  if(black_pawns_col_b)
+  {
+    // Check if doubled
+    if(black_pawns_col_b ^ (black_pawns_col_b & ~(black_pawns_col_b-1)))
+    {
+      score -= doubled_pawn_value;
+    }
+    
+    // Check if isolated
+    if(!black_pawns_col_a && !black_pawns_col_c)
+    {
+      score -= isolated_pawn_value;
+    }
+  }
+  
+  if(black_pawns_col_c)
+  {
+    // Check if doubled
+    if(black_pawns_col_c ^ (black_pawns_col_c & ~(black_pawns_col_c-1)))
+    {
+      score -= doubled_pawn_value;
+    }
+    
+    // Check if isolated
+    if(!black_pawns_col_b && !black_pawns_col_d)
+    {
+      score -= isolated_pawn_value;
+    }
+  }
+  
+  if(black_pawns_col_d)
+  {
+    // Check if doubled
+    if(black_pawns_col_d ^ (black_pawns_col_d & ~(black_pawns_col_d-1)))
+    {
+      score -= doubled_pawn_value;
+    }
+    
+    // Check if isolated
+    if(!black_pawns_col_c && !black_pawns_col_e)
+    {
+      score -= isolated_pawn_value;
+    }
+  }
+  
+  if(black_pawns_col_e)
+  {
+    // Check if doubled
+    if(black_pawns_col_e ^ (black_pawns_col_e & ~(black_pawns_col_e-1)))
+    {
+      score -= doubled_pawn_value;
+    }
+    
+    // Check if isolated
+    if(!black_pawns_col_d && !black_pawns_col_f)
+    {
+      score -= isolated_pawn_value;
+    }
+  }
+  
+  if(black_pawns_col_f)
+  {
+    // Check if doubled
+    if(black_pawns_col_f ^ (black_pawns_col_f & ~(black_pawns_col_f-1)))
+    {
+      score -= doubled_pawn_value;
+    }
+    
+    // Check if isolated
+    if(!black_pawns_col_e && !black_pawns_col_g)
+    {
+      score -= isolated_pawn_value;
+    }
+  }
+  
+  if(black_pawns_col_g)
+  {
+    // Check if doubled
+    if(black_pawns_col_g ^ (black_pawns_col_g & ~(black_pawns_col_g-1)))
+    {
+      score -= doubled_pawn_value;
+    }
+    
+    // Check if isolated
+    if(!black_pawns_col_f && !black_pawns_col_h)
+    {
+      score -= isolated_pawn_value;
+    }
+  }
+  
+  if(black_pawns_col_h)
+  {
+    // Check if doubled
+    if(black_pawns_col_h ^ (black_pawns_col_h & ~(black_pawns_col_h-1)))
+    {
+      score -= doubled_pawn_value;
+    }
+    
+    // Check if isolated
+    if(!black_pawns_col_g)
+    {
+      score -= isolated_pawn_value;
+    }
+  }
+  
+  // Rooks & Queens on open files
+  if(!white_pawns_col_a && !black_pawns_col_a)
+  {
+    if(U64_COL_A & board->pieces[wR] || U64_COL_A & board->pieces[wQ]) {score += open_file_value;}
+    if(U64_COL_A & board->pieces[bR] || U64_COL_A & board->pieces[bQ]) {score -= open_file_value;}
+  }
+  if(!white_pawns_col_b && !black_pawns_col_b)
+  {
+    if(U64_COL_B & board->pieces[wR] || U64_COL_B & board->pieces[wQ]) {score += open_file_value;}
+    if(U64_COL_B & board->pieces[bR] || U64_COL_B & board->pieces[bQ]) {score -= open_file_value;}
+  }
+  if(!white_pawns_col_c && !black_pawns_col_c)
+  {
+    if(U64_COL_C & board->pieces[wR] || U64_COL_C & board->pieces[wQ]) {score += open_file_value;}
+    if(U64_COL_C & board->pieces[bR] || U64_COL_C & board->pieces[bQ]) {score -= open_file_value;}
+  }
+  if(!white_pawns_col_d && !black_pawns_col_d)
+  {
+    if(U64_COL_D & board->pieces[wR] || U64_COL_D & board->pieces[wQ]) {score += open_file_value;}
+    if(U64_COL_D & board->pieces[bR] || U64_COL_D & board->pieces[bQ]) {score -= open_file_value;}
+  }
+  if(!white_pawns_col_e && !black_pawns_col_e)
+  {
+    if(U64_COL_E & board->pieces[wR] || U64_COL_E & board->pieces[wQ]) {score += open_file_value;}
+    if(U64_COL_E & board->pieces[bR] || U64_COL_E & board->pieces[bQ]) {score -= open_file_value;}
+  }
+  if(!white_pawns_col_f && !black_pawns_col_f)
+  {
+    if(U64_COL_F & board->pieces[wR] || U64_COL_F & board->pieces[wQ]) {score += open_file_value;}
+    if(U64_COL_F & board->pieces[bR] || U64_COL_F & board->pieces[bQ]) {score -= open_file_value;}
+  }
+  if(!white_pawns_col_g && !black_pawns_col_g)
+  {
+    if(U64_COL_G & board->pieces[wR] || U64_COL_G & board->pieces[wQ]) {score += open_file_value;}
+    if(U64_COL_G & board->pieces[bR] || U64_COL_G & board->pieces[bQ]) {score -= open_file_value;}
+  }
+  if(!white_pawns_col_h && !black_pawns_col_h)
+  {
+    if(U64_COL_H & board->pieces[wR] || U64_COL_H & board->pieces[wQ]) {score += open_file_value;}
+    if(U64_COL_H & board->pieces[bR] || U64_COL_H & board->pieces[bQ]) {score -= open_file_value;}
   }
   
   int sq;

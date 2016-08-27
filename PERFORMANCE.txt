@@ -23,6 +23,12 @@ D   Time      NPS     Moves       Captures  EP     Castles Checks
 6   7.460s    16.0m   119060324   2812008   5248   0       809099
 7   191.182s  16.7m   3195901860  108329926 319617 883453  33103848
 
+Location: perftsuite.epd
+Depth: 5
+Time: 28.236s
+Depth: 6
+Time: 910.029s
+
 Test Pawn   Knight Bishop Rook   Queen  King   Total
 0    0.882  0.385  0.171  0.165  x.xxx  0.061  1.664
 1    0.362  0.911  1.104  0.952  x.xxx  1.046  4.375

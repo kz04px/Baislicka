@@ -269,11 +269,22 @@ void move_make(s_board *board, s_move *move)
   assert(move != NULL);
   
   // set old permissions
+  #ifdef HASHTABLE
+    move->key_old = board->key;
+  #endif
   move->ep_old = board->ep;
   move->castling[wKSC] = board->castling[wKSC];
   move->castling[wQSC] = board->castling[wQSC];
   move->castling[bKSC] = board->castling[bKSC];
   move->castling[bQSC] = board->castling[bQSC];
+  
+  #ifdef HASHTABLE
+    if(board->ep)
+    {
+      board->key ^= key_ep_col[u64_col(board->ep)];
+    }
+  #endif
+  
   board->ep = 0;
   
   // White king move
@@ -310,16 +321,32 @@ void move_make(s_board *board, s_move *move)
     board->castling[bKSC] = 0;
   }
   
+  #ifdef HASHTABLE
+    int sq_from = u64_to_sq(move->from);
+    int sq_to = u64_to_sq(move->to);
+  #endif
+  
   switch(move->type)
   {
     case QUIET:
       board->pieces[move->piece_type] ^= move->from;
       board->pieces[move->piece_type] ^= move->to;
+      
+      #ifdef HASHTABLE
+        board->key ^= key_piece_positions[move->piece_type][sq_from];
+        board->key ^= key_piece_positions[move->piece_type][sq_to];
+      #endif
       break;
     case CAPTURE:
       board->pieces[move->piece_type] ^= move->from;
       board->pieces[move->piece_type] ^= move->to;
       board->pieces[move->taken] ^= move->to;
+      
+      #ifdef HASHTABLE
+        board->key ^= key_piece_positions[move->piece_type][sq_from];
+        board->key ^= key_piece_positions[move->piece_type][sq_to];
+        board->key ^= key_piece_positions[move->taken][sq_to];
+      #endif
       break;
     case DOUBLE_PAWN:
       board->pieces[move->piece_type] ^= move->from;
@@ -332,7 +359,13 @@ void move_make(s_board *board, s_move *move)
       else
       {
         board->ep = (move->to)<<8;
-      }      
+      }
+      
+      #ifdef HASHTABLE
+        board->key ^= key_piece_positions[move->piece_type][sq_from];
+        board->key ^= key_piece_positions[move->piece_type][sq_to];
+        board->key ^= key_ep_col[u64_col(board->ep)];
+      #endif
       break;
     case PROMOTE:
       board->pieces[move->piece_type] ^= move->from;
@@ -341,6 +374,15 @@ void move_make(s_board *board, s_move *move)
       {
         board->pieces[move->taken] ^= move->to;
       }
+      
+      #ifdef HASHTABLE
+        board->key ^= key_piece_positions[move->piece_type][sq_from];
+        board->key ^= key_piece_positions[move->promotion][sq_to];
+        if(move->taken != EMPTY)
+        {
+          board->key ^= key_piece_positions[move->taken][sq_to];
+        }
+      #endif
       break;
     case EP:
       board->pieces[move->piece_type] ^= move->from;
@@ -353,32 +395,81 @@ void move_make(s_board *board, s_move *move)
       {
         board->pieces[wP] ^= (move->to)<<8;
       }
+      
+      #ifdef HASHTABLE
+        board->key ^= key_piece_positions[move->piece_type][sq_from];
+        board->key ^= key_piece_positions[move->piece_type][sq_to];
+        if(move->piece_type == wP)
+        {
+          board->key ^= key_piece_positions[bP][sq_to-8];
+        }
+        else
+        {
+          board->key ^= key_piece_positions[wP][sq_to+8];
+        }
+      #endif
       break;
     case wKSC:
       board->pieces[wK] ^= U64_E1;
       board->pieces[wK] ^= U64_G1;
       board->pieces[wR] ^= U64_H1;
       board->pieces[wR] ^= U64_F1;
+      
+      #ifdef HASHTABLE
+        board->key ^= key_piece_positions[wK][E1];
+        board->key ^= key_piece_positions[wK][G1];
+        board->key ^= key_piece_positions[wR][H1];
+        board->key ^= key_piece_positions[wR][F1];
+      #endif
       break;
     case wQSC:
       board->pieces[wK] ^= U64_E1;
       board->pieces[wK] ^= U64_C1;
       board->pieces[wR] ^= U64_A1;
       board->pieces[wR] ^= U64_D1;
+      
+      #ifdef HASHTABLE
+        board->key ^= key_piece_positions[wK][E1];
+        board->key ^= key_piece_positions[wK][C1];
+        board->key ^= key_piece_positions[wR][A1];
+        board->key ^= key_piece_positions[wR][D1];
+      #endif
       break;
     case bKSC:
       board->pieces[bK] ^= U64_E8;
       board->pieces[bK] ^= U64_G8;
       board->pieces[bR] ^= U64_H8;
       board->pieces[bR] ^= U64_F8;
+      
+      #ifdef HASHTABLE
+        board->key ^= key_piece_positions[bK][E8];
+        board->key ^= key_piece_positions[bK][G8];
+        board->key ^= key_piece_positions[bK][H8];
+        board->key ^= key_piece_positions[bK][F8];
+      #endif
       break;
     case bQSC:
       board->pieces[bK] ^= U64_E8;
       board->pieces[bK] ^= U64_C8;
       board->pieces[bR] ^= U64_A8;
       board->pieces[bR] ^= U64_D8;
+      
+      #ifdef HASHTABLE
+        board->key ^= key_piece_positions[bK][E8];
+        board->key ^= key_piece_positions[bK][C8];
+        board->key ^= key_piece_positions[bK][A8];
+        board->key ^= key_piece_positions[bK][D8];
+      #endif
       break;
   }
+  
+  #ifdef HASHTABLE
+    if(board->castling[wKSC] != move->castling[wKSC]) {board->key ^= key_castling[wKSC];}
+    if(board->castling[wQSC] != move->castling[wQSC]) {board->key ^= key_castling[wQSC];}
+    if(board->castling[bKSC] != move->castling[bKSC]) {board->key ^= key_castling[bKSC];}
+    if(board->castling[bQSC] != move->castling[bQSC]) {board->key ^= key_castling[bQSC];}
+    board->key ^= key_turn;
+  #endif
   
   board->pieces_colour[WHITE] = board->pieces[wP] | board->pieces[wN] | board->pieces[wB] |
                                 board->pieces[wR] | board->pieces[wQ] | board->pieces[wK];
@@ -452,6 +543,9 @@ void move_undo(s_board *board, s_move *move)
       break;
   }
   
+  #ifdef HASHTABLE
+    board->key = move->key_old;
+  #endif
   board->ep = move->ep_old;
   board->castling[wKSC] = move->castling[wKSC];
   board->castling[wQSC] = move->castling[wQSC];

@@ -221,6 +221,10 @@ int set_fen(s_board *board, const char *fen)
                                 board->pieces[bR] | board->pieces[bQ] | board->pieces[bK];
   
   board->pieces_all = board->pieces_colour[WHITE] | board->pieces_colour[BLACK];
+
+  #ifdef HASHTABLE
+    board->key = create_key_board(board);
+  #endif
   
   //update_attacking(board);
   
