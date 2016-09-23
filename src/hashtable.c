@@ -83,6 +83,8 @@ s_hashtable_entry *hashtable_add(s_hashtable *hashtable, int flags, uint64_t key
   assert(hashtable != NULL);
   assert(depth > 0);
   assert(depth <= MAX_DEPTH);
+  assert(pv >= 0);
+  assert(pv < MAX_MOVES);
 
   if(hashtable->entries[key%(hashtable->max_entries)].key == 0)
   {

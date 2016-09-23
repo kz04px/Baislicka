@@ -2,7 +2,8 @@
 
 int main()
 {
-  srand(time(0));
+  srand(0);
+  //srand(time(0));
   printf("%s %s\n\n", ENGINE_NAME, ENGINE_VERSION);
   
   // Initialise magic bitboards
@@ -11,16 +12,25 @@ int main()
   #ifdef HASHTABLE
     hashtable = malloc(1*sizeof(*hashtable));
     key_init();
-    hashtable_init(hashtable, 1024);
+    
+    int size = 256;
+    while(size > 0)
+    {
+      int r = hashtable_init(hashtable, size);
+      if(r > 0)
+      {
+        break;
+      }
+      else
+      {
+        size = size>>1;
+      }
+    }
   #endif
   
   #ifndef NDEBUG
     printf("Search debug info:\n");
-    #ifdef ALPHA_BETA
-      printf("Alphabeta search\n");
-    #elif MINMAX
-      printf("Minmax search\n");
-    #endif
+    printf("Alphabeta search\n");
     
     #ifdef QUIESCENCE_SEARCH
       printf("Quiescence search enabled\n");
@@ -35,8 +45,16 @@ int main()
     printf("Transposition table:\n");
     #ifdef HASHTABLE
       printf("Total size: %iMB\n", hashtable->size_bytes/1024/1024);
-      printf("Entry size: %iB\n", sizeof(s_hashtable_entry));
+      printf("Entry size: %"PRIdPTR"B\n", sizeof(s_hashtable_entry));
       printf("Max entries: %i\n", hashtable->max_entries);
+    #else
+      printf("Disabled\n");
+    #endif
+    printf("\n");
+    
+    printf("Principal variation:\n");
+    #ifdef GET_PV
+      printf("Enabled\n");
     #else
       printf("Disabled\n");
     #endif
@@ -87,13 +105,18 @@ int main()
     printf("Enter FEN: ");
     fgets(input_fen, 256, stdin);
     
-    //set_fen(board, input_fen);
-    //search(board, 6);
+    /*
+    set_fen(board, input_fen);
+    search(board, 12);
+    */
     
-    for(i = 0; i <= 8; ++i)
+    for(i = 0; i < MAX_DEPTH; ++i)
     {
       set_fen(board, input_fen);
-      search(board, i);
+      if(search(board, i) != 0)
+      {
+        break;
+      }
     }
   }
   

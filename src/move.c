@@ -39,32 +39,33 @@ int moves_sort(s_move* moves, int num)
     }
   }
   
-      int capturing_piece = 0;
+  int capturing_piece = 0;
+  
+  // Put all pawns capturing first
+  for(i = 0; i < pos_queen; ++i)
+  {
+    if(moves[i].piece_type == wP || moves[i].piece_type == bP)
+    {
+      store = moves[capturing_piece];
+      moves[capturing_piece] = moves[i];
+      moves[i] = store;
       
-      // Put all pawns capturing first o_O
-      for(i = 0; i < pos_queen; ++i)
-      {
-        if(moves[i].piece_type == wP || moves[i].piece_type == bP)
-        {
-          store = moves[capturing_piece];
-          moves[capturing_piece] = moves[i];
-          moves[i] = store;
-          
-          capturing_piece++;
-        }
-      }
-      // Put all knights & bishops next o_O
-      for(i = capturing_piece; i < pos_queen; ++i)
-      {
-        if(moves[i].piece_type == wN || moves[i].piece_type == bN || moves[i].piece_type == wB || moves[i].piece_type == bB)
-        {
-          store = moves[capturing_piece];
-          moves[capturing_piece] = moves[i];
-          moves[i] = store;
-          
-          capturing_piece++;
-        }
-      }
+      capturing_piece++;
+    }
+  }
+  
+  // Put all knights & bishops next
+  for(i = capturing_piece; i < pos_queen; ++i)
+  {
+    if(moves[i].piece_type == wN || moves[i].piece_type == bN || moves[i].piece_type == wB || moves[i].piece_type == bB)
+    {
+      store = moves[capturing_piece];
+      moves[capturing_piece] = moves[i];
+      moves[i] = store;
+        
+      capturing_piece++;
+    }
+  }
   
   // Put all rook captures second
   int pos_rook = pos_queen;
@@ -80,32 +81,33 @@ int moves_sort(s_move* moves, int num)
     }
   }
   
-      capturing_piece = pos_queen;
-      
-      // Put all pawns capturing first o_O
-      for(i = pos_queen; i < pos_rook; ++i)
-      {
-        if(moves[i].piece_type == wP || moves[i].piece_type == bP)
-        {
-          store = moves[capturing_piece];
-          moves[capturing_piece] = moves[i];
-          moves[i] = store;
-          
-          capturing_piece++;
-        }
-      }
-      // Put all knights & bishops next o_O
-      for(i = capturing_piece; i < pos_rook; ++i)
-      {
-        if(moves[i].piece_type == wN || moves[i].piece_type == bN || moves[i].piece_type == wB || moves[i].piece_type == bB)
-        {
-          store = moves[capturing_piece];
-          moves[capturing_piece] = moves[i];
-          moves[i] = store;
-          
-          capturing_piece++;
-        }
-      }
+  capturing_piece = pos_queen;
+    
+  // Put all pawns capturing first
+  for(i = pos_queen; i < pos_rook; ++i)
+  {
+    if(moves[i].piece_type == wP || moves[i].piece_type == bP)
+    {
+      store = moves[capturing_piece];
+      moves[capturing_piece] = moves[i];
+      moves[i] = store;
+        
+      capturing_piece++;
+    }
+  }
+  
+  // Put all knights & bishops next
+  for(i = capturing_piece; i < pos_rook; ++i)
+  {
+    if(moves[i].piece_type == wN || moves[i].piece_type == bN || moves[i].piece_type == wB || moves[i].piece_type == bB)
+    {
+      store = moves[capturing_piece];
+      moves[capturing_piece] = moves[i];
+      moves[i] = store;
+        
+      capturing_piece++;
+    }
+  }
   
   /*
   // Put all bishops & knights captures third

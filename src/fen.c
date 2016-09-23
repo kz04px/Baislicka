@@ -1,9 +1,17 @@
 #include "defs.h"
+#include <string.h>
+
+const char temp[256] = START_FEN;
 
 int set_fen(s_board *board, const char *fen)
 {
   assert(board != NULL);
   assert(fen != NULL);
+  
+  if(strncmp(fen, "startpos", 8) == 0)
+  {
+    fen = temp;
+  }
   
   board->pieces[wP] = 0;
   board->pieces[wN] = 0;

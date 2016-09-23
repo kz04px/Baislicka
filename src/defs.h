@@ -78,7 +78,7 @@
 #define ALPHA_BETA
 #define QUIESCENCE_SEARCH
 #define HASHTABLE
-//#define GET_PV
+#define GET_PV
 
 enum {WHITE, BLACK, BOTH};
 enum {wP, wN, wB, wR, wQ, wK, bP, bN, bB, bR, bQ, bK, EMPTY};
@@ -109,6 +109,12 @@ typedef struct
   uint64_t ep_old;
   int castling[4];
 } s_move;
+
+typedef struct
+{
+  int num_moves;
+  s_move moves[MAX_DEPTH];
+} s_pv;
 
 typedef struct
 {
@@ -161,8 +167,9 @@ uint64_t pinned_pieces_white(s_board* board, int sq);
 uint64_t pinned_pieces_black(s_board* board, int sq);
 
 // search.c
-void search(s_board* board, int depth);
-int alpha_beta(s_board* board, int alpha, int beta, int depth);
+int search(s_board* board, int depth);
+//int alpha_beta(s_board* board, int alpha, int beta, int depth);
+int alpha_beta(s_board* board, int alpha, int beta, int depth, s_pv *pv);
 
 // hash_table.c
 void key_init();
