@@ -37,7 +37,7 @@ int find_moves_white(s_board* board, s_move* move_list)
   //num_moves += find_moves_wR(board, &move_list[num_moves]);
   //num_moves += find_moves_wQ(board, &move_list[num_moves]);
   
-  assert(num_moves <= MAX_MOVES);
+  assert(num_moves < MAX_MOVES);
   assert(num_moves >= 0);
   return num_moves;
 }
@@ -59,7 +59,7 @@ int find_moves_black(s_board* board, s_move* move_list)
   //num_moves += find_moves_bR(board, &move_list[num_moves]);
   //num_moves += find_moves_bQ(board, &move_list[num_moves]);
   
-  assert(num_moves <= MAX_MOVES);
+  assert(num_moves < MAX_MOVES);
   assert(num_moves >= 0);
   return num_moves;
 }

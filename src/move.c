@@ -1,4 +1,5 @@
 #include "defs.h"
+#include <string.h>
 
 int moves_sort(s_move* moves, int num)
 {
@@ -562,3 +563,178 @@ void move_undo(s_board *board, s_move *move)
   
   board->pieces_all = board->pieces_colour[WHITE] | board->pieces_colour[BLACK];
 }
+
+void move_make_ascii(s_board *board, char *move_string)
+{
+  assert(board != NULL);
+  assert(move_string != NULL);
+
+  int from_col = move_string[0] - 'a';
+  int from_row = move_string[1] - '1';
+  int to_col = move_string[2] - 'a';
+  int to_row = move_string[3] - '1';
+  
+  assert(from_col >= 0);
+  assert(from_col < 8);
+  assert(from_row >= 0);
+  assert(from_row < 8);
+  assert(to_col >= 0);
+  assert(to_col < 8);
+  assert(to_row >= 0);
+  assert(to_row < 8);
+  
+  uint64_t from = ((uint64_t)1<<(7-from_col))<<(8*from_row);
+  uint64_t to = ((uint64_t)1<<(7-to_col))<<(8*to_row);
+  
+  int piece_type = -1;
+  int piece_taken = -1;
+  int move_type = QUIET;
+  int promo_piece = -1;
+  
+  int i;
+  for(i = 0; i < 12; ++i)
+  {
+    if(board->pieces[i]&from)
+    {
+      piece_type = i;
+    }
+    if(board->pieces[i]&to)
+    {
+      piece_taken = i;
+    }
+  }
+  
+  if(piece_taken != -1)
+  {
+    move_type = CAPTURE;
+  }
+  
+  assert(piece_type >= 0);
+  assert(piece_type < 12);
+  
+  if(strlen(move_string) > 4)
+  {
+    if(move_string[4] == 'Q' || move_string[4] == 'q')
+    {
+           if(piece_type == wP) {promo_piece = wQ;}
+      else if(piece_type == bP) {promo_piece = bQ;}
+    }
+    else if(move_string[4] == 'R' || move_string[4] == 'r')
+    {
+           if(piece_type == wP) {promo_piece = wR;}
+      else if(piece_type == bP) {promo_piece = bR;}
+    }
+    else if(move_string[4] == 'B' || move_string[4] == 'b')
+    {
+           if(piece_type == wP) {promo_piece = wB;}
+      else if(piece_type == bP) {promo_piece = bB;}
+    }
+    else if(move_string[4] == 'N' || move_string[4] == 'n')
+    {
+           if(piece_type == wP) {promo_piece = wN;}
+      else if(piece_type == bP) {promo_piece = bN;}
+    }
+  }
+  
+  if(piece_type == wK)
+  {
+    if(from == U64_E1 && to == U64_G1)
+    {
+      move_type = wKSC;
+    }
+    else if(from == U64_E1 && to == U64_C1)
+    {
+      move_type = wQSC;
+    }
+  }
+  else if(piece_type == bK)
+  {
+    if(from == U64_E8 && to == U64_G8)
+    {
+      move_type = bKSC;
+    }
+    else if(from == U64_E8 && to == U64_C8)
+    {
+      move_type = bQSC;
+    }
+  }
+  
+  if(piece_type == wP)
+  {
+    if(from_col != to_col)
+    {
+      // en passant
+      if(piece_taken == -1)
+      {
+        piece_taken = bP;
+        move_type = EP;
+      }
+      else
+      {
+        move_type = CAPTURE;
+      }
+    }
+    else if(to_row - from_row == 2)
+    {
+      move_type = DOUBLE_PAWN;
+    }
+  }
+  else if(piece_type == bP)
+  {
+    if(from_col != to_col)
+    {
+      // en passant
+      if(piece_taken == -1)
+      {
+        piece_taken = wP;
+        move_type = EP;
+      }
+      else
+      {
+        move_type = CAPTURE;
+      }
+    }
+    else if(to_row - from_row == -2)
+    {
+      move_type = DOUBLE_PAWN;
+    }
+  }
+  
+  if(promo_piece != -1)
+  {
+    move_type = PROMOTE;
+  }
+  
+  s_move move;
+  move.from = from;
+  move.to = to;
+  move.type = move_type;
+  move.taken = piece_taken;
+  move.piece_type = piece_type;
+  move.promotion = promo_piece;
+
+  move_make(board, &move);
+}
+
+int move_to_string(char* string, s_move *move)
+{
+  assert(string != NULL);
+  assert(move != NULL);
+  
+  string[0] = 'a' + u64_col(move->from);
+  string[1] = '1' + u64_row(move->from);
+  string[2] = 'a' + u64_col(move->to);
+  string[3] = '1' + u64_row(move->to);
+  string[4] = '\0';
+  
+  if(move->type == PROMOTE)
+  {
+    if(move->promotion == wQ || move->promotion == bQ) {string[4] = 'Q';}
+    if(move->promotion == wR || move->promotion == bR) {string[4] = 'R';}
+    if(move->promotion == wB || move->promotion == bB) {string[4] = 'B';}
+    if(move->promotion == wN || move->promotion == bN) {string[4] = 'N';}
+    string[5] = '\0';
+  }
+  
+  return 0;
+ }

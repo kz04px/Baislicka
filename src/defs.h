@@ -21,6 +21,9 @@
 #define MAX_DEPTH 16
 #define POS_TO_COL_CHAR(x) ('h'-(x%8))
 #define POS_TO_ROW_CHAR(x) ((x/8)+'1')
+#define GUI_Send(...); printf(__VA_ARGS__); fflush(stdout);
+#define HASHTABLE_SIZE_MIN 0
+#define HASHTABLE_SIZE_MAX 2048
 
 #define U64_COL_H 0x0101010101010101ULL
 #define U64_COL_G 0x0202020202020202ULL
@@ -146,11 +149,42 @@ typedef struct
   int size_bytes;
 } s_hashtable;
 
-s_hashtable *hashtable;
-uint64_t key_piece_positions[12][10*12];
-uint64_t key_turn;
-uint64_t key_castling[4];
-uint64_t key_ep_col[8];
+typedef struct
+{
+  int wtime;
+  int btime;
+  int winc;
+  int binc;
+  int movestogo;
+  int depth;
+  int nodes;
+  int mate;
+  int movetime;
+  clock_t time_max;
+} s_search_info;
+
+typedef struct
+{
+  s_board *board;
+  s_search_info *info;
+  int running;
+} s_thread_data;
+
+typedef struct
+{
+  int out_of_time;
+  int eval;
+  int time_taken;
+  s_pv pv;
+} s_search_results;
+
+#ifdef HASHTABLE
+  s_hashtable *hashtable;
+  uint64_t key_piece_positions[12][10*12];
+  uint64_t key_turn;
+  uint64_t key_castling[4];
+  uint64_t key_ep_col[8];
+#endif
 
 // attack.c
 int calculate_attacked_white(s_board* board, uint64_t pos);
@@ -163,12 +197,13 @@ uint64_t magic_moves_diagonal(uint64_t pieces_all, int pos);
 uint64_t magic_moves_knight(int pos);
 int u64_to_sq(uint64_t pos);
 int u64_col(uint64_t pos);
+int u64_row(uint64_t pos);
 uint64_t pinned_pieces_white(s_board* board, int sq);
 uint64_t pinned_pieces_black(s_board* board, int sq);
 
 // search.c
-int search(s_board* board, int depth);
-//int alpha_beta(s_board* board, int alpha, int beta, int depth);
+void *search_base(void *n);
+int search(s_board* board, s_search_results *results, int depth);
 int alpha_beta(s_board* board, int alpha, int beta, int depth, s_pv *pv);
 
 // hash_table.c
@@ -228,11 +263,16 @@ s_move add_promotion_move(s_board *board, uint64_t from, uint64_t to, int piece_
 void move_make(s_board *board, s_move *move);
 void move_undo(s_board *board, s_move *move);
 int moves_sort(s_move* moves, int num);
+void move_make_ascii(s_board *board, char *move_string);
+int move_to_string(char* string, s_move *move);
 
 // display.c
 void print_move(s_move move);
 void print_moves(s_move* moves, int num_moves);
 void print_u64(uint64_t board);
 void display_board(s_board *board);
+
+// uci.c
+void uci_listen();
 
 #endif // DEFS_H_INCLUDED

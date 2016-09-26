@@ -257,13 +257,27 @@ int u64_col(uint64_t pos)
   return 7;
 }
 
+int u64_row(uint64_t pos)
+{
+  assert(pos);
+  
+  if(pos&U64_ROW_1) {return 0;}
+  if(pos&U64_ROW_2) {return 1;}
+  if(pos&U64_ROW_3) {return 2;}
+  if(pos&U64_ROW_4) {return 3;}
+  if(pos&U64_ROW_5) {return 4;}
+  if(pos&U64_ROW_6) {return 5;}
+  if(pos&U64_ROW_7) {return 6;}
+  return 7;
+}
+
 void bitboards_init()
 {
   #ifndef NDEBUG
-  printf("Bitboard debug info:\n");
-  printf("Rook table: %"PRIdPTR"KB\n", sizeof(magicMovesRook)/1024);
-  printf("Bishop table: %"PRIdPTR"KB\n", sizeof(magicMovesBishop)/1024);
-  printf("\n");
+    printf("Bitboard debug info:\n");
+    printf("Rook table: %"PRIdPTR"KB\n", sizeof(magicMovesRook)/1024);
+    printf("Bishop table: %"PRIdPTR"KB\n", sizeof(magicMovesBishop)/1024);
+    printf("\n");
   #endif
   
   generateOccupancyVariations(0);
