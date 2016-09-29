@@ -737,4 +737,124 @@ int move_to_string(char* string, s_move *move)
   }
   
   return 0;
- }
+}
+
+int move_is_legal(s_board* board, s_move* move)
+{
+  assert(board != NULL);
+  assert(move != NULL);
+  
+  if((board->pieces[move->piece_type] & move->from) == 0) {return -1;}
+  
+  s_move move_list[MAX_MOVES];
+  
+  int num_moves = 0;
+  switch(move->piece_type)
+  {
+    case wP:
+      num_moves = find_moves_wP(board, move_list);
+      break;
+    case wN:
+      num_moves = find_moves_wN(board, move_list);
+      break;
+    case wB:
+      num_moves = find_moves_wB(board, move_list);
+      break;
+    case wR:
+      num_moves = find_moves_wR(board, move_list);
+      break;
+    case wQ:
+      num_moves = find_moves_wQ(board, move_list);
+      break;
+    case wK:
+      num_moves = find_moves_wK(board, move_list);
+      break;
+    case bP:
+      num_moves = find_moves_bP(board, move_list);
+      break;
+    case bN:
+      num_moves = find_moves_bN(board, move_list);
+      break;
+    case bB:
+      num_moves = find_moves_bB(board, move_list);
+      break;
+    case bR:
+      num_moves = find_moves_bR(board, move_list);
+      break;
+    case bQ:
+      num_moves = find_moves_bQ(board, move_list);
+      break;
+    case bK:
+      num_moves = find_moves_bK(board, move_list);
+      break;
+  }
+  
+  int i;
+  for(i = 0; i < num_moves; ++i)
+  {
+    if(move_list[i].from == move->from &&
+       move_list[i].to == move->to &&
+       move_list[i].type == move->type)
+    {
+      return 0;
+    }
+  }
+  
+  return -1;
+  
+  /*
+  switch(move->type)
+  {
+    case QUIET:
+      if((board->pieces[move->piece_type] & move->from) == 0)
+        return -1;
+      if((board->pieces_all & move->to) == 0)
+        return -1;
+      break;
+    case DOUBLE_PAWN:
+      break;
+    case CAPTURE:
+      break;
+    case PROMOTE:
+      break;
+    case EP:
+      break;
+    case wKSC:
+      if(!board->castling[wKSC])
+        return -1;
+      if(board->pieces_all&U64_F1)
+        return -1;
+      if(board->pieces_all&U64_G1)
+        return -1;
+      break;
+    case wQSC:
+      if(!board->castling[wQSC])
+        return -1;
+      if(board->pieces_all&U64_D1)
+        return -1;
+      if(board->pieces_all&U64_C1)
+        return -1;
+      if(board->pieces_all&U64_B1)
+        return -1;
+      break;
+    case bKSC:
+      if(!board->castling[bKSC])
+        return -1;
+      if(board->pieces_all&U64_F8)
+        return -1;
+      if(board->pieces_all&U64_G8)
+        return -1;
+      break;
+    case bQSC:
+      if(!board->castling[bQSC])
+        return -1;
+      if(board->pieces_all&U64_D8)
+        return -1;
+      if(board->pieces_all&U64_C8)
+        return -1;
+      if(board->pieces_all&U64_B8)
+        return -1;
+      break;
+  }
+  */
+}

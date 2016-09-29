@@ -1,7 +1,5 @@
 #include "defs.h"
 
-#define INF 999999
-
 const int piece_values[12] = { 100,  300,  300,  500,  900,  INF,
                               -100, -300, -300, -500, -900, -INF};
 

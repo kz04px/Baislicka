@@ -16,7 +16,6 @@ uint64_t create_key_board(s_board *board)
   {
     int p;
     
-    // White pieces
     for(p = 0; p < 12; ++p)
     {
       if((board->pieces[p]>>sq)&1)
@@ -78,14 +77,12 @@ s_hashtable_entry *hashtable_poll(s_hashtable *hashtable, uint64_t key)
   return &hashtable->entries[key%(hashtable->max_entries)];
 }
 
-s_hashtable_entry *hashtable_add(s_hashtable *hashtable, int flags, uint64_t key, int depth, int eval, int pv)
+s_hashtable_entry *hashtable_add(s_hashtable *hashtable, int flags, uint64_t key, int depth, int eval, s_move pv)
 {
   assert(hashtable != NULL);
   assert(key != 0);
   assert(depth > 0);
   assert(depth <= MAX_DEPTH);
-  assert(pv >= 0);
-  assert(pv < MAX_MOVES);
 
   if(hashtable->entries[key%(hashtable->max_entries)].key == 0)
   {
@@ -98,13 +95,19 @@ s_hashtable_entry *hashtable_add(s_hashtable *hashtable, int flags, uint64_t key
   hashtable->entries[key%(hashtable->max_entries)].eval = eval;
   hashtable->entries[key%(hashtable->max_entries)].pv = pv;
 
-  return &hashtable->entries[key%(hashtable->max_entries)];
+  return NULL;
+  //return &hashtable->entries[key%(hashtable->max_entries)];
 }
 
 int hashtable_init(s_hashtable *hashtable, int size_megabytes)
 {
   assert(hashtable != NULL);
   assert(size_megabytes > 0);
+  
+  if(hashtable->entries != NULL)
+  {
+    free(hashtable->entries);
+  }
   
   if(size_megabytes > HASHTABLE_SIZE_MAX)
   {
@@ -129,9 +132,6 @@ int hashtable_init(s_hashtable *hashtable, int size_megabytes)
   {
     return size_megabytes;
   }
-  
-  //hashtable->entries = (s_hashtable_entry*)malloc(hashtable->size_bytes);
-  //memset(hashtable->entries, 0, hashtable->size_bytes);
 }
 
 void hashtable_clear(s_hashtable *hashtable)
@@ -147,7 +147,7 @@ void hashtable_clear(s_hashtable *hashtable)
     hashtable->entries[i].depth = 0;
     hashtable->entries[i].eval = 0;
     hashtable->entries[i].key = 0;
-    hashtable->entries[i].pv = 0;
+    hashtable->entries[i].pv.from = 0;
   }
 }
 

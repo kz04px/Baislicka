@@ -22,8 +22,10 @@
 #define POS_TO_COL_CHAR(x) ('h'-(x%8))
 #define POS_TO_ROW_CHAR(x) ((x/8)+'1')
 #define GUI_Send(...); printf(__VA_ARGS__); fflush(stdout);
-#define HASHTABLE_SIZE_MIN 0
-#define HASHTABLE_SIZE_MAX 2048
+#define HASHTABLE_SIZE_MIN        0
+#define HASHTABLE_SIZE_DEFAULT  512
+#define HASHTABLE_SIZE_MAX     2048
+#define INF 1000000
 
 #define U64_COL_H 0x0101010101010101ULL
 #define U64_COL_G 0x0202020202020202ULL
@@ -101,6 +103,7 @@ typedef struct
 {
   uint64_t from;
   uint64_t to;
+  
   int taken;
   int piece_type;
   int type;
@@ -138,7 +141,7 @@ typedef struct
   uint64_t key;
   int depth;
   int eval;
-  int pv;
+  s_move pv;
 } s_hashtable_entry;
 
 typedef struct
@@ -175,16 +178,16 @@ typedef struct
   int out_of_time;
   int eval;
   int time_taken;
+  int mate;
+  uint64_t nodes;
   s_pv pv;
 } s_search_results;
 
-#ifdef HASHTABLE
-  s_hashtable *hashtable;
-  uint64_t key_piece_positions[12][10*12];
-  uint64_t key_turn;
-  uint64_t key_castling[4];
-  uint64_t key_ep_col[8];
-#endif
+s_hashtable *hashtable;
+uint64_t key_piece_positions[12][10*12];
+uint64_t key_turn;
+uint64_t key_castling[4];
+uint64_t key_ep_col[8];
 
 // attack.c
 int calculate_attacked_white(s_board* board, uint64_t pos);
@@ -202,8 +205,9 @@ uint64_t pinned_pieces_white(s_board* board, int sq);
 uint64_t pinned_pieces_black(s_board* board, int sq);
 
 // search.c
+int search_info_set(s_search_info info);
 void *search_base(void *n);
-int search(s_board* board, s_search_results *results, int depth);
+s_search_results search(s_board* board, int depth);
 int alpha_beta(s_board* board, int alpha, int beta, int depth, s_pv *pv);
 
 // hash_table.c
@@ -213,7 +217,7 @@ int hashtable_init(s_hashtable *hashtable, int size_megabytes);
 void hashtable_clear(s_hashtable *hashtable);
 void hashtable_free(s_hashtable *hashtable);
 s_hashtable_entry *hashtable_poll(s_hashtable *hashtable, uint64_t key);
-s_hashtable_entry *hashtable_add(s_hashtable *hashtable, int flags, uint64_t key, int depth, int eval, int pv);
+s_hashtable_entry *hashtable_add(s_hashtable *hashtable, int flags, uint64_t key, int depth, int eval, s_move pv);
 
 // eval.c
 int eval(s_board* board);
@@ -265,6 +269,7 @@ void move_undo(s_board *board, s_move *move);
 int moves_sort(s_move* moves, int num);
 void move_make_ascii(s_board *board, char *move_string);
 int move_to_string(char* string, s_move *move);
+int move_is_legal(s_board* board, s_move* move);
 
 // display.c
 void print_move(s_move move);

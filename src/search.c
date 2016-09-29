@@ -1,13 +1,12 @@
 #include "defs.h"
 
-#define INF 99999
-
 s_board *board = NULL;
-s_search_info *info = NULL;
+s_search_info search_info;
 
 clock_t time_start = 0;
 uint64_t nodes = 0;
 uint64_t hashtable_hits = 0;
+int search_depth = 0;
 
 int quiesce(s_board *board, int alpha, int beta)
 {
@@ -79,27 +78,27 @@ int quiesce(s_board *board, int alpha, int beta)
   return alpha;
 }
 
+int search_info_set(s_search_info info)
+{
+  search_info = info;
+  return 0;
+}
+
 void *search_base(void *n)
 {
   assert(n != NULL);
   
   board = (*(s_thread_data*)n).board;
-  info = (*(s_thread_data*)n).info;
-  //s_board *board = (*(s_thread_data*)n).board;
-  //s_search_info *info = (*(s_thread_data*)n).info;
   
   assert(board != NULL);
-  assert(info != NULL);
-  
-  s_search_results results;
   
   if(board->turn == WHITE)
   {
-    info->time_max = info->wtime/30;
+    search_info.time_max = search_info.wtime/25;
   }
   else
   {
-    info->time_max = info->btime/30;
+    search_info.time_max = search_info.btime/25;
   }
   
   int target_depth = 1;
@@ -112,50 +111,67 @@ void *search_base(void *n)
   int i;
   for(i = 1; i <= target_depth && i < MAX_DEPTH; ++i)
   {
-    results.out_of_time = 0;
-    results.eval = 0;
-    results.time_taken = 0;
-    results.pv.num_moves = 0;
+    s_search_results results = search(board, i);
     
-    int r = search(board, &results, i);
+    if(results.out_of_time == 1) {break;}
     
-    if(r != 0)
+    move_string[0] = '\0';
+    int n;
+    for(n = 0; n < results.pv.num_moves; ++n)
     {
-      break;
+      move_to_string(temp, &results.pv.moves[n]);
+      sprintf(move_string, "%s %s", move_string, temp);
+    }
+    
+    if(results.mate == 0)
+    {
+      GUI_Send("info depth %i score cp %i nodes %"PRIdPTR" time %i pv%s\n", i, results.eval, nodes, results.time_taken, move_string);
     }
     else
     {
-      move_string[0] = '\0';
-      int n;
-      for(n = 0; n < results.pv.num_moves; ++n)
+      if(results.mate == 1)
       {
-        move_to_string(temp, &results.pv.moves[n]);
-        sprintf(move_string, "%s %s", move_string, temp);
+        if(board->turn == WHITE)
+        {
+          GUI_Send("info depth %i score mate %i nodes %"PRIdPTR" time %i pv%s\n", i, INF-results.eval, nodes, results.time_taken, move_string);
+        }
+        else
+        {
+          GUI_Send("info depth %i score mate %i nodes %"PRIdPTR" time %i pv%s\n", i, -results.eval-INF, nodes, results.time_taken, move_string);
+        }
       }
-      
-      GUI_Send("info depth %i score cp %i nodes %"PRIdPTR" time %i pv%s\n", i, results.eval, nodes, results.time_taken, move_string);
-      if(results.time_taken > 0)
+      else
       {
-        GUI_Send("info nps %"PRIdPTR"\n", nodes/results.time_taken);
+        if(board->turn == WHITE)
+        {
+          GUI_Send("info depth %i score mate %i nodes %"PRIdPTR" time %i pv%s\n", i, -INF-results.eval, nodes, results.time_taken, move_string);
+        }
+        else
+        {
+          GUI_Send("info depth %i score mate %i nodes %"PRIdPTR" time %i pv%s\n", i, -results.eval+INF, nodes, results.time_taken, move_string);
+        }
       }
-      
-      /*
-      GUI_Send("info depth %i\n", i);
-      GUI_Send("info score cp %i\n", results.eval);
-      GUI_Send("info nodes %"PRIdPTR"\n", nodes);
-      GUI_Send("info time %i\n", results.time_taken);
-      */
-      
-      bestmove = results.pv.moves[0];
-      if(results.pv.num_moves > 1)
-      {
-        ponder = results.pv.moves[1];
-      }
-      
-      if(10*results.time_taken < info->time_max)
-      {
-        target_depth++;
-      }
+    }
+    
+    if(results.time_taken > 0)
+    {
+      GUI_Send("info nps %"PRIdPTR"\n", nodes/results.time_taken);
+    }
+    
+    bestmove = results.pv.moves[0];
+    if(results.pv.num_moves > 1)
+    {
+      ponder = results.pv.moves[1];
+    }
+    
+    if(results.mate != 0)
+    {
+      break;
+    }
+    
+    if(10*results.time_taken < search_info.time_max)
+    {
+      target_depth++;
     }
   }
   
@@ -181,19 +197,23 @@ void *search_base(void *n)
   return NULL;
 }
 
-int search(s_board* board, s_search_results *results, int depth)
+s_search_results search(s_board* board, int depth)
 {
   assert(board != NULL);
-  assert(results != NULL);
   assert(depth > 0);
   
-  time_t start;
+  s_search_results results;
+  results.out_of_time = 0;
+  results.eval = 0;
+  results.time_taken = 0;
+  results.mate = 0;
+  
+  search_depth = depth;
   nodes = 0;
   #ifdef HASHTABLE
     hashtable_hits = 0;
   #endif
   
-  start = clock();
   time_start = clock();
   int score;
   
@@ -202,15 +222,16 @@ int search(s_board* board, s_search_results *results, int depth)
   s_move moves[MAX_MOVES];
   int num_moves = find_moves(board, moves, board->turn);
   moves_sort(moves, num_moves);
+  
   #ifdef GET_PV
-    results->pv.num_moves = 0;
+    results.pv.num_moves = 0;
     s_pv pv_local;
     pv_local.num_moves = 0;
   #endif
   
   int m;
   for(m = 0; m < num_moves; ++m)
-  {    
+  {
     move_make(board, &moves[m]);
     
     if(board->turn == WHITE)
@@ -233,7 +254,7 @@ int search(s_board* board, s_search_results *results, int depth)
     nodes++;
     
     time_t time_spent = clock() - time_start;
-    if(time_spent < info->time_max)
+    if(time_spent < search_info.time_max)
     {
       board->turn = 1-(board->turn);
       
@@ -248,7 +269,7 @@ int search(s_board* board, s_search_results *results, int depth)
     else
     {
       score = eval(board);
-      results->out_of_time = 1;
+      results.out_of_time = 1;
     }
     
     move_undo(board, &moves[m]);
@@ -258,21 +279,46 @@ int search(s_board* board, s_search_results *results, int depth)
       best_score = score;
       
       #ifdef GET_PV
-        results->pv.moves[0] = moves[m];
+        results.pv.moves[0] = moves[m];
         int i;
         for(i = 0; i < pv_local.num_moves && i < MAX_DEPTH-1; ++i)
         {
-          results->pv.moves[i+1] = pv_local.moves[i];
+          results.pv.moves[i+1] = pv_local.moves[i];
         }
-        results->pv.num_moves = pv_local.num_moves + 1;
+        results.pv.num_moves = pv_local.num_moves + 1;
       #endif
     }
   }
   
-  results->time_taken = clock() - start;
-  results->eval = best_score;
+  results.nodes = nodes;
+  results.time_taken = clock() - time_start;
   
-  return 0;
+  if(best_score <= -INF+MAX_DEPTH)
+  {
+    if(board->turn == WHITE)
+    {
+      results.mate = -1;
+    }
+    else
+    {
+      results.mate = 1;
+    }
+  }
+  else if(best_score >= INF-MAX_DEPTH)
+  {
+    if(board->turn == WHITE)
+    {
+      results.mate = 1;
+    }
+    else
+    {
+      results.mate = -1;
+    }
+  }
+  
+  results.eval = best_score;
+  
+  return results;
 }
 
 int alpha_beta(s_board* board, int alpha, int beta, int depth, s_pv *pv)
@@ -285,53 +331,52 @@ int alpha_beta(s_board* board, int alpha, int beta, int depth, s_pv *pv)
     assert(pv == NULL);
   #endif
   
-  #ifdef HASHTABLE
-    int alpha_original = alpha;
-    
-    s_hashtable_entry *entry = NULL;
-    
-    if(hashtable)
-    {
-      entry = hashtable_poll(hashtable, board->key);
-      if(board->key == entry->key && entry->depth >= depth)
-      {
-        hashtable_hits++;
-        if(entry->flags == EXACT)
-        {
-          #ifdef GET_PV
-            pv->num_moves = 0;
-          #endif
-          return entry->eval;
-        }
-        else if(entry->flags == LOWERBOUND)
-        {
-          if(entry->eval > alpha)
-          {
-            alpha = entry->eval;
-          }
-        }
-        else if(entry->flags == UPPERBOUND)
-        {
-          if(entry->eval < beta)
-          {
-            beta = entry->eval;
-          }
-        }
-
-        if(alpha >= beta)
-        {
-          #ifdef GET_PV
-            pv->num_moves = 0;
-          #endif
-          return entry->eval;
-        }
-      }
-    }
-  #endif
+  int score;
   
   #ifdef GET_PV
     s_pv pv_local;
     pv_local.num_moves = 0;
+  #endif
+  
+  #ifdef HASHTABLE
+    int alpha_original = alpha;
+    
+    s_hashtable_entry *entry = hashtable_poll(hashtable, board->key);
+    
+    if(board->key == entry->key && entry->depth >= depth)
+    {
+      hashtable_hits++;
+      
+      if(entry->flags == EXACT)
+      {
+        #ifdef GET_PV
+          pv->num_moves = 0;
+        #endif
+        return entry->eval;
+      }
+      else if(entry->flags == LOWERBOUND)
+      {
+        if(entry->eval > alpha)
+        {
+          alpha = entry->eval;
+        }
+      }
+      else if(entry->flags == UPPERBOUND)
+      {
+        if(entry->eval < beta)
+        {
+          beta = entry->eval;
+        }
+      }
+      
+      if(alpha >= beta)
+      {
+        #ifdef GET_PV
+          pv->num_moves = 0;
+        #endif
+        return entry->eval;
+      }
+    }
   #endif
   
   #ifdef QUIESCENCE_SEARCH
@@ -354,30 +399,32 @@ int alpha_beta(s_board* board, int alpha, int beta, int depth, s_pv *pv)
     }
   #endif
   
-  int score;
-  
   s_move moves[MAX_MOVES];
   int num_moves = find_moves(board, moves, board->turn);
   moves_sort(moves, num_moves);
   
   #ifdef HASHTABLE
     int best_move_num = 0;
-    if(hashtable)
+    if(board->key == entry->key)
     {
-      if(board->key == entry->key)
+      int i;
+      for(i = 0; i < num_moves; ++i)
       {
-        assert(entry->pv >= 0);
-        assert(entry->pv < num_moves);
-
-        s_move temp = moves[0];
-        moves[0] = moves[entry->pv];
-        moves[entry->pv] = temp;
+        if(moves[i].from == entry->pv.from &&
+           moves[i].to == entry->pv.to &&
+           moves[i].type == entry->pv.type)
+        {
+          s_move temp = moves[0];
+          moves[0] = moves[i];
+          moves[i] = temp;
+          
+          break;
+        }
       }
     }
   #endif
   
   int best_score = -INF;
-  
   int played = 0;
   
   int m;
@@ -407,7 +454,7 @@ int alpha_beta(s_board* board, int alpha, int beta, int depth, s_pv *pv)
     played = 1;
     
     time_t time_spent = clock() - time_start;
-    if(time_spent < info->time_max)
+    if(time_spent < search_info.time_max)
     {
       board->turn = 1-(board->turn);
       
@@ -467,7 +514,9 @@ int alpha_beta(s_board* board, int alpha, int beta, int depth, s_pv *pv)
       if(calculate_attacked_black(board, board->pieces[wK]))
       {
         // Checkmate
-        return -(INF - (MAX_DEPTH-depth));
+        assert(search_depth - depth > 0);
+        //return INF - (search_depth - depth);
+        return -INF + (search_depth - depth);
       }
       else
       {
@@ -480,7 +529,9 @@ int alpha_beta(s_board* board, int alpha, int beta, int depth, s_pv *pv)
       if(calculate_attacked_white(board, board->pieces[bK]))
       {
         // Checkmate
-        return -(INF - (MAX_DEPTH-depth));
+        assert(search_depth - depth > 0);
+        //return INF - (search_depth - depth);
+        return -INF + (search_depth - depth);
       }
       else
       {
@@ -491,23 +542,19 @@ int alpha_beta(s_board* board, int alpha, int beta, int depth, s_pv *pv)
   }
 
   #ifdef HASHTABLE
-    if(hashtable)
+    assert(best_move_num >= 0);
+    assert(best_move_num < num_moves);
+    
+    int flag = EXACT;
+    if(best_score <= alpha_original)
     {
-      assert(best_move_num >= 0);
-      assert(best_move_num < num_moves);
-      
-      int flag = EXACT;
-      if(best_score <= alpha_original)
-      {
-        flag = UPPERBOUND;
-      }
-      else if(best_score >= beta)
-      {
-        flag = LOWERBOUND;
-      }
-
-      hashtable_add(hashtable, flag, board->key, depth, best_score, best_move_num);
+      flag = UPPERBOUND;
     }
+    else if(best_score >= beta)
+    {
+      flag = LOWERBOUND;
+    }
+    hashtable_add(hashtable, flag, board->key, depth, best_score, moves[best_move_num]);
   #endif
   
   return best_score;

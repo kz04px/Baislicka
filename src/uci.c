@@ -57,7 +57,7 @@ void uci_listen()
       }
       else if(strncmp(part, "moves", 5) == 0)
       {
-        part += 6;
+        //part += 6;
         
         unsigned int i;
         for(i = 0; i < strlen(part)-4; ++i)
@@ -129,6 +129,8 @@ void uci_listen()
         info->mate = -1;
         info->movetime = -1;
         
+        search_info_set(*info);
+        
         if(pthread_create(&search_thread, NULL, search_base, &data))
         {
           fprintf(stderr, "Error creating thread\n");
@@ -153,14 +155,6 @@ void uci_listen()
             
             if(HASHTABLE_SIZE_MIN <= size && size <= HASHTABLE_SIZE_MAX)
             {
-              if(hashtable != NULL)
-              {
-                hashtable_free(hashtable);
-              }
-              
-              hashtable = malloc(1*sizeof(*hashtable));
-              if(hashtable == NULL) {break;}
-              
               while(size >= HASHTABLE_SIZE_MIN)
               {
                 int r = hashtable_init(hashtable, size);
@@ -184,7 +178,7 @@ void uci_listen()
     }
   }
   
-  if(hashtable != NULL) {hashtable_free(hashtable);}
+  //if(hashtable != NULL) {hashtable_free(hashtable);}
   free(board);
   free(info);
   return;

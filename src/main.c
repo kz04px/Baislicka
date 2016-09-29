@@ -3,15 +3,26 @@
 
 int main()
 {
-  srand(time(0));
-  printf("%s %s\n\n", ENGINE_NAME, ENGINE_VERSION);
+  srand(0x480ec5cb);
+  //printf("%s %s\n\n", ENGINE_NAME, ENGINE_VERSION);
   
   // Initialise magic bitboards
   bitboards_init();
   
   #ifdef HASHTABLE
     key_init();
-    hashtable = NULL;
+    hashtable = malloc(1*sizeof(*hashtable));
+    hashtable->entries = NULL;
+    
+    int size = HASHTABLE_SIZE_DEFAULT;
+    while(size >= HASHTABLE_SIZE_MIN)
+    {
+      int r = hashtable_init(hashtable, size);
+      
+      if(r != -1) {break;}
+      
+      size = size>>1;
+    }
   #endif
   
   #ifndef NDEBUG
@@ -41,6 +52,10 @@ int main()
     printf("Other info:\n");
     printf("sizeof(s_board): %"PRIdPTR"B\n", sizeof(s_board)); // 160B
     printf("sizeof(s_move):  %"PRIdPTR"B\n", sizeof(s_move));  //  64B
+    #ifdef HASHTABLE
+      printf("sizeof(s_hashtable_entry):  %"PRIdPTR"B\n", sizeof(s_hashtable_entry));
+      printf("Hashtable entries per MB:  %"PRIdPTR"\n", 1024*1024/sizeof(s_hashtable_entry));
+    #endif
     printf("\n");
   #endif
   
@@ -67,7 +82,7 @@ int main()
     GUI_Send("id name %s\n", ENGINE_NAME);
     GUI_Send("id author %s\n", ENGINE_AUTHOR);
     #ifdef HASHTABLE
-      GUI_Send("option name Hash type spin default 0 min %i max %i\n", HASHTABLE_SIZE_MIN, HASHTABLE_SIZE_MAX);
+      GUI_Send("option name Hash type spin default %i min %i max %i\n", HASHTABLE_SIZE_DEFAULT, HASHTABLE_SIZE_MIN, HASHTABLE_SIZE_MAX);
     #endif
     GUI_Send("uciok\n");
     
@@ -82,11 +97,66 @@ int main()
     s_board* board = (s_board*) malloc(1*sizeof(s_board));
     if(board == NULL) {return -1;}
     
-    perft_suite(board, 5, "perftsuite.epd");
+    set_fen(board, START_FEN);
+    
+    s_search_info info;
+    info.time_max = 10000000;
+    search_info_set(info);
+    
+    printf("Search started\n");
+    
+    int i;
+    for(i = 1; i <= 9; ++i)
+    {
+      printf("Depth: %i\n", i);
+      s_search_results results = search(board, i);
+      
+      printf("  Search time: %ims\n", results.time_taken);
+      printf("  Nodes: %"PRIdPTR"\n", results.nodes);
+      #ifdef HASHTABLE
+        printf("  Hash entries: %i (%.2f%%)\n", hashtable->num_entries, 100.0*(float)hashtable->num_entries/hashtable->max_entries);
+      #endif
+      if(results.time_taken > 0)
+      {
+        printf("  NPS: %"PRIdPTR"\n", results.nodes/results.time_taken);
+      }
+      
+      if(results.mate)
+      {
+        if(board->turn == WHITE)
+        {
+          printf("  Eval: %i#\n", results.eval-INF);
+        }
+        else
+        {
+          printf("  Eval: %i#\n", INF-results.eval);
+        }
+      }
+      else
+      {
+        printf("  Eval: %i\n", results.eval);
+      }
+      print_move(results.pv.moves[0]);
+      if(results.out_of_time == 1)
+      {
+        printf("  Out of time :<\n");
+      }
+      printf("\n");
+    }
+    
+    /*
+    printf("info depth %i score cp %i nodes %"PRIdPTR" time %i pv%s\n", i, results.eval, nodes, results.time_taken, move_string);
+    if(results.time_taken > 0)
+    {
+      printf("info nps %"PRIdPTR"\n", nodes/results.time_taken);
+    }
+    */
+    
+    //perft_suite(board, 5, "perftsuite.epd");
     //set_fen(board, START_FEN);
     //perft_movegen(board, "perftsuite.epd");
     //perft_movegen_sides(board, "perftsuite.epd");
-    //perft(board, 7, START_FEN);
+    //perft(board, 6, START_FEN);
     //perft_split(board, 2, START_FEN);
     getchar();
   }
