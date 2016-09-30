@@ -13,19 +13,13 @@ int set_fen(s_board *board, const char *fen)
     fen = temp;
   }
   
-  board->pieces[wP] = 0;
-  board->pieces[wN] = 0;
-  board->pieces[wB] = 0;
-  board->pieces[wR] = 0;
-  board->pieces[wQ] = 0;
-  board->pieces[wK] = 0;
-  
-  board->pieces[bP] = 0;
-  board->pieces[bN] = 0;
-  board->pieces[bB] = 0;
-  board->pieces[bR] = 0;
-  board->pieces[bQ] = 0;
-  board->pieces[bK] = 0;
+  int i;
+  for(i = 0; i < 7; ++i)
+  {
+    board->combined[i] = 0;
+  }
+  board->colour[WHITE] = 0;
+  board->colour[BLACK] = 0;
   
   board->ep = 0;
   
@@ -70,86 +64,74 @@ int set_fen(s_board *board, const char *fen)
       }
       case 'p':
       {
-        SETBIT(board->pieces[bP], x);
-        //board->locations[bP][board->num_pieces[bP]] = x;
-        //board->num_pieces[bP]++;
+        board->combined[bP] ^= (uint64_t)1<<x;
+        board->colour[BLACK] ^= (uint64_t)1<<x;
         break;
       }
       case 'n':
       {
-        SETBIT(board->pieces[bN], x);
-        //board->locations[bN][board->num_pieces[bN]] = x;
-        //board->num_pieces[bN]++;
+        board->combined[KNIGHTS] ^= (uint64_t)1<<x;
+        board->colour[BLACK] ^= (uint64_t)1<<x;
         break;
       }
       case 'b':
       {
-        SETBIT(board->pieces[bB], x);
-        //board->locations[bB][board->num_pieces[bB]] = x;
-        //board->num_pieces[bB]++;
+        board->combined[BISHOPS] ^= (uint64_t)1<<x;
+        board->colour[BLACK] ^= (uint64_t)1<<x;
         break;
       }
       case 'r':
       {
-        SETBIT(board->pieces[bR], x);
-        //board->locations[bR][board->num_pieces[bR]] = x;
-        //board->num_pieces[bR]++;
+        board->combined[ROOKS] ^= (uint64_t)1<<x;
+        board->colour[BLACK] ^= (uint64_t)1<<x;
         break;
       }
       case 'q':
       {
-        SETBIT(board->pieces[bQ], x);
-        //board->locations[bQ][board->num_pieces[bQ]] = x;
-        //board->num_pieces[bQ]++;
+        board->combined[QUEENS] ^= (uint64_t)1<<x;
+        board->colour[BLACK] ^= (uint64_t)1<<x;
         break;
       }
       case 'k':
       {
-        SETBIT(board->pieces[bK], x);
-        //board->locations[bK][board->num_pieces[bK]] = x;
-        //board->num_pieces[bK]++;
+        board->combined[KINGS] ^= (uint64_t)1<<x;
+        board->colour[BLACK] ^= (uint64_t)1<<x;
         break;
       }
       case 'P':
       {
-        SETBIT(board->pieces[wP], x);
-        //board->locations[wP][board->num_pieces[wP]] = x;
-        //board->num_pieces[wP]++;
+        board->combined[wP] ^= (uint64_t)1<<x;
+        board->colour[WHITE] ^= (uint64_t)1<<x;
         break;
       }
       case 'N':
       {
-        SETBIT(board->pieces[wN], x);
-        //board->locations[wN][board->num_pieces[wN]] = x;
-        //board->num_pieces[wN]++;
+        board->combined[KNIGHTS] ^= (uint64_t)1<<x;
+        board->colour[WHITE] ^= (uint64_t)1<<x;
         break;
       }
       case 'B':
       {
-        SETBIT(board->pieces[wB], x);
-        //board->locations[wB][board->num_pieces[wB]] = x;
-        //board->num_pieces[wB]++;
+        board->combined[BISHOPS] ^= (uint64_t)1<<x;
+        board->colour[WHITE] ^= (uint64_t)1<<x;
         break;
       }
       case 'R':
       {
-        SETBIT(board->pieces[wR], x);
-        //board->locations[wR][board->num_pieces[wR]] = x;
-        //board->num_pieces[wR]++;
+        board->combined[ROOKS] ^= (uint64_t)1<<x;
+        board->colour[WHITE] ^= (uint64_t)1<<x;
         break;
       }
       case 'Q':
       {
-        SETBIT(board->pieces[wQ], x);
-        //board->locations[wQ][board->num_pieces[wQ]] = x;
-        //board->num_pieces[wQ]++;
+        board->combined[QUEENS] ^= (uint64_t)1<<x;
+        board->colour[WHITE] ^= (uint64_t)1<<x;
         break;
       }
       case 'K':
       {
-        SETBIT(board->pieces[wK], x);
-        //board->locations[wK][board->num_pieces[wK]] = x;
-        //board->num_pieces[wK]++;
+        board->combined[KINGS] ^= (uint64_t)1<<x;
+        board->colour[WHITE] ^= (uint64_t)1<<x;
         break;
       }
       default:
@@ -222,14 +204,20 @@ int set_fen(s_board *board, const char *fen)
   }
   n += 2;
   
-  board->pieces_colour[WHITE] = board->pieces[wP] | board->pieces[wN] | board->pieces[wB] |
-                                board->pieces[wR] | board->pieces[wQ] | board->pieces[wK];
+  /*
+  board->colour[WHITE] = board->combined[wP] | board->pieces[wN] | board->pieces[wB] |
+                                board->pieces[wR] | board->pieces[wQ] | (board->colour[WHITE] & board->combined[KINGS]);
   
-  board->pieces_colour[BLACK] = board->pieces[bP] | board->pieces[bN] | board->pieces[bB] |
-                                board->pieces[bR] | board->pieces[bQ] | board->pieces[bK];
+  board->colour[BLACK] = board->combined[bP] | board->pieces[bN] | board->pieces[bB] |
+                                board->pieces[bR] | board->pieces[bQ] | (board->colour[BLACK] & board->combined[KINGS]);
   
-  board->pieces_all = board->pieces_colour[WHITE] | board->pieces_colour[BLACK];
-
+  board->combined[KNIGHTS] = board->pieces[wN] | board->pieces[bN];
+  board->combined[BISHOPS] = board->pieces[wB] | board->pieces[bB];
+  board->combined[ROOKS]   = board->pieces[wR] | board->pieces[bR];
+  board->combined[QUEENS]  = board->pieces[wQ] | board->pieces[bQ];
+  board->combined[KINGS]   = (board->colour[WHITE] & board->combined[KINGS]) | (board->colour[BLACK] & board->combined[KINGS]);
+  */
+  
   #ifdef HASHTABLE
     board->key = create_key_board(board);
   #endif

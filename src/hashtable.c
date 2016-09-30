@@ -16,16 +16,28 @@ uint64_t create_key_board(s_board *board)
   {
     int p;
     
-    for(p = 0; p < 12; ++p)
+    for(p = 0; p < 7; ++p)
     {
-      if((board->pieces[p]>>sq)&1)
+      if((board->combined[p]>>sq)&1)
       {
-        key ^= key_piece_positions[p][sq];
-        break;
+        if((board->colour[WHITE]>>sq)&1)
+        {
+          key ^= key_piece_positions[p][WHITE][sq];
+        }
+        else
+        {
+          key ^= key_piece_positions[p][BLACK][sq];
+        }
       }
     }
   }
-
+  
+  key_ksc[WHITE] = key_piece_positions[KINGS][WHITE][E1] ^ key_piece_positions[KINGS][WHITE][G1] ^ key_piece_positions[ROOKS][WHITE][F1] ^ key_piece_positions[ROOKS][WHITE][H1];
+  key_ksc[BLACK] = key_piece_positions[KINGS][BLACK][E8] ^ key_piece_positions[KINGS][BLACK][G8] ^ key_piece_positions[ROOKS][BLACK][F8] ^ key_piece_positions[ROOKS][BLACK][H8];
+  
+  key_qsc[WHITE] = key_piece_positions[KINGS][WHITE][E1] ^ key_piece_positions[KINGS][WHITE][C1] ^ key_piece_positions[ROOKS][WHITE][D1] ^ key_piece_positions[ROOKS][WHITE][A1];
+  key_qsc[BLACK] = key_piece_positions[KINGS][BLACK][E8] ^ key_piece_positions[KINGS][BLACK][C8] ^ key_piece_positions[ROOKS][BLACK][D8] ^ key_piece_positions[ROOKS][BLACK][A8];
+  
   if(board->turn == WHITE)
   {
     key ^= key_turn;
@@ -47,12 +59,13 @@ uint64_t create_key_board(s_board *board)
 void key_init()
 {
   int piece;
-  for(piece = wP; piece <= bK; ++piece)
+  for(piece = 0; piece < 7; ++piece)
   {
     int p;
     for(p = 0; p < 64; ++p)
     {
-      key_piece_positions[piece][p] = RAND_64;
+      key_piece_positions[piece][WHITE][p] = RAND_64;
+      key_piece_positions[piece][BLACK][p] = RAND_64;
     }
   }
 

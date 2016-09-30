@@ -28,7 +28,7 @@ void perft_search(s_board* board, int d)
     
     if(board->turn == WHITE)
     {
-      if(calculate_attacked_black(board, board->pieces[wK]))
+      if(calculate_attacked_black(board, (board->colour[WHITE] & board->combined[KINGS])))
       {
         move_undo(board, &moves[m]);
         continue;
@@ -36,7 +36,7 @@ void perft_search(s_board* board, int d)
     }
     else
     {
-      if(calculate_attacked_white(board, board->pieces[bK]))
+      if(calculate_attacked_white(board, (board->colour[BLACK] & board->combined[KINGS])))
       {
         move_undo(board, &moves[m]);
         continue;
@@ -49,20 +49,22 @@ void perft_search(s_board* board, int d)
       
       if(board->turn == WHITE)
       {
-        if(calculate_attacked_white(board, board->pieces[bK]))
+        if(calculate_attacked_white(board, (board->colour[BLACK] & board->combined[KINGS])))
         {
           moves_check++;
         }
       }
       else
       {
-        if(calculate_attacked_black(board, board->pieces[wK]))
+        if(calculate_attacked_black(board, (board->colour[WHITE] & board->combined[KINGS])))
         {
           moves_check++;
         }
       }
+      
+      
       /*
-      if(calculate_attacked_white(board, board->pieces[bK]) || calculate_attacked_black(board, board->pieces[wK]))
+      if(calculate_attacked_white(board, (board->colour[BLACK] & board->combined[KINGS])) || calculate_attacked_black(board, (board->colour[WHITE] & board->combined[KINGS])))
       {
         moves_check++;
       }
@@ -80,17 +82,13 @@ void perft_search(s_board* board, int d)
           moves_capture++;
           moves_ep++;
           break;
-        case wKSC:
-          moves_wKSC++;
+        case KSC:
+          if(board->turn == WHITE) {moves_wKSC++;}
+          else                     {moves_bKSC++;}
           break;
-        case wQSC:
-          moves_wQSC++;
-          break;
-        case bKSC:
-          moves_bKSC++;
-          break;
-        case bQSC:
-          moves_bQSC++;
+        case QSC:
+          if(board->turn == WHITE) {moves_wQSC++;}
+          else                     {moves_bQSC++;}
           break;
         default:
           break;
@@ -127,6 +125,9 @@ int perft_split(s_board* board, int depth, char* fen)
   printf("Board:\n");
   display_board(board);
   
+  time_t start;
+  start = clock();
+  
   s_move moves[MAX_MOVES];
   int num_moves = find_moves(board, moves, board->turn);
   
@@ -139,7 +140,7 @@ int perft_split(s_board* board, int depth, char* fen)
     
     if(board->turn == WHITE)
     {
-      if(calculate_attacked_black(board, board->pieces[wK]))
+      if(calculate_attacked_black(board, (board->colour[WHITE] & board->combined[KINGS])))
       {
         move_undo(board, &moves[m]);
         continue;
@@ -147,7 +148,7 @@ int perft_split(s_board* board, int depth, char* fen)
     }
     else
     {
-      if(calculate_attacked_white(board, board->pieces[bK]))
+      if(calculate_attacked_white(board, (board->colour[BLACK] & board->combined[KINGS])))
       {
         move_undo(board, &moves[m]);
         continue;
@@ -180,6 +181,8 @@ int perft_split(s_board* board, int depth, char* fen)
     combined_total += moves_total;
   }
   
+  double time_taken = ((double)clock()-start)/CLOCKS_PER_SEC;
+  printf("Time: %.3fs\n", time_taken);
   printf("Total: %i\n", combined_total);
   return 0;
 }
@@ -444,7 +447,7 @@ int perft_movegen_sides(s_board* board, const char* filepath)
     start = clock();
     for(i = 0; i < repeats; ++i)
     {
-      find_moves_white(board, moves);
+      //find_moves_white(board, moves); // FIXME
     }
     time_taken = ((double)clock()-start)/CLOCKS_PER_SEC;
     time_total += time_taken;
@@ -455,7 +458,7 @@ int perft_movegen_sides(s_board* board, const char* filepath)
     start = clock();
     for(i = 0; i < repeats; ++i)
     {
-      find_moves_black(board, moves);
+      //find_moves_black(board, moves); // FIXME
     }
     time_taken = ((double)clock()-start)/CLOCKS_PER_SEC;
     time_total += time_taken;
@@ -538,8 +541,8 @@ int perft_movegen(s_board* board, const char* filepath)
     start = clock();
     for(i = 0; i < repeats; ++i)
     {
-      find_moves_wN(board, moves);
-      find_moves_bN(board, moves);
+      //find_moves_wN(board, moves); // FIX ME
+      //find_moves_bN(board, moves); // FIX ME
     }
     time_taken = ((double)clock()-start)/CLOCKS_PER_SEC;
     time_total += time_taken;
@@ -550,8 +553,8 @@ int perft_movegen(s_board* board, const char* filepath)
     start = clock();
     for(i = 0; i < repeats; ++i)
     {
-      find_moves_wB_wQ(board, moves);
-      find_moves_bB_bQ(board, moves);
+      //find_moves_wB_wQ(board, moves); // FIX ME
+      //find_moves_bB_bQ(board, moves); // FIX ME
     }
     time_taken = ((double)clock()-start)/CLOCKS_PER_SEC;
     time_total += time_taken;
@@ -562,8 +565,8 @@ int perft_movegen(s_board* board, const char* filepath)
     start = clock();
     for(i = 0; i < repeats; ++i)
     {
-      find_moves_wR_wQ(board, moves);
-      find_moves_bR_bQ(board, moves);
+      //find_moves_wR_wQ(board, moves); // FIX ME
+      //find_moves_bR_bQ(board, moves); // FIX ME
     }
     time_taken = ((double)clock()-start)/CLOCKS_PER_SEC;
     time_total += time_taken;

@@ -297,13 +297,13 @@ uint64_t pinned_pieces_white(s_board* board, int sq)
   uint64_t blockers;
   
   // Bishops and Queens
-  blockers = magic_moves_diagonal(board->pieces_all, sq) & board->pieces_colour[WHITE];
+  blockers = magic_moves_diagonal((board->colour[WHITE]|board->colour[BLACK]), sq) & board->colour[WHITE];
   
   while(blockers)
   {
     pos = blockers & ~(blockers-1);
     
-    if(magic_moves_diagonal(board->pieces_all ^ pos, sq) & (board->pieces[bB] | board->pieces[bQ]))
+    if(magic_moves_diagonal((board->colour[WHITE]|board->colour[BLACK]) ^ pos, sq) & (board->colour[BLACK] & (board->combined[BISHOPS]|board->combined[QUEENS])))
     {
       pinned ^= pos;
     }
@@ -312,13 +312,13 @@ uint64_t pinned_pieces_white(s_board* board, int sq)
   }
   
   // Rooks and Queens
-  blockers = magic_moves_hor_ver(board->pieces_all, sq) & board->pieces_colour[WHITE];
+  blockers = magic_moves_hor_ver((board->colour[WHITE]|board->colour[BLACK]), sq) & board->colour[WHITE];
   
   while(blockers)
   {
     pos = blockers & ~(blockers-1);
     
-    if(magic_moves_hor_ver(board->pieces_all ^ pos, sq) & (board->pieces[bR] | board->pieces[bQ]))
+    if(magic_moves_hor_ver((board->colour[WHITE]|board->colour[BLACK]) ^ pos, sq) & (board->colour[BLACK] & (board->combined[ROOKS]|board->combined[QUEENS])))
     {
       pinned ^= pos;
     }
@@ -339,13 +339,13 @@ uint64_t pinned_pieces_black(s_board* board, int sq)
   uint64_t blockers;
   
   // Bishops and Queens
-  blockers = magic_moves_diagonal(board->pieces_all, sq) & board->pieces_colour[BLACK];
+  blockers = magic_moves_diagonal((board->colour[WHITE]|board->colour[BLACK]), sq) & board->colour[BLACK];
   
   while(blockers)
   {
     pos = blockers & ~(blockers-1);
     
-    if(magic_moves_diagonal(board->pieces_all ^ pos, sq) & (board->pieces[wB] | board->pieces[wQ]))
+    if(magic_moves_diagonal((board->colour[WHITE]|board->colour[BLACK]) ^ pos, sq) & (board->colour[WHITE] & (board->combined[BISHOPS]|board->combined[QUEENS])))
     {
       pinned ^= pos;
     }
@@ -354,13 +354,13 @@ uint64_t pinned_pieces_black(s_board* board, int sq)
   }
   
   // Rooks and Queens
-  blockers = magic_moves_hor_ver(board->pieces_all, sq) & board->pieces_colour[BLACK];
+  blockers = magic_moves_hor_ver((board->colour[WHITE]|board->colour[BLACK]), sq) & board->colour[BLACK];
   
   while(blockers)
   {
     pos = blockers & ~(blockers-1);
     
-    if(magic_moves_hor_ver(board->pieces_all ^ pos, sq) & (board->pieces[wR] | board->pieces[wQ]))
+    if(magic_moves_hor_ver((board->colour[WHITE]|board->colour[BLACK]) ^ pos, sq) & (board->colour[WHITE] & (board->combined[ROOKS]|board->combined[QUEENS])))
     {
       pinned ^= pos;
     }

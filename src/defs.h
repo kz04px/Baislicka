@@ -86,8 +86,9 @@
 #define GET_PV
 
 enum {WHITE, BLACK, BOTH};
-enum {wP, wN, wB, wR, wQ, wK, bP, bN, bB, bR, bQ, bK, EMPTY};
-enum {wKSC, wQSC, bKSC, bQSC, QUIET, DOUBLE_PAWN, CAPTURE, PROMOTE, EP};
+enum {wP, bP, KNIGHTS, BISHOPS, ROOKS, QUEENS, KINGS, EMPTY};
+enum {wKSC, bKSC, wQSC, bQSC};
+enum {KSC, QSC, QUIET, DOUBLE_PAWN, CAPTURE, PROMOTE, EP};
 enum {EXACT, LOWERBOUND, UPPERBOUND};
 
 enum {H8=56, G8, F8, E8, D8, C8, B8, A8};
@@ -127,9 +128,8 @@ typedef struct
   int turn;
   int castling[4];
   uint64_t ep;
-  uint64_t pieces[12];
-  uint64_t pieces_colour[2];
-  uint64_t pieces_all;
+  uint64_t combined[7];
+  uint64_t colour[2];
   #ifdef HASHTABLE
     uint64_t key;
   #endif
@@ -184,10 +184,20 @@ typedef struct
 } s_search_results;
 
 s_hashtable *hashtable;
-uint64_t key_piece_positions[12][10*12];
+uint64_t key_piece_positions[7][2][10*12];
 uint64_t key_turn;
 uint64_t key_castling[4];
 uint64_t key_ep_col[8];
+uint64_t key_ksc[2];
+uint64_t key_qsc[2];
+
+uint64_t ksc_king[2];
+uint64_t ksc_rook[2];
+uint64_t qsc_king[2];
+uint64_t qsc_rook[2];
+
+s_move add_movecapture(s_board* board, uint64_t from, uint64_t to, int piece_type);
+int find_moves_knights(s_board* board, s_move* move_list);
 
 // attack.c
 int calculate_attacked_white(s_board* board, uint64_t pos);
@@ -223,29 +233,14 @@ s_hashtable_entry *hashtable_add(s_hashtable *hashtable, int flags, uint64_t key
 int eval(s_board* board);
 
 // movegen.c
-int find_moves_white(s_board* board, s_move* move_list);
-int find_moves_black(s_board* board, s_move* move_list);
 int find_moves(s_board* board, s_move* move_list, int colour);
-
-// movegen_white.c
 int find_moves_wP(s_board* board, s_move* move_list);
-int find_moves_wN(s_board* board, s_move* move_list);
-int find_moves_wB(s_board* board, s_move* move_list);
-int find_moves_wR(s_board* board, s_move* move_list);
-int find_moves_wQ(s_board* board, s_move* move_list);
-int find_moves_wK(s_board* board, s_move* move_list);
-int find_moves_wB_wQ(s_board* board, s_move* move_list);
-int find_moves_wR_wQ(s_board* board, s_move* move_list);
-
-// movegen_black.c
 int find_moves_bP(s_board* board, s_move* move_list);
-int find_moves_bN(s_board* board, s_move* move_list);
-int find_moves_bB(s_board* board, s_move* move_list);
-int find_moves_bR(s_board* board, s_move* move_list);
-int find_moves_bQ(s_board* board, s_move* move_list);
+int find_moves_wK(s_board* board, s_move* move_list);
 int find_moves_bK(s_board* board, s_move* move_list);
-int find_moves_bB_bQ(s_board* board, s_move* move_list);
-int find_moves_bR_bQ(s_board* board, s_move* move_list);
+int find_moves_rooks_queens(s_board* board, s_move* move_list);
+int find_moves_bishops_queens(s_board* board, s_move* move_list);
+int find_moves_knights(s_board* board, s_move* move_list);
 
 // fen.c
 int set_fen(s_board *board, const char *fen);

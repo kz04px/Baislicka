@@ -152,28 +152,28 @@ int eval(s_board* board)
   int score = 0;
   
   // Piece pairs
-  if(board->pieces[wB] & (board->pieces[wB]-1)) {score += bishop_pair_value;}
-  if(board->pieces[bB] & (board->pieces[bB]-1)) {score -= bishop_pair_value;}
-  if(board->pieces[wN] & (board->pieces[wN]-1)) {score += knight_pair_value;}
-  if(board->pieces[bN] & (board->pieces[bN]-1)) {score -= knight_pair_value;}
+  if((board->combined[BISHOPS] & board->colour[WHITE]) & ((board->combined[BISHOPS] & board->colour[WHITE])-1)) {score += bishop_pair_value;}
+  if((board->combined[BISHOPS] & board->colour[BLACK]) & ((board->combined[BISHOPS] & board->colour[BLACK])-1)) {score -= bishop_pair_value;}
+  if((board->combined[KNIGHTS] & board->colour[WHITE]) & ((board->combined[KNIGHTS] & board->colour[WHITE])-1)) {score += knight_pair_value;}
+  if((board->combined[KNIGHTS] & board->colour[BLACK]) & ((board->combined[KNIGHTS] & board->colour[BLACK])-1)) {score -= knight_pair_value;}
   
-  uint64_t white_pawns_col_a = U64_COL_A & (board->pieces[wP]);
-  uint64_t white_pawns_col_b = U64_COL_B & (board->pieces[wP]);
-  uint64_t white_pawns_col_c = U64_COL_C & (board->pieces[wP]);
-  uint64_t white_pawns_col_d = U64_COL_D & (board->pieces[wP]);
-  uint64_t white_pawns_col_e = U64_COL_E & (board->pieces[wP]);
-  uint64_t white_pawns_col_f = U64_COL_F & (board->pieces[wP]);
-  uint64_t white_pawns_col_g = U64_COL_G & (board->pieces[wP]);
-  uint64_t white_pawns_col_h = U64_COL_H & (board->pieces[wP]);
+  uint64_t white_pawns_col_a = U64_COL_A & (board->combined[wP]);
+  uint64_t white_pawns_col_b = U64_COL_B & (board->combined[wP]);
+  uint64_t white_pawns_col_c = U64_COL_C & (board->combined[wP]);
+  uint64_t white_pawns_col_d = U64_COL_D & (board->combined[wP]);
+  uint64_t white_pawns_col_e = U64_COL_E & (board->combined[wP]);
+  uint64_t white_pawns_col_f = U64_COL_F & (board->combined[wP]);
+  uint64_t white_pawns_col_g = U64_COL_G & (board->combined[wP]);
+  uint64_t white_pawns_col_h = U64_COL_H & (board->combined[wP]);
   
-  uint64_t black_pawns_col_a = U64_COL_A & (board->pieces[bP]);
-  uint64_t black_pawns_col_b = U64_COL_B & (board->pieces[bP]);
-  uint64_t black_pawns_col_c = U64_COL_C & (board->pieces[bP]);
-  uint64_t black_pawns_col_d = U64_COL_D & (board->pieces[bP]);
-  uint64_t black_pawns_col_e = U64_COL_E & (board->pieces[bP]);
-  uint64_t black_pawns_col_f = U64_COL_F & (board->pieces[bP]);
-  uint64_t black_pawns_col_g = U64_COL_G & (board->pieces[bP]);
-  uint64_t black_pawns_col_h = U64_COL_H & (board->pieces[bP]);
+  uint64_t black_pawns_col_a = U64_COL_A & (board->combined[bP]);
+  uint64_t black_pawns_col_b = U64_COL_B & (board->combined[bP]);
+  uint64_t black_pawns_col_c = U64_COL_C & (board->combined[bP]);
+  uint64_t black_pawns_col_d = U64_COL_D & (board->combined[bP]);
+  uint64_t black_pawns_col_e = U64_COL_E & (board->combined[bP]);
+  uint64_t black_pawns_col_f = U64_COL_F & (board->combined[bP]);
+  uint64_t black_pawns_col_g = U64_COL_G & (board->combined[bP]);
+  uint64_t black_pawns_col_h = U64_COL_H & (board->combined[bP]);
   
   if(white_pawns_col_a)
   {
@@ -418,61 +418,84 @@ int eval(s_board* board)
   // Rooks & Queens on open files
   if(!white_pawns_col_a && !black_pawns_col_a)
   {
-    if(U64_COL_A & board->pieces[wR] || U64_COL_A & board->pieces[wQ]) {score += open_file_value;}
-    if(U64_COL_A & board->pieces[bR] || U64_COL_A & board->pieces[bQ]) {score -= open_file_value;}
+    if(U64_COL_A & (board->combined[ROOKS] & board->colour[WHITE]) || U64_COL_A & (board->combined[QUEENS] & board->colour[WHITE])) {score += open_file_value;}
+    if(U64_COL_A & (board->combined[ROOKS] & board->colour[BLACK]) || U64_COL_A & (board->combined[QUEENS] & board->colour[BLACK])) {score -= open_file_value;}
   }
   if(!white_pawns_col_b && !black_pawns_col_b)
   {
-    if(U64_COL_B & board->pieces[wR] || U64_COL_B & board->pieces[wQ]) {score += open_file_value;}
-    if(U64_COL_B & board->pieces[bR] || U64_COL_B & board->pieces[bQ]) {score -= open_file_value;}
+    if(U64_COL_B & (board->combined[ROOKS] & board->colour[WHITE]) || U64_COL_B & (board->combined[QUEENS] & board->colour[WHITE])) {score += open_file_value;}
+    if(U64_COL_B & (board->combined[ROOKS] & board->colour[BLACK]) || U64_COL_B & (board->combined[QUEENS] & board->colour[BLACK])) {score -= open_file_value;}
   }
   if(!white_pawns_col_c && !black_pawns_col_c)
   {
-    if(U64_COL_C & board->pieces[wR] || U64_COL_C & board->pieces[wQ]) {score += open_file_value;}
-    if(U64_COL_C & board->pieces[bR] || U64_COL_C & board->pieces[bQ]) {score -= open_file_value;}
+    if(U64_COL_C & (board->combined[ROOKS] & board->colour[WHITE]) || U64_COL_C & (board->combined[QUEENS] & board->colour[WHITE])) {score += open_file_value;}
+    if(U64_COL_C & (board->combined[ROOKS] & board->colour[BLACK]) || U64_COL_C & (board->combined[QUEENS] & board->colour[BLACK])) {score -= open_file_value;}
   }
   if(!white_pawns_col_d && !black_pawns_col_d)
   {
-    if(U64_COL_D & board->pieces[wR] || U64_COL_D & board->pieces[wQ]) {score += open_file_value;}
-    if(U64_COL_D & board->pieces[bR] || U64_COL_D & board->pieces[bQ]) {score -= open_file_value;}
+    if(U64_COL_D & (board->combined[ROOKS] & board->colour[WHITE]) || U64_COL_D & (board->combined[QUEENS] & board->colour[WHITE])) {score += open_file_value;}
+    if(U64_COL_D & (board->combined[ROOKS] & board->colour[BLACK]) || U64_COL_D & (board->combined[QUEENS] & board->colour[BLACK])) {score -= open_file_value;}
   }
   if(!white_pawns_col_e && !black_pawns_col_e)
   {
-    if(U64_COL_E & board->pieces[wR] || U64_COL_E & board->pieces[wQ]) {score += open_file_value;}
-    if(U64_COL_E & board->pieces[bR] || U64_COL_E & board->pieces[bQ]) {score -= open_file_value;}
+    if(U64_COL_E & (board->combined[ROOKS] & board->colour[WHITE]) || U64_COL_E & (board->combined[QUEENS] & board->colour[WHITE])) {score += open_file_value;}
+    if(U64_COL_E & (board->combined[ROOKS] & board->colour[BLACK]) || U64_COL_E & (board->combined[QUEENS] & board->colour[BLACK])) {score -= open_file_value;}
   }
   if(!white_pawns_col_f && !black_pawns_col_f)
   {
-    if(U64_COL_F & board->pieces[wR] || U64_COL_F & board->pieces[wQ]) {score += open_file_value;}
-    if(U64_COL_F & board->pieces[bR] || U64_COL_F & board->pieces[bQ]) {score -= open_file_value;}
+    if(U64_COL_F & (board->combined[ROOKS] & board->colour[WHITE]) || U64_COL_F & (board->combined[QUEENS] & board->colour[WHITE])) {score += open_file_value;}
+    if(U64_COL_F & (board->combined[ROOKS] & board->colour[BLACK]) || U64_COL_F & (board->combined[QUEENS] & board->colour[BLACK])) {score -= open_file_value;}
   }
   if(!white_pawns_col_g && !black_pawns_col_g)
   {
-    if(U64_COL_G & board->pieces[wR] || U64_COL_G & board->pieces[wQ]) {score += open_file_value;}
-    if(U64_COL_G & board->pieces[bR] || U64_COL_G & board->pieces[bQ]) {score -= open_file_value;}
+    if(U64_COL_G & (board->combined[ROOKS] & board->colour[WHITE]) || U64_COL_G & (board->combined[QUEENS] & board->colour[WHITE])) {score += open_file_value;}
+    if(U64_COL_G & (board->combined[ROOKS] & board->colour[BLACK]) || U64_COL_G & (board->combined[QUEENS] & board->colour[BLACK])) {score -= open_file_value;}
   }
   if(!white_pawns_col_h && !black_pawns_col_h)
   {
-    if(U64_COL_H & board->pieces[wR] || U64_COL_H & board->pieces[wQ]) {score += open_file_value;}
-    if(U64_COL_H & board->pieces[bR] || U64_COL_H & board->pieces[bQ]) {score -= open_file_value;}
+    if(U64_COL_H & (board->combined[ROOKS] & board->colour[WHITE]) || U64_COL_H & (board->combined[QUEENS] & board->colour[WHITE])) {score += open_file_value;}
+    if(U64_COL_H & (board->combined[ROOKS] & board->colour[BLACK]) || U64_COL_H & (board->combined[QUEENS] & board->colour[BLACK])) {score -= open_file_value;}
   }
+  
+//       0   1   2   3   4   5   6   7   8   9  10  11
+//enum {wP, wN, wB, wR, wQ, wK, bP, bN, bB, bR, bQ, bK, EMPTY};
   
   int sq;
   for(sq = 0; sq < 64; ++sq)
   {
-    int p;
+    uint64_t pos = (uint64_t)1<<sq;
     
-    if((board->pieces_colour[WHITE]>>sq)&1)
+    if(board->colour[WHITE]&pos)
     {
-      // White pieces
-      for(p = 0; p < 6; ++p)
+      if(board->combined[wP]&pos)
       {
-        if((board->pieces[p]>>sq)&1)
-        {
-          score += piece_values[p];
-          score += piece_location_bonus[p][sq];
-          break;
-        }
+        score += piece_values[0];
+        score += piece_location_bonus[0][sq];
+      }
+      else if(board->combined[KNIGHTS]&pos)
+      {
+        score += piece_values[1];
+        score += piece_location_bonus[1][sq];
+      }
+      else if(board->combined[BISHOPS]&pos)
+      {
+        score += piece_values[2];
+        score += piece_location_bonus[2][sq];
+      }
+      else if(board->combined[ROOKS]&pos)
+      {
+        score += piece_values[3];
+        score += piece_location_bonus[3][sq];
+      }
+      else if(board->combined[QUEENS]&pos)
+      {
+        score += piece_values[4];
+        score += piece_location_bonus[4][sq];
+      }
+      else if(board->combined[KINGS]&pos)
+      {
+        score += piece_values[5];
+        score += piece_location_bonus[5][sq];
       }
     }
     else
@@ -482,15 +505,35 @@ int eval(s_board* board)
       assert(sq_reverse >= 0);
       assert(sq_reverse <= 63);
       
-      // Black pieces
-      for(p = 6; p < 12; ++p)
+      if(board->combined[bP]&pos)
       {
-        if((board->pieces[p]>>sq)&1)
-        {
-          score += piece_values[p];
-          score -= piece_location_bonus[p-6][sq_reverse];
-          break;
-        }
+        score += piece_values[6];
+        score -= piece_location_bonus[0][sq_reverse];
+      }
+      else if(board->combined[KNIGHTS]&pos)
+      {
+        score += piece_values[7];
+        score -= piece_location_bonus[1][sq_reverse];
+      }
+      else if(board->combined[BISHOPS]&pos)
+      {
+        score += piece_values[8];
+        score -= piece_location_bonus[2][sq_reverse];
+      }
+      else if(board->combined[ROOKS]&pos)
+      {
+        score += piece_values[9];
+        score -= piece_location_bonus[3][sq_reverse];
+      }
+      else if(board->combined[QUEENS]&pos)
+      {
+        score += piece_values[10];
+        score -= piece_location_bonus[4][sq_reverse];
+      }
+      else if(board->combined[KINGS]&pos)
+      {
+        score += piece_values[11];
+        score -= piece_location_bonus[5][sq_reverse];
       }
     }
   }

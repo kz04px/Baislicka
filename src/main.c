@@ -25,6 +25,18 @@ int main()
     }
   #endif
   
+  ksc_king[WHITE] = U64_E1 | U64_G1;
+  ksc_king[BLACK] = U64_E8 | U64_G8;
+  
+  ksc_rook[WHITE] = U64_F1 | U64_H1;
+  ksc_rook[BLACK] = U64_F8 | U64_H8;
+  
+  qsc_king[WHITE] = U64_E1 | U64_C1;
+  qsc_king[BLACK] = U64_E8 | U64_C8;
+  
+  qsc_rook[WHITE] = U64_D1 | U64_A1;
+  qsc_rook[BLACK] = U64_D8 | U64_A8;
+  
   #ifndef NDEBUG
     printf("Search debug info:\n");
     printf("Alphabeta search\n");
@@ -97,6 +109,13 @@ int main()
     s_board* board = (s_board*) malloc(1*sizeof(s_board));
     if(board == NULL) {return -1;}
     
+    perft_suite(board, 4, "perftsuite.epd");
+    //perft(board, 7, START_FEN);
+    //perft_split(board, 6, START_FEN);
+    //perft_movegen(board, "perftsuite.epd");
+    //perft_movegen_sides(board, "perftsuite.epd");
+    
+    /*
     set_fen(board, START_FEN);
     
     s_search_info info;
@@ -143,6 +162,7 @@ int main()
       }
       printf("\n");
     }
+    */
     
     /*
     printf("info depth %i score cp %i nodes %"PRIdPTR" time %i pv%s\n", i, results.eval, nodes, results.time_taken, move_string);
@@ -152,12 +172,6 @@ int main()
     }
     */
     
-    //perft_suite(board, 5, "perftsuite.epd");
-    //set_fen(board, START_FEN);
-    //perft_movegen(board, "perftsuite.epd");
-    //perft_movegen_sides(board, "perftsuite.epd");
-    //perft(board, 6, START_FEN);
-    //perft_split(board, 2, START_FEN);
     getchar();
   }
   else
