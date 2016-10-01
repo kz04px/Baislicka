@@ -23,7 +23,7 @@ int quiesce(s_board *board, int alpha, int beta)
   }
   
   s_move moves[MAX_MOVES];
-  int num_moves = find_moves(board, moves, board->turn);
+  int num_moves = find_moves(board, moves, board->turn, MOVES_CAPTURES);
   moves_sort(moves, num_moves);
   int score;
   
@@ -40,7 +40,7 @@ int quiesce(s_board *board, int alpha, int beta)
     
     if(board->turn == WHITE)
     {
-      if(calculate_attacked_black(board, board->pieces[wK]))
+      if(calculate_attacked_black(board, board->combined[KINGS] & board->colour[WHITE]))
       {
         move_undo(board, &moves[m]);
         continue;
@@ -48,7 +48,7 @@ int quiesce(s_board *board, int alpha, int beta)
     }
     else
     {
-      if(calculate_attacked_white(board, board->pieces[bK]))
+      if(calculate_attacked_white(board, board->combined[KINGS] & board->colour[BLACK]))
       {
         move_undo(board, &moves[m]);
         continue;
@@ -220,7 +220,7 @@ s_search_results search(s_board* board, int depth)
   int best_score = -INF;
   
   s_move moves[MAX_MOVES];
-  int num_moves = find_moves(board, moves, board->turn);
+  int num_moves = find_moves(board, moves, board->turn, MOVES_ALL);
   moves_sort(moves, num_moves);
   
   #ifdef GET_PV
@@ -236,7 +236,7 @@ s_search_results search(s_board* board, int depth)
     
     if(board->turn == WHITE)
     {
-      if(calculate_attacked_black(board, board->pieces[wK]))
+      if(calculate_attacked_black(board, board->combined[KINGS] & board->colour[WHITE]))
       {
         move_undo(board, &moves[m]);
         continue;
@@ -244,7 +244,7 @@ s_search_results search(s_board* board, int depth)
     }
     else
     {
-      if(calculate_attacked_white(board, board->pieces[bK]))
+      if(calculate_attacked_white(board, board->combined[KINGS] & board->colour[WHITE]))
       {
         move_undo(board, &moves[m]);
         continue;
@@ -400,7 +400,7 @@ int alpha_beta(s_board* board, int alpha, int beta, int depth, s_pv *pv)
   #endif
   
   s_move moves[MAX_MOVES];
-  int num_moves = find_moves(board, moves, board->turn);
+  int num_moves = find_moves(board, moves, board->turn, MOVES_ALL);
   moves_sort(moves, num_moves);
   
   #ifdef HASHTABLE
@@ -434,7 +434,7 @@ int alpha_beta(s_board* board, int alpha, int beta, int depth, s_pv *pv)
     
     if(board->turn == WHITE)
     {
-      if(calculate_attacked_black(board, board->pieces[wK]))
+      if(calculate_attacked_black(board, board->combined[KINGS] & board->colour[WHITE]))
       {
         move_undo(board, &moves[m]);
         continue;
@@ -442,7 +442,7 @@ int alpha_beta(s_board* board, int alpha, int beta, int depth, s_pv *pv)
     }
     else
     {
-      if(calculate_attacked_white(board, board->pieces[bK]))
+      if(calculate_attacked_white(board, board->combined[KINGS] & board->colour[BLACK]))
       {
         move_undo(board, &moves[m]);
         continue;
@@ -511,11 +511,10 @@ int alpha_beta(s_board* board, int alpha, int beta, int depth, s_pv *pv)
     
     if(board->turn == WHITE)
     {
-      if(calculate_attacked_black(board, board->pieces[wK]))
+      if(calculate_attacked_black(board, board->combined[KINGS] & board->colour[WHITE]))
       {
         // Checkmate
         assert(search_depth - depth > 0);
-        //return INF - (search_depth - depth);
         return -INF + (search_depth - depth);
       }
       else
@@ -526,11 +525,10 @@ int alpha_beta(s_board* board, int alpha, int beta, int depth, s_pv *pv)
     }
     else
     {
-      if(calculate_attacked_white(board, board->pieces[bK]))
+      if(calculate_attacked_white(board, board->combined[KINGS] & board->colour[BLACK]))
       {
         // Checkmate
         assert(search_depth - depth > 0);
-        //return INF - (search_depth - depth);
         return -INF + (search_depth - depth);
       }
       else

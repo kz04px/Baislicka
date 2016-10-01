@@ -178,7 +178,6 @@ void uci_listen()
     }
   }
   
-  //if(hashtable != NULL) {hashtable_free(hashtable);}
   free(board);
   free(info);
   return;
