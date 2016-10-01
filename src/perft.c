@@ -1,5 +1,4 @@
 #include "defs.h"
-
 #include <string.h>
 
 uint64_t moves_total;
@@ -26,42 +25,20 @@ void perft_search(s_board* board, int d)
   {    
     move_make(board, &moves[m]);
     
-    if(board->turn == WHITE)
+    if(square_attacked(board, board->combined[KINGS]&board->colour[board->turn], !board->turn))
     {
-      if(calculate_attacked_black(board, (board->colour[WHITE] & board->combined[KINGS])))
-      {
-        move_undo(board, &moves[m]);
-        continue;
-      }
-    }
-    else
-    {
-      if(calculate_attacked_white(board, (board->colour[BLACK] & board->combined[KINGS])))
-      {
-        move_undo(board, &moves[m]);
-        continue;
-      }
+      move_undo(board, &moves[m]);
+      continue;
     }
     
     if(d == 1)
     {
       moves_total++;
-      
-      if(board->turn == WHITE)
+    
+      if(square_attacked(board, board->combined[KINGS]&board->colour[!board->turn], board->turn))
       {
-        if(calculate_attacked_white(board, (board->colour[BLACK] & board->combined[KINGS])))
-        {
-          moves_check++;
-        }
+        moves_check++;
       }
-      else
-      {
-        if(calculate_attacked_black(board, (board->colour[WHITE] & board->combined[KINGS])))
-        {
-          moves_check++;
-        }
-      }
-      
       
       /*
       if(calculate_attacked_white(board, (board->colour[BLACK] & board->combined[KINGS])) || calculate_attacked_black(board, (board->colour[WHITE] & board->combined[KINGS])))
@@ -138,21 +115,10 @@ int perft_split(s_board* board, int depth, char* fen)
   {
     move_make(board, &moves[m]);
     
-    if(board->turn == WHITE)
+    if(square_attacked(board, board->combined[KINGS]&board->colour[board->turn], !board->turn))
     {
-      if(calculate_attacked_black(board, (board->colour[WHITE] & board->combined[KINGS])))
-      {
-        move_undo(board, &moves[m]);
-        continue;
-      }
-    }
-    else
-    {
-      if(calculate_attacked_white(board, (board->colour[BLACK] & board->combined[KINGS])))
-      {
-        move_undo(board, &moves[m]);
-        continue;
-      }
+      move_undo(board, &moves[m]);
+      continue;
     }
   
     // Reset position and stats

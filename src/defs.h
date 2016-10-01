@@ -198,11 +198,8 @@ uint64_t ksc_rook[2];
 uint64_t qsc_king[2];
 uint64_t qsc_rook[2];
 
-s_move add_movecapture(s_board* board, uint64_t from, uint64_t to, int piece_type);
-
 // attack.c
-int calculate_attacked_white(s_board* board, uint64_t pos);
-int calculate_attacked_black(s_board* board, uint64_t pos);
+int square_attacked(s_board* board, uint64_t pos, int side);
 
 // bitboards.c
 void bitboards_init();
@@ -235,7 +232,6 @@ int eval(s_board* board);
 
 // movegen.c
 int find_moves(s_board* board, s_move* move_list, int colour, int attacking);
-//int find_moves(s_board* board, s_move* move_list, int colour);
 int find_moves_wP(s_board* board, s_move* move_list);
 int find_moves_bP(s_board* board, s_move* move_list);
 int find_moves_knights(s_board* board, s_move* move_list, uint64_t allowed);
@@ -257,6 +253,7 @@ int perft_movegen_sides(s_board* board, const char* filepath);
 s_move move_add(s_board *board, uint64_t from, uint64_t to, int type, int piece_type);
 int move_add_pawn_white(s_board* board, s_move* move_list, uint64_t from, uint64_t to);
 int move_add_pawn_black(s_board* board, s_move* move_list, uint64_t from, uint64_t to);
+s_move add_movecapture(s_board* board, uint64_t from, uint64_t to, int piece_type);
 s_move add_promotion_move(s_board *board, uint64_t from, uint64_t to, int piece_type, int promo_piece);
 void move_make(s_board *board, s_move *move);
 void move_undo(s_board *board, s_move *move);

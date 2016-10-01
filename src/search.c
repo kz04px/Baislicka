@@ -38,6 +38,13 @@ int quiesce(s_board *board, int alpha, int beta)
     
     move_make(board, &moves[m]);
     
+    if(square_attacked(board, board->combined[KINGS]&board->colour[board->turn], !board->turn))
+    {
+      move_undo(board, &moves[m]);
+      continue;
+    }
+    
+    /*
     if(board->turn == WHITE)
     {
       if(calculate_attacked_black(board, board->combined[KINGS] & board->colour[WHITE]))
@@ -54,6 +61,7 @@ int quiesce(s_board *board, int alpha, int beta)
         continue;
       }
     }
+    */
     
     nodes++;
     
@@ -234,21 +242,10 @@ s_search_results search(s_board* board, int depth)
   {
     move_make(board, &moves[m]);
     
-    if(board->turn == WHITE)
+    if(square_attacked(board, board->combined[KINGS]&board->colour[board->turn], !board->turn))
     {
-      if(calculate_attacked_black(board, board->combined[KINGS] & board->colour[WHITE]))
-      {
-        move_undo(board, &moves[m]);
-        continue;
-      }
-    }
-    else
-    {
-      if(calculate_attacked_white(board, board->combined[KINGS] & board->colour[WHITE]))
-      {
-        move_undo(board, &moves[m]);
-        continue;
-      }
+      move_undo(board, &moves[m]);
+      continue;
     }
     
     nodes++;
@@ -432,21 +429,10 @@ int alpha_beta(s_board* board, int alpha, int beta, int depth, s_pv *pv)
   {
     move_make(board, &moves[m]);
     
-    if(board->turn == WHITE)
+    if(square_attacked(board, board->combined[KINGS]&board->colour[board->turn], !board->turn))
     {
-      if(calculate_attacked_black(board, board->combined[KINGS] & board->colour[WHITE]))
-      {
-        move_undo(board, &moves[m]);
-        continue;
-      }
-    }
-    else
-    {
-      if(calculate_attacked_white(board, board->combined[KINGS] & board->colour[BLACK]))
-      {
-        move_undo(board, &moves[m]);
-        continue;
-      }
+      move_undo(board, &moves[m]);
+      continue;
     }
     
     nodes++;
@@ -509,33 +495,16 @@ int alpha_beta(s_board* board, int alpha, int beta, int depth, s_pv *pv)
       assert(pv_local.num_moves == 0);
     #endif
     
-    if(board->turn == WHITE)
+    if(square_attacked(board, board->combined[KINGS]&board->colour[board->turn], !board->turn))
     {
-      if(calculate_attacked_black(board, board->combined[KINGS] & board->colour[WHITE]))
-      {
-        // Checkmate
-        assert(search_depth - depth > 0);
-        return -INF + (search_depth - depth);
-      }
-      else
-      {
-        // Stalemate
-        return 0;
-      }
+      // Checkmate
+      assert(search_depth - depth > 0);
+      return -INF + (search_depth - depth);
     }
     else
     {
-      if(calculate_attacked_white(board, board->combined[KINGS] & board->colour[BLACK]))
-      {
-        // Checkmate
-        assert(search_depth - depth > 0);
-        return -INF + (search_depth - depth);
-      }
-      else
-      {
-        // Stalemate
-        return 0;
-      }
+      // Stalemate
+      return 0;
     }
   }
 

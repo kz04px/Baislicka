@@ -109,18 +109,19 @@ int main()
     s_board* board = (s_board*) malloc(1*sizeof(s_board));
     if(board == NULL) {return -1;}
     
-    perft_suite(board, 5, "perftsuite.epd");
+    //perft_suite(board, 5, "perftsuite.epd");
     //perft(board, 6, START_FEN);
     //perft_split(board, 6, START_FEN);
     //perft_movegen(board, "perftsuite.epd");
     //perft_movegen_sides(board, "perftsuite.epd");
     
-    /*
+    
     set_fen(board, START_FEN);
     
     s_search_info info;
     info.time_max = 10000000;
     search_info_set(info);
+    uint64_t nodes_last = 0;
     
     printf("Search started\n");
     
@@ -132,6 +133,15 @@ int main()
       
       printf("  Search time: %ims\n", results.time_taken);
       printf("  Nodes: %"PRIdPTR"\n", results.nodes);
+      if(i == 1)
+      {
+        printf("  Branching: -\n");
+      }
+      else
+      {
+        printf("  Branching: %.3f\n", (float)results.nodes/nodes_last);
+      }
+      nodes_last = results.nodes;
       #ifdef HASHTABLE
         printf("  Hash entries: %i (%.2f%%)\n", hashtable->num_entries, 100.0*(float)hashtable->num_entries/hashtable->max_entries);
       #endif
@@ -162,7 +172,7 @@ int main()
       }
       printf("\n");
     }
-    */
+    
     
     /*
     printf("info depth %i score cp %i nodes %"PRIdPTR" time %i pv%s\n", i, results.eval, nodes, results.time_taken, move_string);

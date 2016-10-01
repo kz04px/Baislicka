@@ -135,9 +135,12 @@ int find_moves_kings(s_board* board, s_move* move_list)
     if(board->castling[wKSC] &&
        !((board->colour[WHITE]|board->colour[BLACK])&U64_F1) &&
        !((board->colour[WHITE]|board->colour[BLACK])&U64_G1) &&
-       calculate_attacked_black(board, U64_E1) == 0 &&
-       calculate_attacked_black(board, U64_F1) == 0 &&
-       calculate_attacked_black(board, U64_G1) == 0)
+       square_attacked(board, U64_E1, BLACK) == 0 &&
+       square_attacked(board, U64_F1, BLACK) == 0 &&
+       square_attacked(board, U64_G1, BLACK) == 0)
+//       calculate_attacked_black(board, U64_E1) == 0 &&
+//       calculate_attacked_black(board, U64_F1) == 0 &&
+//       calculate_attacked_black(board, U64_G1) == 0)
     {
       move_list[num_moves] = move_add(board, U64_E1, U64_G1, KSC, KINGS);
       num_moves++;
@@ -146,9 +149,12 @@ int find_moves_kings(s_board* board, s_move* move_list)
        !((board->colour[WHITE]|board->colour[BLACK])&U64_B1) &&
        !((board->colour[WHITE]|board->colour[BLACK])&U64_C1) &&
        !((board->colour[WHITE]|board->colour[BLACK])&U64_D1) &&
-       calculate_attacked_black(board, U64_E1) == 0 &&
-       calculate_attacked_black(board, U64_D1) == 0 &&
-       calculate_attacked_black(board, U64_C1) == 0)
+       square_attacked(board, U64_E1, BLACK) == 0 &&
+       square_attacked(board, U64_D1, BLACK) == 0 &&
+       square_attacked(board, U64_C1, BLACK) == 0)
+//       calculate_attacked_black(board, U64_E1) == 0 &&
+//       calculate_attacked_black(board, U64_D1) == 0 &&
+//       calculate_attacked_black(board, U64_C1) == 0)
     {
       move_list[num_moves] = move_add(board, U64_E1, U64_C1, QSC, KINGS);
       num_moves++;
@@ -159,9 +165,12 @@ int find_moves_kings(s_board* board, s_move* move_list)
     if(board->castling[bKSC] &&
        !((board->colour[WHITE]|board->colour[BLACK])&U64_F8) &&
        !((board->colour[WHITE]|board->colour[BLACK])&U64_G8) &&
-       calculate_attacked_white(board, U64_E8) == 0 &&
-       calculate_attacked_white(board, U64_F8) == 0 &&
-       calculate_attacked_white(board, U64_G8) == 0)
+       square_attacked(board, U64_E8, WHITE) == 0 &&
+       square_attacked(board, U64_F8, WHITE) == 0 &&
+       square_attacked(board, U64_G8, WHITE) == 0)
+ //      calculate_attacked_white(board, U64_E8) == 0 &&
+ //      calculate_attacked_white(board, U64_F8) == 0 &&
+ //      calculate_attacked_white(board, U64_G8) == 0)
     {
       move_list[num_moves] = move_add(board, U64_E8, U64_G8, KSC, KINGS);
       num_moves++;
@@ -170,9 +179,12 @@ int find_moves_kings(s_board* board, s_move* move_list)
        !((board->colour[WHITE]|board->colour[BLACK])&U64_B8) &&
        !((board->colour[WHITE]|board->colour[BLACK])&U64_C8) &&
        !((board->colour[WHITE]|board->colour[BLACK])&U64_D8) &&
-       calculate_attacked_white(board, U64_E8) == 0 &&
-       calculate_attacked_white(board, U64_D8) == 0 &&
-       calculate_attacked_white(board, U64_C8) == 0)
+       square_attacked(board, U64_E8, WHITE) == 0 &&
+       square_attacked(board, U64_D8, WHITE) == 0 &&
+       square_attacked(board, U64_C8, WHITE) == 0)
+   //    calculate_attacked_white(board, U64_E8) == 0 &&
+   //    calculate_attacked_white(board, U64_D8) == 0 &&
+   //    calculate_attacked_white(board, U64_C8) == 0)
     {
       move_list[num_moves] = move_add(board, U64_E8, U64_C8, QSC, KINGS);
       num_moves++;
