@@ -23,7 +23,7 @@ int quiesce(s_board *board, int alpha, int beta)
   }
   
   s_move moves[MAX_MOVES];
-  int num_moves = find_moves(board, moves, board->turn);
+  int num_moves = find_moves(board, moves, board->turn, MOVES_CAPTURES);
   moves_sort(moves, num_moves);
   int score;
   
@@ -220,7 +220,7 @@ s_search_results search(s_board* board, int depth)
   int best_score = -INF;
   
   s_move moves[MAX_MOVES];
-  int num_moves = find_moves(board, moves, board->turn);
+  int num_moves = find_moves(board, moves, board->turn, MOVES_ALL);
   moves_sort(moves, num_moves);
   
   #ifdef GET_PV
@@ -400,7 +400,7 @@ int alpha_beta(s_board* board, int alpha, int beta, int depth, s_pv *pv)
   #endif
   
   s_move moves[MAX_MOVES];
-  int num_moves = find_moves(board, moves, board->turn);
+  int num_moves = find_moves(board, moves, board->turn, MOVES_ALL);
   moves_sort(moves, num_moves);
   
   #ifdef HASHTABLE

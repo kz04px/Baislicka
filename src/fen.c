@@ -204,25 +204,9 @@ int set_fen(s_board *board, const char *fen)
   }
   n += 2;
   
-  /*
-  board->colour[WHITE] = board->combined[wP] | board->pieces[wN] | board->pieces[wB] |
-                                board->pieces[wR] | board->pieces[wQ] | (board->colour[WHITE] & board->combined[KINGS]);
-  
-  board->colour[BLACK] = board->combined[bP] | board->pieces[bN] | board->pieces[bB] |
-                                board->pieces[bR] | board->pieces[bQ] | (board->colour[BLACK] & board->combined[KINGS]);
-  
-  board->combined[KNIGHTS] = board->pieces[wN] | board->pieces[bN];
-  board->combined[BISHOPS] = board->pieces[wB] | board->pieces[bB];
-  board->combined[ROOKS]   = board->pieces[wR] | board->pieces[bR];
-  board->combined[QUEENS]  = board->pieces[wQ] | board->pieces[bQ];
-  board->combined[KINGS]   = (board->colour[WHITE] & board->combined[KINGS]) | (board->colour[BLACK] & board->combined[KINGS]);
-  */
-  
   #ifdef HASHTABLE
     board->key = create_key_board(board);
   #endif
-  
-  //update_attacking(board);
   
   return 0;
 }

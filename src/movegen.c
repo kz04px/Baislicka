@@ -120,7 +120,7 @@ int find_moves_bP(s_board* board, s_move* move_list)
   return num_moves;
 }
 
-int find_moves_wK(s_board* board, s_move* move_list)
+int find_moves_kings(s_board* board, s_move* move_list)
 {
   assert(board != NULL);
   assert(move_list != NULL);
@@ -130,41 +130,68 @@ int find_moves_wK(s_board* board, s_move* move_list)
   uint64_t to;
   
   // castling
-  if(board->castling[wKSC] &&
-     !((board->colour[WHITE]|board->colour[BLACK])&U64_F1) &&
-     !((board->colour[WHITE]|board->colour[BLACK])&U64_G1) &&
-     calculate_attacked_black(board, U64_E1) == 0 &&
-     calculate_attacked_black(board, U64_F1) == 0 &&
-     calculate_attacked_black(board, U64_G1) == 0)
+  if(board->turn == WHITE)
   {
-    move_list[num_moves] = move_add(board, U64_E1, U64_G1, KSC, KINGS);
-    num_moves++;
+    if(board->castling[wKSC] &&
+       !((board->colour[WHITE]|board->colour[BLACK])&U64_F1) &&
+       !((board->colour[WHITE]|board->colour[BLACK])&U64_G1) &&
+       calculate_attacked_black(board, U64_E1) == 0 &&
+       calculate_attacked_black(board, U64_F1) == 0 &&
+       calculate_attacked_black(board, U64_G1) == 0)
+    {
+      move_list[num_moves] = move_add(board, U64_E1, U64_G1, KSC, KINGS);
+      num_moves++;
+    }
+    if(board->castling[wQSC] &&
+       !((board->colour[WHITE]|board->colour[BLACK])&U64_B1) &&
+       !((board->colour[WHITE]|board->colour[BLACK])&U64_C1) &&
+       !((board->colour[WHITE]|board->colour[BLACK])&U64_D1) &&
+       calculate_attacked_black(board, U64_E1) == 0 &&
+       calculate_attacked_black(board, U64_D1) == 0 &&
+       calculate_attacked_black(board, U64_C1) == 0)
+    {
+      move_list[num_moves] = move_add(board, U64_E1, U64_C1, QSC, KINGS);
+      num_moves++;
+    }
   }
-  if(board->castling[wQSC] &&
-     !((board->colour[WHITE]|board->colour[BLACK])&U64_B1) &&
-     !((board->colour[WHITE]|board->colour[BLACK])&U64_C1) &&
-     !((board->colour[WHITE]|board->colour[BLACK])&U64_D1) &&
-     calculate_attacked_black(board, U64_E1) == 0 &&
-     calculate_attacked_black(board, U64_D1) == 0 &&
-     calculate_attacked_black(board, U64_C1) == 0)
+  else
   {
-    move_list[num_moves] = move_add(board, U64_E1, U64_C1, QSC, KINGS);
-    num_moves++;
+    if(board->castling[bKSC] &&
+       !((board->colour[WHITE]|board->colour[BLACK])&U64_F8) &&
+       !((board->colour[WHITE]|board->colour[BLACK])&U64_G8) &&
+       calculate_attacked_white(board, U64_E8) == 0 &&
+       calculate_attacked_white(board, U64_F8) == 0 &&
+       calculate_attacked_white(board, U64_G8) == 0)
+    {
+      move_list[num_moves] = move_add(board, U64_E8, U64_G8, KSC, KINGS);
+      num_moves++;
+    }
+    if(board->castling[bQSC] &&
+       !((board->colour[WHITE]|board->colour[BLACK])&U64_B8) &&
+       !((board->colour[WHITE]|board->colour[BLACK])&U64_C8) &&
+       !((board->colour[WHITE]|board->colour[BLACK])&U64_D8) &&
+       calculate_attacked_white(board, U64_E8) == 0 &&
+       calculate_attacked_white(board, U64_D8) == 0 &&
+       calculate_attacked_white(board, U64_C8) == 0)
+    {
+      move_list[num_moves] = move_add(board, U64_E8, U64_C8, QSC, KINGS);
+      num_moves++;
+    }
   }
   
-  moves  = ((board->colour[WHITE] & board->combined[KINGS])<<8); // Up 1
-  moves |= ((board->colour[WHITE] & board->combined[KINGS])>>8); // Down 1
-  moves |= ((board->colour[WHITE] & board->combined[KINGS])<<1) & (~U64_COL_H); // Left 1
-  moves |= ((board->colour[WHITE] & board->combined[KINGS])>>1) & (~U64_COL_A); // Right 1
-  moves |= ((board->colour[WHITE] & board->combined[KINGS])<<7) & (~U64_COL_A); // Up 1 Right 1
-  moves |= ((board->colour[WHITE] & board->combined[KINGS])<<9) & (~U64_COL_H); // Up 1 Left 1
-  moves |= ((board->colour[WHITE] & board->combined[KINGS])>>7) & (~U64_COL_H); // Down 1 Left 1
-  moves |= ((board->colour[WHITE] & board->combined[KINGS])>>9) & (~U64_COL_A); // Down 1 Right 1
-  moves &= ~board->colour[WHITE];
+  moves  = ((board->colour[board->turn] & board->combined[KINGS])<<8); // Up 1
+  moves |= ((board->colour[board->turn] & board->combined[KINGS])>>8); // Down 1
+  moves |= ((board->colour[board->turn] & board->combined[KINGS])<<1) & (~U64_COL_H); // Left 1
+  moves |= ((board->colour[board->turn] & board->combined[KINGS])>>1) & (~U64_COL_A); // Right 1
+  moves |= ((board->colour[board->turn] & board->combined[KINGS])<<7) & (~U64_COL_A); // Up 1 Right 1
+  moves |= ((board->colour[board->turn] & board->combined[KINGS])<<9) & (~U64_COL_H); // Up 1 Left 1
+  moves |= ((board->colour[board->turn] & board->combined[KINGS])>>7) & (~U64_COL_H); // Down 1 Left 1
+  moves |= ((board->colour[board->turn] & board->combined[KINGS])>>9) & (~U64_COL_A); // Down 1 Right 1
+  moves &= ~board->colour[board->turn];
   while(moves)
   {
     to = moves & ~(moves-1);
-    move_list[num_moves] = add_movecapture_white(board, (board->colour[WHITE] & board->combined[KINGS]), to, KINGS);
+    move_list[num_moves] = add_movecapture(board, (board->colour[board->turn] & board->combined[KINGS]), to, KINGS);
     num_moves++;
     moves = moves^to;
   }
@@ -172,59 +199,7 @@ int find_moves_wK(s_board* board, s_move* move_list)
   return num_moves;
 }
 
-int find_moves_bK(s_board* board, s_move* move_list)
-{
-  assert(board != NULL);
-  assert(move_list != NULL);
-  
-  int num_moves = 0;
-  uint64_t moves;
-  uint64_t to;
-  
-  // castling
-  if(board->castling[bKSC] &&
-     !((board->colour[WHITE]|board->colour[BLACK])&U64_F8) &&
-     !((board->colour[WHITE]|board->colour[BLACK])&U64_G8) &&
-     calculate_attacked_white(board, U64_E8) == 0 &&
-     calculate_attacked_white(board, U64_F8) == 0 &&
-     calculate_attacked_white(board, U64_G8) == 0)
-  {
-    move_list[num_moves] = move_add(board, U64_E8, U64_G8, KSC, KINGS);
-    num_moves++;
-  }
-  if(board->castling[bQSC] &&
-     !((board->colour[WHITE]|board->colour[BLACK])&U64_B8) &&
-     !((board->colour[WHITE]|board->colour[BLACK])&U64_C8) &&
-     !((board->colour[WHITE]|board->colour[BLACK])&U64_D8) &&
-     calculate_attacked_white(board, U64_E8) == 0 &&
-     calculate_attacked_white(board, U64_D8) == 0 &&
-     calculate_attacked_white(board, U64_C8) == 0)
-  {
-    move_list[num_moves] = move_add(board, U64_E8, U64_C8, QSC, KINGS);
-    num_moves++;
-  }
-  
-  moves  = ((board->colour[BLACK] & board->combined[KINGS])<<8); // Up 1
-  moves |= ((board->colour[BLACK] & board->combined[KINGS])>>8); // Down 1
-  moves |= ((board->colour[BLACK] & board->combined[KINGS])<<1) & (~U64_COL_H); // Left 1
-  moves |= ((board->colour[BLACK] & board->combined[KINGS])>>1) & (~U64_COL_A); // Right 1
-  moves |= ((board->colour[BLACK] & board->combined[KINGS])<<7) & (~U64_COL_A); // Up 1 Right 1
-  moves |= ((board->colour[BLACK] & board->combined[KINGS])<<9) & (~U64_COL_H); // Up 1 Left 1
-  moves |= ((board->colour[BLACK] & board->combined[KINGS])>>7) & (~U64_COL_H); // Down 1 Left 1
-  moves |= ((board->colour[BLACK] & board->combined[KINGS])>>9) & (~U64_COL_A); // Down 1 Right 1
-  moves &= ~board->colour[BLACK];
-  while(moves)
-  {
-    to = moves & ~(moves-1);
-    move_list[num_moves] = add_movecapture_black(board, (board->colour[BLACK] & board->combined[KINGS]), to, KINGS);
-    num_moves++;
-    moves = moves^to;
-  }
-  
-  return num_moves;
-}
-
-int find_moves_knights(s_board* board, s_move* move_list)
+int find_moves_knights(s_board* board, s_move* move_list, uint64_t allowed)
 {
   assert(board != NULL);
   assert(move_list != NULL);
@@ -239,7 +214,7 @@ int find_moves_knights(s_board* board, s_move* move_list)
   while(copy)
   {
     from = copy & ~(copy-1);
-    moves = magic_moves_knight(u64_to_sq(from)) & (~board->colour[board->turn]);
+    moves = magic_moves_knight(u64_to_sq(from)) & allowed;
     
     while(moves)
     {
@@ -254,7 +229,7 @@ int find_moves_knights(s_board* board, s_move* move_list)
   return num_moves;
 }
 
-int find_moves_bishops_queens(s_board* board, s_move* move_list)
+int find_moves_bishops_queens(s_board* board, s_move* move_list, uint64_t allowed)
 {
   assert(board != NULL);
   assert(move_list != NULL);
@@ -270,7 +245,7 @@ int find_moves_bishops_queens(s_board* board, s_move* move_list)
   while(copy)
   {
     from = copy & ~(copy-1);
-    moves = magic_moves_diagonal((board->colour[WHITE]|board->colour[BLACK]), u64_to_sq(from)) & (~board->colour[board->turn]);
+    moves = magic_moves_diagonal((board->colour[WHITE]|board->colour[BLACK]), u64_to_sq(from)) & allowed;
     
     while(moves)
     {
@@ -287,7 +262,7 @@ int find_moves_bishops_queens(s_board* board, s_move* move_list)
   while(copy)
   {
     from = copy & ~(copy-1);
-    moves = magic_moves_diagonal((board->colour[WHITE]|board->colour[BLACK]), u64_to_sq(from)) & (~board->colour[board->turn]);
+    moves = magic_moves_diagonal((board->colour[WHITE]|board->colour[BLACK]), u64_to_sq(from)) & allowed;
     while(moves)
     {
       to = moves & ~(moves-1);
@@ -301,7 +276,7 @@ int find_moves_bishops_queens(s_board* board, s_move* move_list)
   return num_moves;
 }
 
-int find_moves_rooks_queens(s_board* board, s_move* move_list)
+int find_moves_rooks_queens(s_board* board, s_move* move_list, uint64_t allowed)
 {
   assert(board != NULL);
   assert(move_list != NULL);
@@ -317,7 +292,7 @@ int find_moves_rooks_queens(s_board* board, s_move* move_list)
   while(copy)
   {
     from = copy & ~(copy-1);
-    moves = magic_moves_hor_ver((board->colour[WHITE]|board->colour[BLACK]), u64_to_sq(from)) & (~board->colour[board->turn]);
+    moves = magic_moves_hor_ver((board->colour[WHITE]|board->colour[BLACK]), u64_to_sq(from)) & allowed;
     while(moves)
     {
       to = moves & ~(moves-1);
@@ -333,7 +308,7 @@ int find_moves_rooks_queens(s_board* board, s_move* move_list)
   while(copy)
   {
     from = copy & ~(copy-1);
-    moves = magic_moves_hor_ver((board->colour[WHITE]|board->colour[BLACK]), u64_to_sq(from)) & (~board->colour[board->turn]);
+    moves = magic_moves_hor_ver((board->colour[WHITE]|board->colour[BLACK]), u64_to_sq(from)) & allowed;
     while(moves)
     {
       to = moves & ~(moves-1);
@@ -347,28 +322,34 @@ int find_moves_rooks_queens(s_board* board, s_move* move_list)
   return num_moves;
 }
 
-int find_moves(s_board* board, s_move* move_list, int colour)
+int find_moves(s_board* board, s_move* move_list, int colour, int attacking)
 {
   assert(board != NULL);
   assert(move_list != NULL);
   assert(colour == WHITE || colour == BLACK);
   
+  uint64_t allowed = ~board->colour[board->turn];
+  if(attacking == MOVES_CAPTURES)
+  {
+    allowed = board->colour[!board->turn];
+  }
+  
   int num_moves = 0;
   
-  num_moves += find_moves_bishops_queens(board, &move_list[num_moves]);
-  num_moves += find_moves_rooks_queens(board, &move_list[num_moves]);
-  num_moves += find_moves_knights(board, &move_list[num_moves]);
+  num_moves += find_moves_bishops_queens(board, &move_list[num_moves], allowed);
+  num_moves += find_moves_rooks_queens(board, &move_list[num_moves], allowed);
+  num_moves += find_moves_knights(board, &move_list[num_moves], allowed);
   
   if(colour == WHITE)
   {
     num_moves += find_moves_wP(board, &move_list[num_moves]);
-    num_moves += find_moves_wK(board, &move_list[num_moves]);
   }
   else
   {
     num_moves += find_moves_bP(board, &move_list[num_moves]);
-    num_moves += find_moves_bK(board, &move_list[num_moves]);
   }
+  
+  num_moves += find_moves_kings(board, &move_list[num_moves]);
   
   return num_moves;
 }

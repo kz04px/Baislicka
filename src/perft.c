@@ -19,7 +19,7 @@ void perft_search(s_board* board, int d)
   assert(board->turn == WHITE || board->turn == BLACK);
   
   s_move moves[MAX_MOVES];
-  int num_moves = find_moves(board, moves, board->turn);
+  int num_moves = find_moves(board, moves, board->turn, MOVES_ALL);
   
   int m;
   for(m = 0; m < num_moves; ++m)
@@ -129,7 +129,7 @@ int perft_split(s_board* board, int depth, char* fen)
   start = clock();
   
   s_move moves[MAX_MOVES];
-  int num_moves = find_moves(board, moves, board->turn);
+  int num_moves = find_moves(board, moves, board->turn, MOVES_ALL);
   
   printf("Num moves: %i\n\n", num_moves);
   
@@ -502,7 +502,7 @@ int perft_movegen(s_board* board, const char* filepath)
   FILE* file = fopen(filepath, "r");
   if(file == NULL) {return -1;}
   
-  printf("Test Pawn   Knight Bishop Rook   Queen  King   Total\n");
+  printf("Test Pawn   Knight Bishop Rook  King   Total\n");
   char line[1024];
   while(fgets(line, sizeof(line), file))
   {
@@ -573,52 +573,12 @@ int perft_movegen(s_board* board, const char* filepath)
     time_rook += time_taken;
     printf("  %.3f", time_taken);
     
-    printf("  x.xxx");
-    
-    /*
-    // Bishop
-    start = clock();
-    for(i = 0; i < repeats; ++i)
-    {
-      find_moves_wB(board, moves);
-      find_moves_bB(board, moves);
-    }
-    time_taken = ((double)clock()-start)/CLOCKS_PER_SEC;
-    time_total += time_taken;
-    time_bishop += time_taken;
-    printf("  %.3f", time_taken);
-    
-    // Rook
-    start = clock();
-    for(i = 0; i < repeats; ++i)
-    {
-      find_moves_wR(board, moves);
-      find_moves_bR(board, moves);
-    }
-    time_taken = ((double)clock()-start)/CLOCKS_PER_SEC;
-    time_total += time_taken;
-    time_rook += time_taken;
-    printf("  %.3f", time_taken);
-    
-    // Queen
-    start = clock();
-    for(i = 0; i < repeats; ++i)
-    {
-      find_moves_wQ(board, moves);
-      find_moves_bQ(board, moves);
-    }
-    time_taken = ((double)clock()-start)/CLOCKS_PER_SEC;
-    time_total += time_taken;
-    time_queen += time_taken;
-    printf("  %.3f", time_taken);
-    */
-    
     // King
     start = clock();
     for(i = 0; i < repeats; ++i)
     {
-      find_moves_wK(board, moves);
-      find_moves_bK(board, moves);
+      //find_moves_wK(board, moves); // FIX ME
+      //find_moves_bK(board, moves); // FIX ME
     }
     time_taken = ((double)clock()-start)/CLOCKS_PER_SEC;
     time_total += time_taken;

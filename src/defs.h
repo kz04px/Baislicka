@@ -26,6 +26,8 @@
 #define HASHTABLE_SIZE_DEFAULT  512
 #define HASHTABLE_SIZE_MAX     2048
 #define INF 1000000
+#define MOVES_ALL 0
+#define MOVES_CAPTURES 1
 
 #define U64_COL_H 0x0101010101010101ULL
 #define U64_COL_G 0x0202020202020202ULL
@@ -197,7 +199,6 @@ uint64_t qsc_king[2];
 uint64_t qsc_rook[2];
 
 s_move add_movecapture(s_board* board, uint64_t from, uint64_t to, int piece_type);
-int find_moves_knights(s_board* board, s_move* move_list);
 
 // attack.c
 int calculate_attacked_white(s_board* board, uint64_t pos);
@@ -233,14 +234,14 @@ s_hashtable_entry *hashtable_add(s_hashtable *hashtable, int flags, uint64_t key
 int eval(s_board* board);
 
 // movegen.c
-int find_moves(s_board* board, s_move* move_list, int colour);
+int find_moves(s_board* board, s_move* move_list, int colour, int attacking);
+//int find_moves(s_board* board, s_move* move_list, int colour);
 int find_moves_wP(s_board* board, s_move* move_list);
 int find_moves_bP(s_board* board, s_move* move_list);
-int find_moves_wK(s_board* board, s_move* move_list);
-int find_moves_bK(s_board* board, s_move* move_list);
-int find_moves_rooks_queens(s_board* board, s_move* move_list);
-int find_moves_bishops_queens(s_board* board, s_move* move_list);
-int find_moves_knights(s_board* board, s_move* move_list);
+int find_moves_knights(s_board* board, s_move* move_list, uint64_t allowed);
+int find_moves_bishops_queens(s_board* board, s_move* move_list, uint64_t allowed);
+int find_moves_rooks_queens(s_board* board, s_move* move_list, uint64_t allowed);
+int find_moves_kings(s_board* board, s_move* move_list);
 
 // fen.c
 int set_fen(s_board *board, const char *fen);
@@ -255,9 +256,7 @@ int perft_movegen_sides(s_board* board, const char* filepath);
 // move.c
 s_move move_add(s_board *board, uint64_t from, uint64_t to, int type, int piece_type);
 int move_add_pawn_white(s_board* board, s_move* move_list, uint64_t from, uint64_t to);
-s_move add_movecapture_white(s_board* board, uint64_t from, uint64_t to, int piece_type);
 int move_add_pawn_black(s_board* board, s_move* move_list, uint64_t from, uint64_t to);
-s_move add_movecapture_black(s_board* board, uint64_t from, uint64_t to, int piece_type);
 s_move add_promotion_move(s_board *board, uint64_t from, uint64_t to, int piece_type, int promo_piece);
 void move_make(s_board *board, s_move *move);
 void move_undo(s_board *board, s_move *move);

@@ -109,8 +109,8 @@ int main()
     s_board* board = (s_board*) malloc(1*sizeof(s_board));
     if(board == NULL) {return -1;}
     
-    perft_suite(board, 4, "perftsuite.epd");
-    //perft(board, 7, START_FEN);
+    perft_suite(board, 5, "perftsuite.epd");
+    //perft(board, 6, START_FEN);
     //perft_split(board, 6, START_FEN);
     //perft_movegen(board, "perftsuite.epd");
     //perft_movegen_sides(board, "perftsuite.epd");

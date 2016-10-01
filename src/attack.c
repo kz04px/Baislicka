@@ -1,12 +1,37 @@
 #include "defs.h"
 
+int king_checked(s_board* board, int side)
+{
+  assert(board != NULL);
+  assert(side == WHITE || side == BLACK);
+  
+  uint64_t pos = board->combined[KINGS] & board->colour[side];
+  
+  int sq = u64_to_sq(pos);
+  
+  // Pawns // FIX ME
+  //if((board->combined[wP] << 9) & (~U64_COL_H) & (pos)) {return 1;} // Up 1 left 1
+  //if((board->combined[wP] << 7) & (~U64_COL_A) & (pos)) {return 1;} // Up 1 right 1
+  
+  // Knight
+  if((board->colour[!side] & board->combined[KNIGHTS]) & magic_moves_knight(sq)) {return 1;}
+  
+  // Bishop & Queen
+  if(magic_moves_diagonal((board->colour[WHITE]|board->colour[BLACK]), sq) & (board->colour[!side] & (board->combined[BISHOPS] | board->combined[QUEENS]))) {return 1;}
+  
+  // Rook & Queen
+  if(magic_moves_hor_ver((board->colour[WHITE]|board->colour[BLACK]), sq) & (board->colour[!side] & (board->combined[ROOKS] | board->combined[QUEENS]))) {return 1;}
+  
+  return 0;
+}
+
 uint64_t calculate_attacking_white(s_board* board, uint64_t pos)
 {
   assert(board != NULL);
   assert(pos);
   
   int sq = u64_to_sq(pos);
-  uint64_t attackers = 0;  
+  uint64_t attackers = 0;
   
   // Pawns
   if((board->combined[wP] << 9) & (~U64_COL_H) & (pos)) {return 1;} // Up 1 left 1
@@ -70,13 +95,6 @@ int calculate_attacked_white(s_board* board, uint64_t pos)
 int calculate_attacked_black(s_board* board, uint64_t pos)
 {
   assert(board != NULL);
-  if(!pos)
-  {
-    display_board(board);
-    print_u64(board->colour[WHITE]);
-    print_u64(board->colour[BLACK]);
-    getchar();
-  }
   assert(pos);
   
   int sq = u64_to_sq(pos);
