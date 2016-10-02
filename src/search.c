@@ -102,11 +102,11 @@ void *search_base(void *n)
   
   if(board->turn == WHITE)
   {
-    search_info.time_max = search_info.wtime/25;
+    search_info.time_max = search_info.wtime/25 + search_info.winc;
   }
   else
   {
-    search_info.time_max = search_info.btime/25;
+    search_info.time_max = search_info.btime/25 + search_info.binc;
   }
   
   int target_depth = 1;
@@ -177,7 +177,7 @@ void *search_base(void *n)
       break;
     }
     
-    if(10*results.time_taken < search_info.time_max)
+    if(5*results.time_taken < search_info.time_max)
     {
       target_depth++;
     }

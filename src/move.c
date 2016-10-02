@@ -543,37 +543,45 @@ void move_make_ascii(s_board *board, char *move_string)
   uint64_t from = ((uint64_t)1<<(7-from_col))<<(8*from_row);
   uint64_t to = ((uint64_t)1<<(7-to_col))<<(8*to_row);
   
+  assert(from);
+  assert(to);
+  
   int piece_type = -1;
   int piece_colour = -1;
-  int piece_taken = -1;
+  int piece_taken = EMPTY;
   int move_type = QUIET;
   int promo_piece = -1;
+  
+  // Find piece colour
+  if(board->colour[WHITE] & from)
+  {
+    piece_colour = WHITE;
+  }
+  else if(board->colour[BLACK] & from)
+  {
+    piece_colour = BLACK;
+  }
   
   int i;
   for(i = 0; i < 7; ++i)
   {
-    if(board->combined[i] & from)
+    if(board->combined[i] & board->colour[piece_colour] & from)
     {
       piece_type = i;
-      
-      if(board->colour[WHITE] & from)
-      {
-        piece_colour = WHITE;
-      }
-      else
-      {
-        piece_colour = BLACK;
-      }
+    }
+    if(board->combined[i] & board->colour[!piece_colour] & to)
+    {
+      piece_taken = i;
     }
   }
   
-  if(piece_taken != -1)
+  if(piece_taken != EMPTY)
   {
     move_type = CAPTURE;
   }
   
   assert(piece_type >= 0);
-  assert(piece_type < 12);
+  assert(piece_type < 7);
   
   if(strlen(move_string) > 4)
   {
@@ -593,51 +601,28 @@ void move_make_ascii(s_board *board, char *move_string)
     {
       promo_piece = KNIGHTS;
     }
-    
-    /*
-    if(move_string[4] == 'Q' || move_string[4] == 'q')
-    {
-           if(piece_type == wP) {promo_piece = wQ;}
-      else if(piece_type == bP) {promo_piece = bQ;}
-    }
-    else if(move_string[4] == 'R' || move_string[4] == 'r')
-    {
-           if(piece_type == wP) {promo_piece = wR;}
-      else if(piece_type == bP) {promo_piece = bR;}
-    }
-    else if(move_string[4] == 'B' || move_string[4] == 'b')
-    {
-           if(piece_type == wP) {promo_piece = wB;}
-      else if(piece_type == bP) {promo_piece = bB;}
-    }
-    else if(move_string[4] == 'N' || move_string[4] == 'n')
-    {
-           if(piece_type == wP) {promo_piece = wN;}
-      else if(piece_type == bP) {promo_piece = bN;}
-    }
-    */
   }
   
   if(piece_type == KINGS && piece_colour == WHITE)
   {
     if(from == U64_E1 && to == U64_G1)
     {
-      move_type = wKSC;
+      move_type = KSC;
     }
     else if(from == U64_E1 && to == U64_C1)
     {
-      move_type = wQSC;
+      move_type = QSC;
     }
   }
   else if(piece_type == KINGS && piece_colour == BLACK)
   {
     if(from == U64_E8 && to == U64_G8)
     {
-      move_type = bKSC;
+      move_type = KSC;
     }
     else if(from == U64_E8 && to == U64_C8)
     {
-      move_type = bQSC;
+      move_type = QSC;
     }
   }
   
@@ -711,8 +696,8 @@ int move_to_string(char* string, s_move *move)
   
   if(move->type == PROMOTE)
   {
-    if(move->promotion == QUEENS) {string[4] = 'Q';}
-    if(move->promotion == ROOKS) {string[4] = 'R';}
+    if(move->promotion == QUEENS)  {string[4] = 'Q';}
+    if(move->promotion == ROOKS)   {string[4] = 'R';}
     if(move->promotion == BISHOPS) {string[4] = 'B';}
     if(move->promotion == KNIGHTS) {string[4] = 'N';}
     string[5] = '\0';
