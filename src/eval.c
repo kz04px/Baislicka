@@ -91,16 +91,20 @@ const int isolated_pawn_value = -50;
 
 const int open_file_value = 25;
 
+const uint64_t files[8] = { U64_COL_A, U64_COL_B, U64_COL_C, U64_COL_D, U64_COL_E, U64_COL_F, U64_COL_G, U64_COL_H };
+const uint64_t adj_files[8] = { U64_COL_B, U64_COL_A|U64_COL_C, U64_COL_B|U64_COL_D, U64_COL_C|U64_COL_E,
+                                U64_COL_D|U64_COL_F, U64_COL_E|U64_COL_G, U64_COL_F|U64_COL_H, U64_COL_G };
+
 int eval(s_board* board)
 {
   int score = 0;
-  
+
   // Piece pairs
   if((board->combined[BISHOPS] & board->colour[WHITE]) & ((board->combined[BISHOPS] & board->colour[WHITE])-1)) {score += bishop_pair_value;}
   if((board->combined[BISHOPS] & board->colour[BLACK]) & ((board->combined[BISHOPS] & board->colour[BLACK])-1)) {score -= bishop_pair_value;}
   if((board->combined[KNIGHTS] & board->colour[WHITE]) & ((board->combined[KNIGHTS] & board->colour[WHITE])-1)) {score += knight_pair_value;}
   if((board->combined[KNIGHTS] & board->colour[BLACK]) & ((board->combined[KNIGHTS] & board->colour[BLACK])-1)) {score -= knight_pair_value;}
-  
+
   uint64_t white_pawns_col_a = U64_COL_A & (board->combined[wP]);
   uint64_t white_pawns_col_b = U64_COL_B & (board->combined[wP]);
   uint64_t white_pawns_col_c = U64_COL_C & (board->combined[wP]);
@@ -109,7 +113,7 @@ int eval(s_board* board)
   uint64_t white_pawns_col_f = U64_COL_F & (board->combined[wP]);
   uint64_t white_pawns_col_g = U64_COL_G & (board->combined[wP]);
   uint64_t white_pawns_col_h = U64_COL_H & (board->combined[wP]);
-  
+
   uint64_t black_pawns_col_a = U64_COL_A & (board->combined[bP]);
   uint64_t black_pawns_col_b = U64_COL_B & (board->combined[bP]);
   uint64_t black_pawns_col_c = U64_COL_C & (board->combined[bP]);
@@ -118,7 +122,37 @@ int eval(s_board* board)
   uint64_t black_pawns_col_f = U64_COL_F & (board->combined[bP]);
   uint64_t black_pawns_col_g = U64_COL_G & (board->combined[bP]);
   uint64_t black_pawns_col_h = U64_COL_H & (board->combined[bP]);
-  
+
+  int colour, file;
+  uint64_t col, lcol, rcol;
+
+  for(colour = WHITE; colour <= BLACK; colour++) {
+    for(file = 0; file <= 7; file++) {
+      // hack: wP == WHITE, bP == BLACK
+      col = files[file] & board->combined[colour];
+
+      // Check if doubled
+      if(col ^ (col & ~(col-1))
+      {
+        score += doubled_pawn_value * (colour == WHITE) ? +1 : -1;
+      }
+
+      // Check if isolated
+      if(!(adj_files[file] & board->combined[colour]))
+      {
+        score += isolated_pawn_value * (colour == WHITE) ? +1 : -1;
+      }
+
+      // Rooks & Queens on open files
+      col = files[file] & board->combined[wP] & board->combined[bP];
+
+      if(!col && files[file] & ((board->combined[ROOKS] | board->combined[QUEENS]) & board->colour[colour]))
+      {
+        score += open_file_value * (colour == WHITE) ? +1 : -1;
+      }
+    }
+  }
+
   if(white_pawns_col_a)
   {
     // Check if doubled
@@ -126,14 +160,14 @@ int eval(s_board* board)
     {
       score += doubled_pawn_value;
     }
-    
+
     // Check if isolated
     if(!white_pawns_col_b)
     {
       score += isolated_pawn_value;
     }
   }
-  
+
   if(white_pawns_col_b)
   {
     // Check if doubled
@@ -141,14 +175,14 @@ int eval(s_board* board)
     {
       score += doubled_pawn_value;
     }
-    
+
     // Check if isolated
     if(!white_pawns_col_a && !white_pawns_col_c)
     {
       score += isolated_pawn_value;
     }
   }
-  
+
   if(white_pawns_col_c)
   {
     // Check if doubled
@@ -156,14 +190,14 @@ int eval(s_board* board)
     {
       score += doubled_pawn_value;
     }
-    
+
     // Check if isolated
     if(!white_pawns_col_b && !white_pawns_col_d)
     {
       score += isolated_pawn_value;
     }
   }
-  
+
   if(white_pawns_col_d)
   {
     // Check if doubled
@@ -171,14 +205,14 @@ int eval(s_board* board)
     {
       score += doubled_pawn_value;
     }
-    
+
     // Check if isolated
     if(!white_pawns_col_c && !white_pawns_col_e)
     {
       score += isolated_pawn_value;
     }
   }
-  
+
   if(white_pawns_col_e)
   {
     // Check if doubled
@@ -186,14 +220,14 @@ int eval(s_board* board)
     {
       score += doubled_pawn_value;
     }
-    
+
     // Check if isolated
     if(!white_pawns_col_d && !white_pawns_col_f)
     {
       score += isolated_pawn_value;
     }
   }
-  
+
   if(white_pawns_col_f)
   {
     // Check if doubled
@@ -201,14 +235,14 @@ int eval(s_board* board)
     {
       score += doubled_pawn_value;
     }
-    
+
     // Check if isolated
     if(!white_pawns_col_e && !white_pawns_col_g)
     {
       score += isolated_pawn_value;
     }
   }
-  
+
   if(white_pawns_col_g)
   {
     // Check if doubled
@@ -216,14 +250,14 @@ int eval(s_board* board)
     {
       score += doubled_pawn_value;
     }
-    
+
     // Check if isolated
     if(!white_pawns_col_f && !white_pawns_col_h)
     {
       score += isolated_pawn_value;
     }
   }
-  
+
   if(white_pawns_col_h)
   {
     // Check if doubled
@@ -231,14 +265,14 @@ int eval(s_board* board)
     {
       score += doubled_pawn_value;
     }
-    
+
     // Check if isolated
     if(!white_pawns_col_g)
     {
       score += isolated_pawn_value;
     }
   }
-  
+
   if(black_pawns_col_a)
   {
     // Check if doubled
@@ -246,14 +280,14 @@ int eval(s_board* board)
     {
       score -= doubled_pawn_value;
     }
-    
+
     // Check if isolated
     if(!black_pawns_col_b)
     {
       score += isolated_pawn_value;
     }
   }
-  
+
   if(black_pawns_col_b)
   {
     // Check if doubled
@@ -261,14 +295,14 @@ int eval(s_board* board)
     {
       score -= doubled_pawn_value;
     }
-    
+
     // Check if isolated
     if(!black_pawns_col_a && !black_pawns_col_c)
     {
       score -= isolated_pawn_value;
     }
   }
-  
+
   if(black_pawns_col_c)
   {
     // Check if doubled
@@ -276,14 +310,14 @@ int eval(s_board* board)
     {
       score -= doubled_pawn_value;
     }
-    
+
     // Check if isolated
     if(!black_pawns_col_b && !black_pawns_col_d)
     {
       score -= isolated_pawn_value;
     }
   }
-  
+
   if(black_pawns_col_d)
   {
     // Check if doubled
@@ -291,14 +325,14 @@ int eval(s_board* board)
     {
       score -= doubled_pawn_value;
     }
-    
+
     // Check if isolated
     if(!black_pawns_col_c && !black_pawns_col_e)
     {
       score -= isolated_pawn_value;
     }
   }
-  
+
   if(black_pawns_col_e)
   {
     // Check if doubled
@@ -306,14 +340,14 @@ int eval(s_board* board)
     {
       score -= doubled_pawn_value;
     }
-    
+
     // Check if isolated
     if(!black_pawns_col_d && !black_pawns_col_f)
     {
       score -= isolated_pawn_value;
     }
   }
-  
+
   if(black_pawns_col_f)
   {
     // Check if doubled
@@ -321,14 +355,14 @@ int eval(s_board* board)
     {
       score -= doubled_pawn_value;
     }
-    
+
     // Check if isolated
     if(!black_pawns_col_e && !black_pawns_col_g)
     {
       score -= isolated_pawn_value;
     }
   }
-  
+
   if(black_pawns_col_g)
   {
     // Check if doubled
@@ -336,14 +370,14 @@ int eval(s_board* board)
     {
       score -= doubled_pawn_value;
     }
-    
+
     // Check if isolated
     if(!black_pawns_col_f && !black_pawns_col_h)
     {
       score -= isolated_pawn_value;
     }
   }
-  
+
   if(black_pawns_col_h)
   {
     // Check if doubled
@@ -351,14 +385,14 @@ int eval(s_board* board)
     {
       score -= doubled_pawn_value;
     }
-    
+
     // Check if isolated
     if(!black_pawns_col_g)
     {
       score -= isolated_pawn_value;
     }
   }
-  
+
   // Rooks & Queens on open files
   if(!white_pawns_col_a && !black_pawns_col_a)
   {
@@ -400,11 +434,11 @@ int eval(s_board* board)
     if(U64_COL_H & (board->combined[ROOKS] & board->colour[WHITE]) || U64_COL_H & (board->combined[QUEENS] & board->colour[WHITE])) {score += open_file_value;}
     if(U64_COL_H & (board->combined[ROOKS] & board->colour[BLACK]) || U64_COL_H & (board->combined[QUEENS] & board->colour[BLACK])) {score -= open_file_value;}
   }
-  
+
   int sq;
   uint64_t copy;
   uint64_t from;
-  
+
   int piece_type;
   for(piece_type = 0; piece_type < 7; ++piece_type)
   {
@@ -413,27 +447,27 @@ int eval(s_board* board)
     while(copy)
     {
       sq = __builtin_ctzll(copy);
-      
+
       score += piece_values[piece_type];
       score += piece_location_bonus[piece_type][sq];
-      
+
       copy &= (copy-1);
     }
-    
+
     // BLACK
     copy = board->combined[piece_type] & board->colour[BLACK];
     while(copy)
     {
       sq = __builtin_ctzll(copy);
       int sq_reverse = sq^56;
-      
+
       score -= piece_values[piece_type];
       score -= piece_location_bonus[piece_type][sq_reverse];
-      
+
       copy &= (copy-1);
     }
   }
-  
+
   if(board->turn == WHITE)
   {
     return score;
