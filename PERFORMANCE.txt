@@ -23,84 +23,90 @@ D   Time      NPS     Moves       Captures  EP     Castles Checks
 6   8.223s    14.5m   119060324   2812008   5248   0       809099
 7   219.089s  14.6m   3195901860  108329926 319617 883453  33103848
 
+
 Location: perftsuite.epd
 Depth: 5
 Time: 26.572s
 Depth: 6
 Time: 856.855s
 
--
 
--
-
-test
-Search started
 Depth: 1
   Search time: 0ms
   Nodes: 20
+  Branching: -
   Hash entries: 0 (0.00%)
   Eval: 80
 g1 f3 (N) normal
 
 Depth: 2
-  Search time: 0ms
+  Search time: 1ms
   Nodes: 424
+  Branching: 21.200
   Hash entries: 20 (0.00%)
+  NPS: 424
   Eval: 0
 g1 f3 (N) normal
 
 Depth: 3
-  Search time: 1ms
+  Search time: 2ms
   Nodes: 1719
+  Branching: 4.054
   Hash entries: 420 (0.01%)
-  NPS: 1719
+  NPS: 859
   Eval: 50
 g1 f3 (N) normal
 
 Depth: 4
-  Search time: 13ms
+  Search time: 15ms
   Nodes: 16259
+  Branching: 9.458
   Hash entries: 1533 (0.03%)
-  NPS: 1250
+  NPS: 1083
   Eval: 0
 g1 f3 (N) normal
 
 Depth: 5
-  Search time: 43ms
+  Search time: 36ms
   Nodes: 61787
+  Branching: 3.800
   Hash entries: 10842 (0.18%)
-  NPS: 1436
+  NPS: 1716
   Eval: 20
 g1 f3 (N) normal
 
 Depth: 6
-  Search time: 274ms
+  Search time: 219ms
   Nodes: 501614
+  Branching: 8.118
   Hash entries: 45978 (0.75%)
-  NPS: 1830
+  NPS: 2290
   Eval: 0
 g1 f3 (N) normal
 
 Depth: 7
-  Search time: 1062ms
+  Search time: 812ms
   Nodes: 2143149
+  Branching: 4.273
   Hash entries: 266625 (4.37%)
-  NPS: 2018
+  NPS: 2639
   Eval: 50
 g1 f3 (N) normal
 
 Depth: 8
-  Search time: 6111ms
+  Search time: 4616ms
   Nodes: 13169410
+  Branching: 6.145
   Hash entries: 1040953 (17.06%)
-  NPS: 2155
+  NPS: 2852
   Eval: 0
 g1 f3 (N) normal
 
 Depth: 9
-  Search time: 74273ms
+  Search time: 55352ms
   Nodes: 150722674
+  Branching: 11.445
   Hash entries: 5436811 (89.12%)
-  NPS: 2029
+  NPS: 2722
   Eval: 50
 e2 e4 (P) double_move

@@ -1,9 +1,8 @@
 #include "defs.h"
 
-const int piece_values[12] = { 100,  300,  300,  500,  900,  INF,
-                              -100, -300, -300, -500, -900, -INF};
+const int piece_values[7] = {100, 100, 300, 300, 500, 900, INF};
 
-const int piece_location_bonus[12][64] = {
+const int piece_location_bonus[7][64] = {
 {
 // White Pawns
 // H   G   F   E   D   C   B   A
@@ -16,7 +15,18 @@ const int piece_location_bonus[12][64] = {
   80, 80, 80, 80, 80, 80, 80, 80, // 7
    0,  0,  0,  0,  0,  0,  0,  0  // 8
 },{
-// White Knights
+// Black Pawns
+// H   G   F   E   D   C   B   A
+   0,  0,  0,  0,  0,  0,  0,  0, // 1
+  20, 20, 20, 20, 20, 20, 20, 20, // 2
+   0,  0,-10, 30, 30, 20, 20, 20, // 3
+   0,  0,  0, 40, 40, 30, 30, 30, // 4
+   0,  0,  0, 50, 50, 40, 40, 40, // 5
+  50, 50, 50, 60, 60, 60, 60, 60, // 6
+  80, 80, 80, 80, 80, 80, 80, 80, // 7
+   0,  0,  0,  0,  0,  0,  0,  0  // 8
+},{
+// Knights
 // H   G   F   E   D   C   B   A
  -50,-30,-10,-10,-10,-10,-30,-50, // 1
  -30,-10,  0,  0,  0,  0,-10,-30, // 2
@@ -27,7 +37,7 @@ const int piece_location_bonus[12][64] = {
  -30,-10,  0,  0,  0,  0,-10,-30, // 7
  -50,-30,-10,-10,-10,-10,-30,-50  // 8
 },{
-// White Bishops
+// Bishops
 // H   G   F   E   D   C   B   A
  -30,-10,-10,-10,-10,-10,-10,-30, // 1
    0, 30,  0, 30, 30,  0, 30,  0, // 2
@@ -38,7 +48,7 @@ const int piece_location_bonus[12][64] = {
    0,  0,  0,  0,  0,  0,  0,  0, // 7
  -30,-10,-10,-10,-10,-10,-10,-30  // 8
 },{
-// White Rooks
+// Rooks
 // H   G   F   E   D   C   B   A
   10,  0, 30, 30, 30, 30, 30, 30, // 1
    0,  0,  0,  0,  0,  0,  0,  0, // 2
@@ -49,7 +59,7 @@ const int piece_location_bonus[12][64] = {
   40, 40, 40, 40, 40, 40, 40, 40, // 7
    0,  0,  0,  0,  0,  0,  0,  0  // 8
 },{
-// White Queens
+// Queens
 // H   G   F   E   D   C   B   A
    0,  0,  0,  0,  0,  0,  0,  0, // 1
    0,  0,  0,  0,  0,  0,  0,  0, // 2
@@ -60,7 +70,7 @@ const int piece_location_bonus[12][64] = {
    0,  0,  0,  0,  0,  0,  0,  0, // 7
    0,  0,  0,  0,  0,  0,  0,  0  // 8
 },{
-// White King
+// Kings
 // H   G   F   E   D   C   B   A
   20, 50,  0,  0, 20, 30, 20,  0, // 1
    0,  0,  0,  0,  0,  0,  0,  0, // 2
@@ -70,72 +80,6 @@ const int piece_location_bonus[12][64] = {
  -10,-10,-10,-20,-20,-10,-10,-10, // 6
  -10,-10,-10,-10,-10,-10,-10,-10, // 7
  -10,-10,-10,-10,-10,-10,-10,-10  // 8
-},{
-// Black Pawns
-// H   G   F   E   D   C   B   A
-   0,  0,  0,  0,  0,  0,  0,  0, // 8
-  80, 80, 80, 80, 80, 80, 80, 80, // 7
-  50, 50, 50, 60, 60, 60, 60, 60, // 6
-   0,  0,  0, 50, 50, 40, 40, 40, // 5
-   0,  0,  0, 40, 40, 30, 30, 30, // 4
-   0,  0,-10, 30, 30, 20, 20, 20, // 3
-  20, 20, 20, 20, 20, 20, 20, 20, // 2
-   0,  0,  0,  0,  0,  0,  0,  0  // 1
-},{
-// Black Knights
-// H   G   F   E   D   C   B   A
- -50,-30,-10,-10,-10,-10,-30,-50, // 8
- -30,-10,  0,  0,  0,  0,-10,-30, // 7
- -10,  0, 20, 40, 40, 20,  0,-10, // 6
- -10,  0, 40, 50, 50, 40,  0,-10, // 5
- -10,  0, 40, 50, 50, 40,  0,-10, // 4
- -10,  0, 50, 40, 40, 20,  0,-10, // 3
- -30,-10,  0,  0,  0,  0,-10,-30, // 2
- -50,-30,-10,-10,-10,-10,-30,-50  // 1
-},{
-// Black Bishops
-// H   G   F   E   D   C   B   A
- -30,-10,-10,-10,-10,-10,-10,-30, // 8
-   0,  0,  0,  0,  0,  0,  0,  0, // 7
-   0,  0,  0,  0,  0,  0,  0,  0, // 6
-   0,  0,  0,  0,  0,  0,  0,  0, // 5
-   0,  0,  0,  0,  0,  0,  0,  0, // 4
-   0,  0,  0, 30, 30,  0,  0,  0, // 3
-   0, 30,  0, 30, 30,  0, 30,  0, // 2
- -30,-10,-10,-10,-10,-10,-10,-30  // 1
-},{
-// Black Rooks
-// H   G   F   E   D   C   B   A
-   0,  0,  0,  0,  0,  0,  0,  0, // 8
-  40, 40, 40, 40, 40, 40, 40, 40, // 7
-   0,  0,  0,  0,  0,  0,  0,  0, // 6
-   0,  0,  0,  0,  0,  0,  0,  0, // 5
-   0,  0,  0,  0,  0,  0,  0,  0, // 4
-   0,  0,  0,  0,  0,  0,  0,  0, // 3
-   0,  0,  0,  0,  0,  0,  0,  0, // 2
-  10,  0, 30, 30, 30, 30, 30, 30  // 1
-},{
-// Black Queens
-// H   G   F   E   D   C   B   A
-   0,  0,  0,  0,  0,  0,  0,  0, // 1
-   0,  0,  0,  0,  0,  0,  0,  0, // 2
-   0,  0,  0,  0,  0,  0,  0,  0, // 3
-   0,  0,  0,  0,  0,  0,  0,  0, // 4
-   0,  0,  0,  0,  0,  0,  0,  0, // 5
-   0,  0,  0,  0,  0,  0,  0,  0, // 6
-   0,  0,  0,  0,  0,  0,  0,  0, // 7
-   0,  0,  0,  0,  0,  0,  0,  0  // 8
-},{
-// Black King
-// H   G   F   E   D   C   B   A
- -10,-10,-10,-10,-10,-10,-10,-10, // 8
- -10,-10,-10,-10,-10,-10,-10,-10, // 7
- -10,-10,-10,-20,-20,-10,-10,-10, // 6
- -10,-10,-20,-30,-30,-20,-10,-10, // 5
- -10,-10,-20,-30,-30,-20,-10,-10, // 4
- -10,-10,-10,-20,-20,-10,-10,-10, // 3
-   0,  0,  0,  0,  0,  0,  0,  0, // 2
-  20, 50,  0,  0, 20, 30, 20,  0  // 1
 }
 };
 
@@ -457,92 +401,47 @@ int eval(s_board* board)
     if(U64_COL_H & (board->combined[ROOKS] & board->colour[BLACK]) || U64_COL_H & (board->combined[QUEENS] & board->colour[BLACK])) {score -= open_file_value;}
   }
   
-//       0   1   2   3   4   5   6   7   8   9  10  11
-//enum {wP, wN, wB, wR, wQ, wK, bP, bN, bB, bR, bQ, bK, EMPTY};
-  
   int sq;
-  for(sq = 0; sq < 64; ++sq)
+  uint64_t copy;
+  uint64_t from;
+  
+  int piece_type;
+  for(piece_type = 0; piece_type < 7; ++piece_type)
   {
-    uint64_t pos = (uint64_t)1<<sq;
-    
-    if(board->colour[WHITE]&pos)
+    // WHITE
+    copy = board->combined[piece_type] & board->colour[WHITE];
+    while(copy)
     {
-      if(board->combined[wP]&pos)
-      {
-        score += piece_values[0];
-        score += piece_location_bonus[0][sq];
-      }
-      else if(board->combined[KNIGHTS]&pos)
-      {
-        score += piece_values[1];
-        score += piece_location_bonus[1][sq];
-      }
-      else if(board->combined[BISHOPS]&pos)
-      {
-        score += piece_values[2];
-        score += piece_location_bonus[2][sq];
-      }
-      else if(board->combined[ROOKS]&pos)
-      {
-        score += piece_values[3];
-        score += piece_location_bonus[3][sq];
-      }
-      else if(board->combined[QUEENS]&pos)
-      {
-        score += piece_values[4];
-        score += piece_location_bonus[4][sq];
-      }
-      else if(board->combined[KINGS]&pos)
-      {
-        score += piece_values[5];
-        score += piece_location_bonus[5][sq];
-      }
-    }
-    else
-    {
-      int sq_reverse = 8*(7-(sq/8)) + sq%8;
-     
-      assert(sq_reverse >= 0);
-      assert(sq_reverse <= 63);
+      from = copy & ~(copy-1);
+      sq = u64_to_sq(from);
       
-      if(board->combined[bP]&pos)
-      {
-        score += piece_values[6];
-        score -= piece_location_bonus[0][sq_reverse];
-      }
-      else if(board->combined[KNIGHTS]&pos)
-      {
-        score += piece_values[7];
-        score -= piece_location_bonus[1][sq_reverse];
-      }
-      else if(board->combined[BISHOPS]&pos)
-      {
-        score += piece_values[8];
-        score -= piece_location_bonus[2][sq_reverse];
-      }
-      else if(board->combined[ROOKS]&pos)
-      {
-        score += piece_values[9];
-        score -= piece_location_bonus[3][sq_reverse];
-      }
-      else if(board->combined[QUEENS]&pos)
-      {
-        score += piece_values[10];
-        score -= piece_location_bonus[4][sq_reverse];
-      }
-      else if(board->combined[KINGS]&pos)
-      {
-        score += piece_values[11];
-        score -= piece_location_bonus[5][sq_reverse];
-      }
+      score += piece_values[piece_type];
+      score += piece_location_bonus[piece_type][sq];
+      
+      copy = copy^from;
+    }
+    
+    // BLACK
+    copy = board->combined[piece_type] & board->colour[BLACK];
+    while(copy)
+    {
+      from = copy & ~(copy-1);
+      sq = u64_to_sq(from);
+      int sq_reverse = 8*(7-(sq/8)) + sq%8;
+      
+      score -= piece_values[piece_type];
+      score -= piece_location_bonus[piece_type][sq_reverse];
+      
+      copy = copy^from;
     }
   }
   
-  // We need this for negamax with alphabeta
   if(board->turn == WHITE)
+  {
     return score;
+  }
   else
+  {
     return -score;
-  
-  //return score;
+  }
 }
