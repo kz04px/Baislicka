@@ -403,7 +403,6 @@ int eval(s_board* board)
   
   int sq;
   uint64_t copy;
-  uint64_t from;
   
   int piece_type;
   for(piece_type = 0; piece_type < 7; ++piece_type)
@@ -417,7 +416,7 @@ int eval(s_board* board)
       score += piece_values[piece_type];
       score += piece_location_bonus[piece_type][sq];
       
-      copy &= (copy-1);
+      copy &= copy-1;
     }
     
     // BLACK
@@ -430,7 +429,7 @@ int eval(s_board* board)
       score -= piece_values[piece_type];
       score -= piece_location_bonus[piece_type][sq_reverse];
       
-      copy &= (copy-1);
+      copy &= copy-1;
     }
   }
   

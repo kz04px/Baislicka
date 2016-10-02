@@ -113,12 +113,16 @@ int moves_sort(s_move* moves, int num)
   return 0;
 }
 
-int move_add_pawn_white(s_board* board, s_move* moves, uint64_t from, uint64_t to)
+int move_add_pawn_white(s_board* board, s_move* moves, int from, int to)
 {
   assert(board != NULL);
   assert(moves != NULL);
+  assert(from >= 0);
+  assert(from <= 63);
+  assert(to >= 0);
+  assert(to <= 63);
   
-  if(to&U64_ROW_8)
+  if(((uint64_t)1<<to)&U64_ROW_8)
   {
     moves[0] = add_promotion_move(board, from, to, wP, QUEENS);
     moves[1] = add_promotion_move(board, from, to, wP, KNIGHTS);
@@ -133,12 +137,16 @@ int move_add_pawn_white(s_board* board, s_move* moves, uint64_t from, uint64_t t
   }
 }
 
-int move_add_pawn_black(s_board* board, s_move* moves, uint64_t from, uint64_t to)
+int move_add_pawn_black(s_board* board, s_move* moves, int from, int to)
 {
   assert(board != NULL);
   assert(moves != NULL);
+  assert(from >= 0);
+  assert(from <= 63);
+  assert(to >= 0);
+  assert(to <= 63);
   
-  if(to&U64_ROW_1)
+  if(((uint64_t)1<<to)&U64_ROW_1)
   {
     moves[0] = add_promotion_move(board, from, to, bP, QUEENS);
     moves[1] = add_promotion_move(board, from, to, bP, KNIGHTS);
@@ -153,11 +161,13 @@ int move_add_pawn_black(s_board* board, s_move* moves, uint64_t from, uint64_t t
   }
 }
 
-s_move add_promotion_move(s_board *board, uint64_t from, uint64_t to, int piece_type, int promo_piece)
+s_move add_promotion_move(s_board *board, int from, int to, int piece_type, int promo_piece)
 {
   assert(board != NULL);
-  assert(from);
-  assert(to);
+  assert(from >= 0);
+  assert(from <= 63);
+  assert(to >= 0);
+  assert(to <= 63);
   
   s_move move;
   
@@ -165,7 +175,7 @@ s_move add_promotion_move(s_board *board, uint64_t from, uint64_t to, int piece_
   int n;
   for(n = 2; n < 6; ++n)
   {
-    if(board->combined[n] & to)
+    if(board->combined[n] & ((uint64_t)1<<to))
     {
       move.taken = n;
       break;
@@ -180,15 +190,17 @@ s_move add_promotion_move(s_board *board, uint64_t from, uint64_t to, int piece_
   return move;
 }
 
-s_move add_movecapture(s_board* board, uint64_t from, uint64_t to, int piece_type)
+s_move add_movecapture(s_board* board, int from, int to, int piece_type)
 {
   assert(board != NULL);
-  assert(from);
-  assert(to);
+  assert(from >= 0);
+  assert(from <= 63);
+  assert(to >= 0);
+  assert(to <= 63);
   assert(piece_type == wP || piece_type == bP || piece_type == KNIGHTS || piece_type == BISHOPS || piece_type == ROOKS || piece_type == QUEENS || piece_type == KINGS);
-  assert(from&board->colour[board->turn]);
+  assert(((uint64_t)1<<from)&board->colour[board->turn]);
   
-  if(board->colour[!board->turn]&to)
+  if(board->colour[!board->turn]&((uint64_t)1<<to))
   {
     return move_add(board, from, to, CAPTURE, piece_type);
   }
@@ -198,20 +210,24 @@ s_move add_movecapture(s_board* board, uint64_t from, uint64_t to, int piece_typ
   }
 }
 
-s_move move_add(s_board *board, uint64_t from, uint64_t to, int type, int piece_type)
+s_move move_add(s_board *board, int from, int to, int type, int piece_type)
 {
   assert(board != NULL);
-  assert(from);
-  assert(to);
+  assert(from >= 0);
+  assert(from <= 63);
+  assert(to >= 0);
+  assert(to <= 63);
   
   int taken = EMPTY;
-  if(type == CAPTURE)
+  
+  if(((uint64_t)1<<to) & (board->colour[WHITE]|board->colour[BLACK]))
   {
     int n;
     for(n = 0; n < 6; ++n)
     {
-      if(board->combined[n] & to)
+      if(board->combined[n] & ((uint64_t)1<<to))
       {
+        type = CAPTURE;
         taken = n;
         break;
       }
@@ -229,6 +245,32 @@ s_move move_add(s_board *board, uint64_t from, uint64_t to, int type, int piece_
     }
   }
   
+  /*
+  if(type == CAPTURE)
+  {
+    int n;
+    for(n = 0; n < 6; ++n)
+    {
+      if(board->combined[n] & ((uint64_t)1<<to))
+      {
+        taken = n;
+        break;
+      }
+    }
+  }
+  else if(type == EP)
+  {
+    if(piece_type == wP)
+    {
+      taken = bP;
+    }
+    else
+    {
+      taken = wP;
+    }
+  }
+  */
+  
   s_move move;
   move.from = from;
   move.to = to;
@@ -242,6 +284,13 @@ void move_make(s_board *board, s_move *move)
 {
   assert(board != NULL);
   assert(move != NULL);
+  assert(move->from >= 0);
+  assert(move->from <= 63);
+  assert(move->to >= 0);
+  assert(move->to <= 63);
+  
+  uint64_t from = (uint64_t)1<<(move->from);
+  uint64_t to   = (uint64_t)1<<(move->to);
   
   // set old permissions
   #ifdef HASHTABLE
@@ -263,146 +312,142 @@ void move_make(s_board *board, s_move *move)
   board->ep = 0;
   
   /*
-  board->castling[wQSC] = !(move->from & U64_E1);
-  board->castling[wKSC] = !(move->from & U64_E1);
-  board->castling[wQSC] = !((move->to&U64_A1) | (move->from&U64_A1));
-  board->castling[wKSC] = !((move->to&U64_H1) | (move->from&U64_H1));
+  board->castling[wQSC] = !(from & U64_E1);
+  board->castling[wKSC] = !(from & U64_E1);
+  board->castling[wQSC] = !((to&U64_A1) | (from&U64_A1));
+  board->castling[wKSC] = !((to&U64_H1) | (from&U64_H1));
   */
+  
   // White king move
-  if((move->from) & U64_E1)
+  if(from & U64_E1)
   {
     board->castling[wQSC] = 0;
     board->castling[wKSC] = 0;
   }
   // A1 move
-  else if((move->to&U64_A1) || (move->from&U64_A1))
+  else if((to&U64_A1) || (from&U64_A1))
   {
     board->castling[wQSC] = 0;
   }
   // H1 move
-  else if((move->to&U64_H1) || (move->from&U64_H1))
+  else if((to&U64_H1) || (from&U64_H1))
   {
     board->castling[wKSC] = 0;
   }
   
   // Black king move
-  if(move->from & U64_E8)
+  if(from & U64_E8)
   {
     board->castling[bQSC] = 0;
     board->castling[bKSC] = 0;
   }
   // A8 move
-  else if((move->to&U64_A8) || (move->from&U64_A8))
+  else if((to&U64_A8) || (from&U64_A8))
   {
     board->castling[bQSC] = 0;
   }
   // H8 move
-  else if((move->to&U64_H8) || (move->from&U64_H8))
+  else if((to&U64_H8) || (from&U64_H8))
   {
     board->castling[bKSC] = 0;
   }
   
-  #ifdef HASHTABLE
-    int sq_from = u64_to_sq(move->from);
-    int sq_to = u64_to_sq(move->to);
-  #endif
-  
   switch(move->type)
   {
     case QUIET:
-      board->combined[move->piece_type] ^= move->from;
-      board->combined[move->piece_type] ^= move->to;
-      board->colour[board->turn] ^= move->from;
-      board->colour[board->turn] ^= move->to;
+      board->combined[move->piece_type] ^= from;
+      board->combined[move->piece_type] ^= to;
+      board->colour[board->turn] ^= from;
+      board->colour[board->turn] ^= to;
       
       #ifdef HASHTABLE
-        board->key ^= key_piece_positions[move->piece_type][board->turn][sq_from];
-        board->key ^= key_piece_positions[move->piece_type][board->turn][sq_to];
+        board->key ^= key_piece_positions[move->piece_type][board->turn][move->from];
+        board->key ^= key_piece_positions[move->piece_type][board->turn][move->to];
       #endif
       break;
     case CAPTURE:
-      board->combined[move->piece_type] ^= move->from;
-      board->combined[move->piece_type] ^= move->to;
-      board->combined[move->taken] ^= move->to;
-      board->colour[board->turn] ^= move->from;
-      board->colour[board->turn] ^= move->to;
-      board->colour[!board->turn] ^= move->to;
+      board->combined[move->piece_type] ^= from;
+      board->combined[move->piece_type] ^= to;
+      board->combined[move->taken] ^= to;
+      board->colour[board->turn] ^= from;
+      board->colour[board->turn] ^= to;
+      board->colour[!board->turn] ^= to;
       
       #ifdef HASHTABLE
-        board->key ^= key_piece_positions[move->piece_type][board->turn][sq_from];
-        board->key ^= key_piece_positions[move->piece_type][board->turn][sq_to];
-        board->key ^= key_piece_positions[move->taken][board->turn][sq_to];
+        board->key ^= key_piece_positions[move->piece_type][board->turn][move->from];
+        board->key ^= key_piece_positions[move->piece_type][board->turn][move->to];
+        board->key ^= key_piece_positions[move->taken][board->turn][move->to];
       #endif
       break;
     case DOUBLE_PAWN:
-      board->combined[move->piece_type] ^= move->from;
-      board->combined[move->piece_type] ^= move->to;
-      board->colour[board->turn] ^= move->from;
-      board->colour[board->turn] ^= move->to;
+      board->combined[move->piece_type] ^= from;
+      board->combined[move->piece_type] ^= to;
+      board->colour[board->turn] ^= from;
+      board->colour[board->turn] ^= to;
       
       if(board->turn == WHITE)
       {
-        board->ep = (move->to)>>8;
+        board->ep = to>>8;
       }
       else
       {
-        board->ep = (move->to)<<8;
+        board->ep = to<<8;
       }
       
       #ifdef HASHTABLE
-        board->key ^= key_piece_positions[move->piece_type][board->turn][sq_from];
-        board->key ^= key_piece_positions[move->piece_type][board->turn][sq_to];
+        board->key ^= key_piece_positions[move->piece_type][board->turn][move->from];
+        board->key ^= key_piece_positions[move->piece_type][board->turn][move->to];
         board->key ^= key_ep_col[u64_col(board->ep)];
       #endif
       break;
     case PROMOTE:
-      board->combined[move->piece_type] ^= move->from;
-      board->combined[move->promotion] ^= move->to;
-      board->colour[board->turn] ^= move->from;
-      board->colour[board->turn] ^= move->to;
+      board->combined[move->piece_type] ^= from;
+      board->combined[move->promotion] ^= to;
+      board->colour[board->turn] ^= from;
+      board->colour[board->turn] ^= to;
       
       if(move->taken != EMPTY)
       {
-        board->combined[move->taken] ^= move->to;
-        board->colour[!board->turn] ^= move->to;
+        board->combined[move->taken] ^= to;
+        board->colour[!board->turn] ^= to;
       }
       
       #ifdef HASHTABLE
-        board->key ^= key_piece_positions[move->piece_type][board->turn][sq_from];
-        board->key ^= key_piece_positions[move->promotion][board->turn][sq_to];
+        board->key ^= key_piece_positions[move->piece_type][board->turn][move->from];
+        board->key ^= key_piece_positions[move->promotion][board->turn][move->to];
         if(move->taken != EMPTY)
         {
-          board->key ^= key_piece_positions[move->taken][board->turn][sq_to];
+          board->key ^= key_piece_positions[move->taken][board->turn][move->to];
         }
       #endif
       break;
     case EP:
-      board->combined[move->piece_type] ^= move->from;
-      board->combined[move->piece_type] ^= move->to;
-      board->colour[board->turn] ^= move->from;
-      board->colour[board->turn] ^= move->to;
+      board->combined[move->piece_type] ^= from;
+      board->combined[move->piece_type] ^= to;
+      board->colour[board->turn] ^= from;
+      board->colour[board->turn] ^= to;
       
       if(board->turn == WHITE)
       {
-        board->combined[bP] ^= (move->to)>>8;
-        board->colour[BLACK] ^= (move->to)>>8;
+        board->combined[bP] ^= to>>8;
+        board->colour[BLACK] ^= to>>8;
       }
       else
       {
-        board->combined[wP] ^= (move->to)<<8;
-        board->colour[WHITE] ^= (move->to)<<8;
+        board->combined[wP] ^= to<<8;
+        board->colour[WHITE] ^= to<<8;
       }
       
       #ifdef HASHTABLE
-        board->key ^= key_piece_positions[move->piece_type][board->turn][sq_from];
-        board->key ^= key_piece_positions[move->piece_type][board->turn][sq_to];
+        board->key ^= key_piece_positions[move->piece_type][board->turn][move->from];
+        board->key ^= key_piece_positions[move->piece_type][board->turn][move->to];
         if(board->turn == WHITE)
         {
-          board->key ^= key_piece_positions[bP][BLACK][sq_to-8];
+          board->key ^= key_piece_positions[bP][BLACK][move->to-8];
         }
         else
         {
-          board->key ^= key_piece_positions[wP][WHITE][sq_to+8];
+          board->key ^= key_piece_positions[wP][WHITE][move->to+8];
         }
       #endif
       break;
@@ -440,55 +485,58 @@ void move_undo(s_board *board, s_move *move)
   assert(board != NULL);
   assert(move != NULL);
   
+  uint64_t from = (uint64_t)1<<(move->from);
+  uint64_t to   = (uint64_t)1<<(move->to);
+  
   switch(move->type)
   {
     case QUIET:
-      board->combined[move->piece_type] ^= move->from;
-      board->combined[move->piece_type] ^= move->to;
-      board->colour[board->turn] ^= move->from;
-      board->colour[board->turn] ^= move->to;
+      board->combined[move->piece_type] ^= from;
+      board->combined[move->piece_type] ^= to;
+      board->colour[board->turn] ^= from;
+      board->colour[board->turn] ^= to;
       break;
     case CAPTURE:
-      board->combined[move->piece_type] ^= move->from;
-      board->combined[move->piece_type] ^= move->to;
-      board->combined[move->taken] ^= move->to;
-      board->colour[board->turn] ^= move->to;
-      board->colour[board->turn] ^= move->from;
-      board->colour[!board->turn] ^= move->to;
+      board->combined[move->piece_type] ^= from;
+      board->combined[move->piece_type] ^= to;
+      board->combined[move->taken] ^= to;
+      board->colour[board->turn] ^= to;
+      board->colour[board->turn] ^= from;
+      board->colour[!board->turn] ^= to;
       break;
     case DOUBLE_PAWN:
-      board->combined[move->piece_type] ^= move->from;
-      board->combined[move->piece_type] ^= move->to;
-      board->colour[board->turn] ^= move->from;
-      board->colour[board->turn] ^= move->to;
+      board->combined[move->piece_type] ^= from;
+      board->combined[move->piece_type] ^= to;
+      board->colour[board->turn] ^= from;
+      board->colour[board->turn] ^= to;
       break;
     case PROMOTE:
-      board->combined[move->piece_type] ^= move->from;
-      board->combined[move->promotion] ^= move->to;
-      board->colour[board->turn] ^= move->from;
-      board->colour[board->turn] ^= move->to;
+      board->combined[move->piece_type] ^= from;
+      board->combined[move->promotion] ^= to;
+      board->colour[board->turn] ^= from;
+      board->colour[board->turn] ^= to;
       
       if(move->taken != EMPTY)
       {
-        board->combined[move->taken] ^= move->to;
-        board->colour[!board->turn] ^= move->to;
+        board->combined[move->taken] ^= to;
+        board->colour[!board->turn] ^= to;
       }
       break;
     case EP:
-      board->combined[move->piece_type] ^= move->from;
-      board->combined[move->piece_type] ^= move->to;
-      board->colour[board->turn] ^= move->from;
-      board->colour[board->turn] ^= move->to;
+      board->combined[move->piece_type] ^= from;
+      board->combined[move->piece_type] ^= to;
+      board->colour[board->turn] ^= from;
+      board->colour[board->turn] ^= to;
       
       if(board->turn == WHITE)
       {
-        board->combined[bP] ^= (move->to)>>8;
-        board->colour[BLACK] ^= (move->to)>>8;
+        board->combined[bP] ^= to>>8;
+        board->colour[BLACK] ^= to>>8;
       }
       else
       {
-        board->combined[wP] ^= (move->to)<<8;
-        board->colour[WHITE] ^= (move->to)<<8;
+        board->combined[wP] ^= to<<8;
+        board->colour[WHITE] ^= to<<8;
       }
       break;
     case KSC:
@@ -545,6 +593,11 @@ void move_make_ascii(s_board *board, char *move_string)
   
   assert(from);
   assert(to);
+  
+  assert(u64_col(from) == from_col);
+  assert(u64_row(from) == from_row);
+  assert(u64_col(to) == to_col);
+  assert(u64_row(to) == to_row);
   
   int piece_type = -1;
   int piece_colour = -1;
@@ -631,7 +684,7 @@ void move_make_ascii(s_board *board, char *move_string)
     if(from_col != to_col)
     {
       // en passant
-      if(piece_taken == -1)
+      if(piece_taken == EMPTY)
       {
         piece_taken = bP;
         move_type = EP;
@@ -651,7 +704,7 @@ void move_make_ascii(s_board *board, char *move_string)
     if(from_col != to_col)
     {
       // en passant
-      if(piece_taken == -1)
+      if(piece_taken == EMPTY)
       {
         piece_taken = wP;
         move_type = EP;
@@ -673,13 +726,13 @@ void move_make_ascii(s_board *board, char *move_string)
   }
   
   s_move move;
-  move.from = from;
-  move.to = to;
+  move.from = __builtin_ctzll(from);
+  move.to = __builtin_ctzll(to);
   move.type = move_type;
   move.taken = piece_taken;
   move.piece_type = piece_type;
   move.promotion = promo_piece;
-
+  
   move_make(board, &move);
 }
 
@@ -688,10 +741,10 @@ int move_to_string(char* string, s_move *move)
   assert(string != NULL);
   assert(move != NULL);
   
-  string[0] = 'a' + u64_col(move->from);
-  string[1] = '1' + u64_row(move->from);
-  string[2] = 'a' + u64_col(move->to);
-  string[3] = '1' + u64_row(move->to);
+  string[0] = POS_TO_COL_CHAR(move->from);
+  string[1] = POS_TO_ROW_CHAR(move->from);
+  string[2] = POS_TO_COL_CHAR(move->to);
+  string[3] = POS_TO_ROW_CHAR(move->to);
   string[4] = '\0';
   
   if(move->type == PROMOTE)
@@ -711,7 +764,7 @@ int move_is_legal(s_board* board, s_move* move)
   assert(board != NULL);
   assert(move != NULL);
   
-  if((board->combined[move->piece_type] & move->from) == 0)
+  if((board->combined[move->piece_type] & ((uint64_t)1<<(move->from))) == 0)
   {
     return -1;
   }
@@ -722,10 +775,12 @@ int move_is_legal(s_board* board, s_move* move)
   switch(move->piece_type)
   {
     case wP:
-      num_moves = find_moves_wP(board, move_list);
+      num_moves = find_moves_wP_quiet(board, move_list);
+      num_moves += find_moves_wP_captures(board, move_list);
       break;
     case bP:
-      num_moves = find_moves_bP(board, move_list);
+      num_moves = find_moves_bP_quiet(board, move_list);
+      num_moves = find_moves_bP_captures(board, move_list);
       break;
     case KNIGHTS:
       num_moves = find_moves_knights(board, move_list, ~board->colour[!board->turn]);

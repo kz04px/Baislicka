@@ -18,17 +18,17 @@ D   Time      NPS     Moves       Captures  EP     Castles Checks
 1   0.000s    -       20          0         0      0       0
 2   0.000s    -       400         0         0      0       0
 3   0.001s    -       8902        34        0      0       12
-4   0.015s    13.2m   197281      1576      0      0       469
-5   0.344s    14.1m   4865609     82719     258    0       27351
-6   8.223s    14.5m   119060324   2812008   5248   0       809099
-7   219.089s  14.6m   3195901860  108329926 319617 883453  33103848
+4   0.026s    7.6m    197281      1576      0      0       469
+5   0.311s    15.6m   4865609     82719     258    0       27351
+6   7.553s    15.8m   119060324   2812008   5248   0       809099
+7   198.844s  16.1m   3195901860  108329926 319617 883453  33103848
 
 
 Location: perftsuite.epd
 Depth: 5
-Time: 26.572s
+Time: 24.416s
 Depth: 6
-Time: 856.855s
+Time: 829.468s
 
 
 Depth: 1
@@ -48,11 +48,11 @@ Depth: 2
 g1 f3 (N) normal
 
 Depth: 3
-  Search time: 2ms
+  Search time: 1ms
   Nodes: 1719
   Branching: 4.054
   Hash entries: 420 (0.01%)
-  kNPS: 859
+  kNPS: 1719
   Eval: 50
 g1 f3 (N) normal
 
@@ -60,52 +60,52 @@ Depth: 4
   Search time: 11ms
   Nodes: 16259
   Branching: 9.458
-  Hash entries: 1533 (0.03%)
+  Hash entries: 1534 (0.02%)
   kNPS: 1478
   Eval: 0
 g1 f3 (N) normal
 
 Depth: 5
-  Search time: 32ms
-  Nodes: 61787
-  Branching: 3.800
-  Hash entries: 10842 (0.18%)
-  kNPS: 1930
+  Search time: 30ms
+  Nodes: 61885
+  Branching: 3.806
+  Hash entries: 10848 (0.16%)
+  kNPS: 2062
   Eval: 20
 g1 f3 (N) normal
 
 Depth: 6
-  Search time: 189ms
-  Nodes: 501614
-  Branching: 8.118
-  Hash entries: 45978 (0.75%)
-  kNPS: 2654
+  Search time: 174ms
+  Nodes: 503301
+  Branching: 8.133
+  Hash entries: 46065 (0.69%)
+  kNPS: 2892
   Eval: 0
 g1 f3 (N) normal
 
 Depth: 7
-  Search time: 675ms
-  Nodes: 2143149
-  Branching: 4.273
-  Hash entries: 266625 (4.37%)
-  kNPS: 3175
+  Search time: 591ms
+  Nodes: 2145174
+  Branching: 4.262
+  Hash entries: 269564 (4.02%)
+  kNPS: 3629
   Eval: 50
 g1 f3 (N) normal
 
 Depth: 8
-  Search time: 3731ms
-  Nodes: 13169410
-  Branching: 6.145
-  Hash entries: 1040953 (17.06%)
-  kNPS: 3529
+  Search time: 3400ms
+  Nodes: 13704479
+  Branching: 6.389
+  Hash entries: 1105707 (16.48%)
+  kNPS: 4030
   Eval: 0
 g1 f3 (N) normal
 
 Depth: 9
-  Search time: 46052ms
-  Nodes: 150722674
-  Branching: 11.445
-  Hash entries: 5436811 (89.12%)
-  kNPS: 3272
+  Search time: 36326ms
+  Nodes: 140834515
+  Branching: 10.277
+  Hash entries: 5740947 (85.55%)
+  kNPS: 3876
   Eval: 50
 e2 e4 (P) double_move

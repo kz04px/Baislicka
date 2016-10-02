@@ -23,7 +23,7 @@ int quiesce(s_board *board, int alpha, int beta)
   }
   
   s_move moves[MAX_MOVES];
-  int num_moves = find_moves(board, moves, board->turn, MOVES_CAPTURES);
+  int num_moves = find_moves_captures(board, moves, board->turn);
   moves_sort(moves, num_moves);
   int score;
   
@@ -96,11 +96,12 @@ void *search_base(void *n)
   
   s_move bestmove;
   s_move ponder;
+  s_search_results results;
   
   int i;
   for(i = 1; i <= target_depth && i < MAX_DEPTH; ++i)
   {
-    s_search_results results = search(board, i);
+    results = search(board, i);
     
     if(results.out_of_time == 1) {break;}
     
@@ -164,7 +165,14 @@ void *search_base(void *n)
     }
   }
   
+  if(i == 1)
+  {
+    printf("Warning: Didn't complete depth 1 search in time\n");
+    bestmove = results.pv.moves[0];
+  }
+  
   move_to_string(move_string, &bestmove);
+  print_move(bestmove);
   GUI_Send("bestmove %s\n", move_string);
   
   /*
@@ -209,7 +217,7 @@ s_search_results search(s_board* board, int depth)
   int best_score = -INF;
   
   s_move moves[MAX_MOVES];
-  int num_moves = find_moves(board, moves, board->turn, MOVES_ALL);
+  int num_moves = find_moves(board, moves, board->turn);
   moves_sort(moves, num_moves);
   
   #ifdef GET_PV
@@ -378,7 +386,7 @@ int alpha_beta(s_board* board, int alpha, int beta, int depth, s_pv *pv)
   #endif
   
   s_move moves[MAX_MOVES];
-  int num_moves = find_moves(board, moves, board->turn, MOVES_ALL);
+  int num_moves = find_moves(board, moves, board->turn);
   moves_sort(moves, num_moves);
   
   #ifdef HASHTABLE

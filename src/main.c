@@ -4,7 +4,6 @@
 int main()
 {
   srand(0x480ec5cb);
-  //printf("%s %s\n\n", ENGINE_NAME, ENGINE_VERSION);
   
   // Initialise magic bitboards
   bitboards_init();
@@ -70,16 +69,6 @@ int main()
     #endif
     printf("\n");
   #endif
-  
-  // Test some stuff
-  int i;
-  for(i = 0; i < 64; ++i)
-  {
-    if(u64_to_sq((uint64_t)1<<i) != i)
-    {
-      printf("u64_to_sq() mismatch: %i %i %"PRIdPTR"\n", u64_to_sq(i), i, (uint64_t)1<<i);
-    }
-  }
   
   // kill buffering
   setbuf(stdout, NULL);
@@ -171,6 +160,43 @@ int main()
       }
       printf("\n");
     }
+    
+    
+    /*
+    //set_fen(board, START_FEN);
+    set_fen(board, "rnbqkbnr/1ppppppp/p7/8/8/4P3/PPPP1PPP/RNBQKBNR w KQkq -");
+    
+    while(1)
+    {
+      printf("Board:\n");
+      display_board(board);
+      printf("White:\n");
+      print_u64(board->colour[WHITE]);
+      printf("Black:\n");
+      print_u64(board->colour[BLACK]);
+      printf("bP:\n");
+      print_u64(board->combined[bP]);
+      printf("KNIGHTS:\n");
+      print_u64(board->combined[KNIGHTS]);
+      
+      s_move moves[MAX_MOVES];
+      int num_moves = find_moves(board, moves, board->turn);
+      moves_sort(moves, num_moves);
+      
+      int i;
+      for(i = 0; i < num_moves; ++i)
+      {
+        printf("%i: ", i);
+        print_move(moves[i]);
+      }
+      
+      int lol;
+      scanf("%d",&lol);
+      
+      move_make(board, &moves[lol]);
+      board->turn = 1-board->turn;
+    }
+    */
     
     /*
     printf("info depth %i score cp %i nodes %"PRIdPTR" time %i pv%s\n", i, results.eval, nodes, results.time_taken, move_string);

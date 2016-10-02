@@ -6,7 +6,7 @@ int square_attacked(s_board* board, uint64_t pos, int side)
   assert(pos);
   assert(side == WHITE || side == BLACK);
   
-  int sq = u64_to_sq(pos);
+  int sq = __builtin_ctzll(pos);
   
   // Pawns
   if(side == WHITE)
@@ -49,7 +49,7 @@ uint64_t calculate_attacking(s_board* board, uint64_t pos, int side)
   assert(pos);
   assert(side == WHITE || side == BLACK);
   
-  int sq = u64_to_sq(pos);
+  int sq = __builtin_ctzll(pos);
   uint64_t attackers = 0;
   
   // Pawns

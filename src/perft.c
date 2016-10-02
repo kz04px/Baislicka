@@ -18,7 +18,7 @@ void perft_search(s_board* board, int d)
   assert(board->turn == WHITE || board->turn == BLACK);
   
   s_move moves[MAX_MOVES];
-  int num_moves = find_moves(board, moves, board->turn, MOVES_ALL);
+  int num_moves = find_moves(board, moves, board->turn);
   
   int m;
   for(m = 0; m < num_moves; ++m)
@@ -106,7 +106,7 @@ int perft_split(s_board* board, int depth, char* fen)
   start = clock();
   
   s_move moves[MAX_MOVES];
-  int num_moves = find_moves(board, moves, board->turn, MOVES_ALL);
+  int num_moves = find_moves(board, moves, board->turn);
   
   printf("Num moves: %i\n\n", num_moves);
   
@@ -120,7 +120,7 @@ int perft_split(s_board* board, int depth, char* fen)
       move_undo(board, &moves[m]);
       continue;
     }
-  
+    
     // Reset position and stats
     moves_total = 0;
     moves_quiet = 0;
@@ -495,8 +495,10 @@ int perft_movegen(s_board* board, const char* filepath)
     start = clock();
     for(i = 0; i < repeats; ++i)
     {
-      find_moves_wP(board, moves);
-      find_moves_bP(board, moves);
+      find_moves_wP_quiet(board, moves);
+      find_moves_wP_captures(board, moves);
+      find_moves_bP_quiet(board, moves);
+      find_moves_bP_captures(board, moves);
     }
     time_taken = ((double)clock()-start)/CLOCKS_PER_SEC;
     time_total += time_taken;

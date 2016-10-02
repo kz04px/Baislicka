@@ -1,19 +1,8 @@
 #include "defs.h"
 
 void print_move(s_move move)
-{  
-  int p;
-  for(p = 0; p <= 63; ++p)
-  {
-    if(move.from>>p & 1) {break;}
-  }
-  printf("%c%c ", POS_TO_COL_CHAR(p), POS_TO_ROW_CHAR(p));
-  
-  for(p = 0; p <= 63; ++p)
-  {
-    if(move.to>>p & 1) {break;}
-  }
-  printf("%c%c ", POS_TO_COL_CHAR(p), POS_TO_ROW_CHAR(p));
+{
+  printf("%c%c %c%c ", POS_TO_COL_CHAR(move.from), POS_TO_ROW_CHAR(move.from), POS_TO_COL_CHAR(move.to), POS_TO_ROW_CHAR(move.to));
   
   switch(move.piece_type)
   {
