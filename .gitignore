@@ -49,3 +49,4 @@ Baislicka-2.0.cbp
 *.o
 bin/Release/Baislicka-2.0.exe
 *.depend
+*.exe
