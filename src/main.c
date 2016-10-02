@@ -109,10 +109,6 @@ int main()
     s_board* board = (s_board*) malloc(1*sizeof(s_board));
     if(board == NULL) {return -1;}
     
-    set_fen(board, START_FEN);
-    printf("eval: %i\n", eval(board));
-    printf("\n");
-    
     //perft_suite(board, 6, "perftsuite.epd");
     //perft(board, 7, START_FEN);
     //perft_split(board, 6, START_FEN);
@@ -150,7 +146,7 @@ int main()
       #endif
       if(results.time_taken > 0)
       {
-        printf("  NPS: %"PRIdPTR"\n", results.nodes/results.time_taken);
+        printf("  kNPS: %"PRIdPTR"\n", results.nodes/results.time_taken);
       }
       
       if(results.mate)

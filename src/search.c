@@ -44,25 +44,6 @@ int quiesce(s_board *board, int alpha, int beta)
       continue;
     }
     
-    /*
-    if(board->turn == WHITE)
-    {
-      if(calculate_attacked_black(board, board->combined[KINGS] & board->colour[WHITE]))
-      {
-        move_undo(board, &moves[m]);
-        continue;
-      }
-    }
-    else
-    {
-      if(calculate_attacked_white(board, board->combined[KINGS] & board->colour[BLACK]))
-      {
-        move_undo(board, &moves[m]);
-        continue;
-      }
-    }
-    */
-    
     nodes++;
     
     board->turn = 1-(board->turn);
@@ -102,11 +83,11 @@ void *search_base(void *n)
   
   if(board->turn == WHITE)
   {
-    search_info.time_max = search_info.wtime/25 + search_info.winc;
+    search_info.time_max = search_info.wtime/20 + search_info.winc;
   }
   else
   {
-    search_info.time_max = search_info.btime/25 + search_info.binc;
+    search_info.time_max = search_info.btime/20 + search_info.binc;
   }
   
   int target_depth = 1;
@@ -163,7 +144,7 @@ void *search_base(void *n)
     
     if(results.time_taken > 0)
     {
-      GUI_Send("info nps %"PRIdPTR"\n", nodes/results.time_taken);
+      GUI_Send("info nps %"PRIdPTR"\n", 1000*nodes/results.time_taken);
     }
     
     bestmove = results.pv.moves[0];
@@ -507,7 +488,7 @@ int alpha_beta(s_board* board, int alpha, int beta, int depth, s_pv *pv)
       return 0;
     }
   }
-
+  
   #ifdef HASHTABLE
     assert(best_move_num >= 0);
     assert(best_move_num < num_moves);

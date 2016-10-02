@@ -40,11 +40,10 @@ Depth: 1
 g1 f3 (N) normal
 
 Depth: 2
-  Search time: 1ms
+  Search time: 0ms
   Nodes: 424
   Branching: 21.200
   Hash entries: 20 (0.00%)
-  NPS: 424
   Eval: 0
 g1 f3 (N) normal
 
@@ -53,60 +52,60 @@ Depth: 3
   Nodes: 1719
   Branching: 4.054
   Hash entries: 420 (0.01%)
-  NPS: 859
+  kNPS: 859
   Eval: 50
 g1 f3 (N) normal
 
 Depth: 4
-  Search time: 15ms
+  Search time: 11ms
   Nodes: 16259
   Branching: 9.458
   Hash entries: 1533 (0.03%)
-  NPS: 1083
+  kNPS: 1478
   Eval: 0
 g1 f3 (N) normal
 
 Depth: 5
-  Search time: 36ms
+  Search time: 32ms
   Nodes: 61787
   Branching: 3.800
   Hash entries: 10842 (0.18%)
-  NPS: 1716
+  kNPS: 1930
   Eval: 20
 g1 f3 (N) normal
 
 Depth: 6
-  Search time: 219ms
+  Search time: 189ms
   Nodes: 501614
   Branching: 8.118
   Hash entries: 45978 (0.75%)
-  NPS: 2290
+  kNPS: 2654
   Eval: 0
 g1 f3 (N) normal
 
 Depth: 7
-  Search time: 812ms
+  Search time: 675ms
   Nodes: 2143149
   Branching: 4.273
   Hash entries: 266625 (4.37%)
-  NPS: 2639
+  kNPS: 3175
   Eval: 50
 g1 f3 (N) normal
 
 Depth: 8
-  Search time: 4616ms
+  Search time: 3731ms
   Nodes: 13169410
   Branching: 6.145
   Hash entries: 1040953 (17.06%)
-  NPS: 2852
+  kNPS: 3529
   Eval: 0
 g1 f3 (N) normal
 
 Depth: 9
-  Search time: 55352ms
+  Search time: 46052ms
   Nodes: 150722674
   Branching: 11.445
   Hash entries: 5436811 (89.12%)
-  NPS: 2722
+  kNPS: 3272
   Eval: 50
 e2 e4 (P) double_move

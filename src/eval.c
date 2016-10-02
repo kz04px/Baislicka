@@ -412,27 +412,25 @@ int eval(s_board* board)
     copy = board->combined[piece_type] & board->colour[WHITE];
     while(copy)
     {
-      from = copy & ~(copy-1);
-      sq = u64_to_sq(from);
+      sq = __builtin_ctzll(copy);
       
       score += piece_values[piece_type];
       score += piece_location_bonus[piece_type][sq];
       
-      copy = copy^from;
+      copy &= (copy-1);
     }
     
     // BLACK
     copy = board->combined[piece_type] & board->colour[BLACK];
     while(copy)
     {
-      from = copy & ~(copy-1);
-      sq = u64_to_sq(from);
-      int sq_reverse = 8*(7-(sq/8)) + sq%8;
+      sq = __builtin_ctzll(copy);
+      int sq_reverse = sq^56;
       
       score -= piece_values[piece_type];
       score -= piece_location_bonus[piece_type][sq_reverse];
       
-      copy = copy^from;
+      copy &= (copy-1);
     }
   }
   
