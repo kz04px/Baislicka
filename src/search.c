@@ -380,7 +380,8 @@ int alpha_beta(s_board* board, int alpha, int beta, int depth, s_pv *pv)
   #endif
   
   s_move moves[MAX_MOVES];
-  int num_moves = find_moves(board, moves, board->turn);
+  int num_moves = find_moves_captures(board, &moves[0], board->turn);
+  num_moves += find_moves_quiet(board, &moves[num_moves], board->turn);
   moves_sort(moves, num_moves);
   
   #ifdef HASHTABLE
@@ -395,6 +396,8 @@ int alpha_beta(s_board* board, int alpha, int beta, int depth, s_pv *pv)
         if(!square_attacked(board, board->combined[KINGS]&board->colour[board->turn], !board->turn))
         {
           board->turn = 1-(board->turn);
+    
+          nodes++;
           
           #ifdef GET_PV
             score = -alpha_beta(board, -beta, -alpha, depth-1, &pv_local);

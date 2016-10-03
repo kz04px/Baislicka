@@ -438,3 +438,31 @@ int find_moves_captures(s_board* board, s_move* move_list, int colour)
   
   return num_moves;
 }
+
+int find_moves_quiet(s_board* board, s_move* move_list, int colour)
+{
+  assert(board != NULL);
+  assert(move_list != NULL);
+  assert(colour == WHITE || colour == BLACK);
+  
+  uint64_t allowed = ~(board->colour[board->turn]|board->colour[!board->turn]);
+  
+  int num_moves = 0;
+  
+  num_moves += find_moves_bishops_queens(board, &move_list[num_moves], allowed);
+  num_moves += find_moves_rooks_queens(board, &move_list[num_moves], allowed);
+  num_moves += find_moves_knights(board, &move_list[num_moves], allowed);
+  
+  if(colour == WHITE)
+  {
+    num_moves += find_moves_wP_quiet(board, &move_list[num_moves]);
+  }
+  else
+  {
+    num_moves += find_moves_bP_quiet(board, &move_list[num_moves]);
+  }
+  
+  num_moves += find_moves_kings_quiet(board, &move_list[num_moves]);
+  
+  return num_moves;
+}

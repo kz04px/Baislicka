@@ -235,6 +235,7 @@ int eval(s_board* board);
 // movegen.c
 int find_moves(s_board* board, s_move* move_list, int colour);
 int find_moves_captures(s_board* board, s_move* move_list, int colour);
+int find_moves_quiet(s_board* board, s_move* move_list, int colour);
 int find_moves_wP_quiet(s_board* board, s_move* move_list);
 int find_moves_wP_captures(s_board* board, s_move* move_list);
 int find_moves_bP_quiet(s_board* board, s_move* move_list);

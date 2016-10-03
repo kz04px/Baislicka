@@ -254,32 +254,6 @@ s_move move_add(s_board *board, int from, int to, int type, int piece_type)
     }
   }
   
-  /*
-  if(type == CAPTURE)
-  {
-    int n;
-    for(n = 0; n < 6; ++n)
-    {
-      if(board->combined[n] & ((uint64_t)1<<to))
-      {
-        taken = n;
-        break;
-      }
-    }
-  }
-  else if(type == EP)
-  {
-    if(piece_type == wP)
-    {
-      taken = bP;
-    }
-    else
-    {
-      taken = wP;
-    }
-  }
-  */
-  
   s_move move;
   move.from = from;
   move.to = to;
@@ -773,11 +747,6 @@ int move_is_legal(s_board* board, s_move* move)
   assert(board != NULL);
   assert(move != NULL);
   
-  if((board->combined[move->piece_type] & ((uint64_t)1<<(move->from))) == 0)
-  {
-    return -1;
-  }
-  
   s_move move_list[MAX_MOVES];
   uint64_t allowed = ~board->colour[board->turn];
   
@@ -785,29 +754,29 @@ int move_is_legal(s_board* board, s_move* move)
   switch(move->piece_type)
   {
     case wP:
-      num_moves = find_moves_wP_quiet(board, move_list);
-      num_moves += find_moves_wP_captures(board, move_list);
+      num_moves = find_moves_wP_quiet(board, &move_list[0]);
+      num_moves += find_moves_wP_captures(board, &move_list[num_moves]);
       break;
     case bP:
-      num_moves = find_moves_bP_quiet(board, move_list);
-      num_moves += find_moves_bP_captures(board, move_list);
+      num_moves = find_moves_bP_quiet(board, &move_list[0]);
+      num_moves += find_moves_bP_captures(board, &move_list[num_moves]);
       break;
     case KNIGHTS:
-      num_moves = find_moves_knights(board, move_list, allowed);
+      num_moves = find_moves_knights(board, &move_list[0], allowed);
       break;
     case BISHOPS:
-      num_moves = find_moves_bishops_queens(board, move_list, allowed);
+      num_moves = find_moves_bishops_queens(board, &move_list[0], allowed);
       break;
     case ROOKS:
-      num_moves = find_moves_rooks_queens(board, move_list, allowed);
+      num_moves = find_moves_rooks_queens(board, &move_list[0], allowed);
       break;
     case QUEENS:
-      num_moves = find_moves_bishops_queens(board, move_list, allowed);
-      num_moves += find_moves_rooks_queens(board, move_list, allowed);
+      num_moves = find_moves_bishops_queens(board, &move_list[0], allowed);
+      num_moves += find_moves_rooks_queens(board, &move_list[num_moves], allowed);
       break;
     case KINGS:
-      num_moves = find_moves_kings_quiet(board, move_list);
-      num_moves += find_moves_kings_captures(board, move_list);
+      num_moves = find_moves_kings_quiet(board, &move_list[0]);
+      num_moves += find_moves_kings_captures(board, &move_list[num_moves]);
       break;
   }
   
@@ -823,60 +792,4 @@ int move_is_legal(s_board* board, s_move* move)
   }
   
   return 0;
-  
-  /*
-  switch(move->type)
-  {
-    case QUIET:
-      if((board->pieces[move->piece_type] & move->from) == 0)
-        return -1;
-      if(((board->colour[WHITE]|board->colour[BLACK]) & move->to) == 0)
-        return -1;
-      break;
-    case DOUBLE_PAWN:
-      break;
-    case CAPTURE:
-      break;
-    case PROMOTE:
-      break;
-    case EP:
-      break;
-    case wKSC:
-      if(!board->castling[wKSC])
-        return -1;
-      if((board->colour[WHITE]|board->colour[BLACK])&U64_F1)
-        return -1;
-      if((board->colour[WHITE]|board->colour[BLACK])&U64_G1)
-        return -1;
-      break;
-    case wQSC:
-      if(!board->castling[wQSC])
-        return -1;
-      if((board->colour[WHITE]|board->colour[BLACK])&U64_D1)
-        return -1;
-      if((board->colour[WHITE]|board->colour[BLACK])&U64_C1)
-        return -1;
-      if((board->colour[WHITE]|board->colour[BLACK])&U64_B1)
-        return -1;
-      break;
-    case bKSC:
-      if(!board->castling[bKSC])
-        return -1;
-      if((board->colour[WHITE]|board->colour[BLACK])&U64_F8)
-        return -1;
-      if((board->colour[WHITE]|board->colour[BLACK])&U64_G8)
-        return -1;
-      break;
-    case bQSC:
-      if(!board->castling[bQSC])
-        return -1;
-      if((board->colour[WHITE]|board->colour[BLACK])&U64_D8)
-        return -1;
-      if((board->colour[WHITE]|board->colour[BLACK])&U64_C8)
-        return -1;
-      if((board->colour[WHITE]|board->colour[BLACK])&U64_B8)
-        return -1;
-      break;
-  }
-  */
 }
