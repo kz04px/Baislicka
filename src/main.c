@@ -170,14 +170,10 @@ int main()
     {
       printf("Board:\n");
       display_board(board);
-      printf("White:\n");
-      print_u64(board->colour[WHITE]);
-      printf("Black:\n");
-      print_u64(board->colour[BLACK]);
-      printf("bP:\n");
-      print_u64(board->combined[bP]);
-      printf("KNIGHTS:\n");
-      print_u64(board->combined[KNIGHTS]);
+      //printf("White:\n");
+      //print_u64(board->colour[WHITE]);
+      //printf("Black:\n");
+      //print_u64(board->colour[BLACK]);
       
       s_move moves[MAX_MOVES];
       int num_moves = find_moves(board, moves, board->turn);

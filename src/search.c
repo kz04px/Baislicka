@@ -30,12 +30,6 @@ int quiesce(s_board *board, int alpha, int beta)
   int m;
   for(m = 0; m < num_moves; ++m)
   {
-    if(moves[m].type != CAPTURE)
-    {
-      // Move list has to be sorted for this to use break - otherwise use continue
-      break;
-    }
-    
     move_make(board, &moves[m]);
     
     if(square_attacked(board, board->combined[KINGS]&board->colour[board->turn], !board->turn))
@@ -47,9 +41,9 @@ int quiesce(s_board *board, int alpha, int beta)
     nodes++;
     
     board->turn = 1-(board->turn);
-      
+    
     score = -quiesce(board, -beta, -alpha);
-      
+    
     board->turn = 1-(board->turn);
     
     move_undo(board, &moves[m]);
@@ -393,6 +387,49 @@ int alpha_beta(s_board* board, int alpha, int beta, int depth, s_pv *pv)
     int best_move_num = 0;
     if(board->key == entry->key)
     {
+      /*
+      if(move_is_legal(board, &entry->pv))
+      {
+        move_make(board, &entry->pv);
+        
+        if(!square_attacked(board, board->combined[KINGS]&board->colour[board->turn], !board->turn))
+        {
+          board->turn = 1-(board->turn);
+          
+          #ifdef GET_PV
+            score = -alpha_beta(board, -beta, -alpha, depth-1, &pv_local);
+          #else
+            score = -alpha_beta(board, -beta, -alpha, depth-1, NULL);
+          #endif
+          
+          board->turn = 1-(board->turn);
+          
+          if(score > alpha)
+          {
+            alpha = score;
+            
+            #ifdef GET_PV
+              assert(pv_local.num_moves >= 0);
+              assert(pv_local.num_moves < MAX_DEPTH - 1);
+              pv->moves[0] = entry->pv;
+              int i;
+              for(i = 0; i < pv_local.num_moves && i < MAX_DEPTH - 1; ++i)
+              {
+                pv->moves[i+1] = pv_local.moves[i];
+              }
+              pv->num_moves = pv_local.num_moves + 1;
+            #endif
+          }
+          if(alpha >= beta)
+          {
+            move_undo(board, &entry->pv);
+            return score;
+          }
+        }
+        move_undo(board, &entry->pv);
+      }
+      */
+      
       int i;
       for(i = 0; i < num_moves; ++i)
       {
@@ -409,6 +446,12 @@ int alpha_beta(s_board* board, int alpha, int beta, int depth, s_pv *pv)
       }
     }
   #endif
+  
+  /*
+  s_move moves[MAX_MOVES];
+  int num_moves = find_moves(board, moves, board->turn);
+  moves_sort(moves, num_moves);
+  */
   
   int best_score = -INF;
   int played = 0;

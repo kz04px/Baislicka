@@ -207,6 +207,7 @@ void bitboards_init();
 uint64_t magic_moves_hor_ver(uint64_t pieces_all, int pos);
 uint64_t magic_moves_diagonal(uint64_t pieces_all, int pos);
 uint64_t magic_moves_knight(int pos);
+uint64_t magic_moves_king(int pos);
 int u64_to_sq(uint64_t pos);
 int u64_col(uint64_t pos);
 int u64_row(uint64_t pos);
@@ -241,7 +242,8 @@ int find_moves_bP_captures(s_board* board, s_move* move_list);
 int find_moves_knights(s_board* board, s_move* move_list, uint64_t allowed);
 int find_moves_bishops_queens(s_board* board, s_move* move_list, uint64_t allowed);
 int find_moves_rooks_queens(s_board* board, s_move* move_list, uint64_t allowed);
-int find_moves_kings(s_board* board, s_move* move_list);
+int find_moves_kings_quiet(s_board* board, s_move* move_list);
+int find_moves_kings_captures(s_board* board, s_move* move_list);
 
 // fen.c
 int set_fen(s_board *board, const char *fen);

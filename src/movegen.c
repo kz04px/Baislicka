@@ -160,7 +160,7 @@ int find_moves_bP_quiet(s_board* board, s_move* move_list)
   return num_moves;
 }
 
-int find_moves_kings(s_board* board, s_move* move_list)
+int find_moves_kings_quiet(s_board* board, s_move* move_list)
 {
   assert(board != NULL);
   assert(move_list != NULL);
@@ -180,7 +180,6 @@ int find_moves_kings(s_board* board, s_move* move_list)
        square_attacked(board, U64_G1, BLACK) == 0)
     {
       move_list[num_moves] = move_add(board, E1, G1, KSC, KINGS);
-      //move_list[num_moves] = move_add(board, U64_E1, U64_G1, KSC, KINGS);
       num_moves++;
     }
     if(board->castling[wQSC] &&
@@ -192,7 +191,6 @@ int find_moves_kings(s_board* board, s_move* move_list)
        square_attacked(board, U64_C1, BLACK) == 0)
     {
       move_list[num_moves] = move_add(board, E1, C1, QSC, KINGS);
-      //move_list[num_moves] = move_add(board, U64_E1, U64_C1, QSC, KINGS);
       num_moves++;
     }
   }
@@ -206,7 +204,6 @@ int find_moves_kings(s_board* board, s_move* move_list)
        square_attacked(board, U64_G8, WHITE) == 0)
     {
       move_list[num_moves] = move_add(board, E8, G8, KSC, KINGS);
-      //move_list[num_moves] = move_add(board, U64_E8, U64_G8, KSC, KINGS);
       num_moves++;
     }
     if(board->castling[bQSC] &&
@@ -218,21 +215,34 @@ int find_moves_kings(s_board* board, s_move* move_list)
        square_attacked(board, U64_C8, WHITE) == 0)
     {
       move_list[num_moves] = move_add(board, E8, C8, QSC, KINGS);
-      //move_list[num_moves] = move_add(board, U64_E8, U64_C8, QSC, KINGS);
       num_moves++;
     }
   }
   
-  moves  = ((board->colour[board->turn] & board->combined[KINGS])<<8); // Up 1
-  moves |= ((board->colour[board->turn] & board->combined[KINGS])>>8); // Down 1
-  moves |= ((board->colour[board->turn] & board->combined[KINGS])<<1) & (~U64_COL_H); // Left 1
-  moves |= ((board->colour[board->turn] & board->combined[KINGS])>>1) & (~U64_COL_A); // Right 1
-  moves |= ((board->colour[board->turn] & board->combined[KINGS])<<7) & (~U64_COL_A); // Up 1 Right 1
-  moves |= ((board->colour[board->turn] & board->combined[KINGS])<<9) & (~U64_COL_H); // Up 1 Left 1
-  moves |= ((board->colour[board->turn] & board->combined[KINGS])>>7) & (~U64_COL_H); // Down 1 Left 1
-  moves |= ((board->colour[board->turn] & board->combined[KINGS])>>9) & (~U64_COL_A); // Down 1 Right 1
-  moves &= ~board->colour[board->turn];
   uint64_t from = __builtin_ctzll(board->colour[board->turn] & board->combined[KINGS]);
+  moves = magic_moves_king(from) & ~(board->colour[board->turn]|board->colour[!board->turn]);
+  while(moves)
+  {
+    to = __builtin_ctzll(moves);
+    move_list[num_moves] = add_movecapture(board, from, to, KINGS);
+    num_moves++;
+    moves &= moves-1;
+  }
+  
+  return num_moves;
+}
+
+int find_moves_kings_captures(s_board* board, s_move* move_list)
+{
+  assert(board != NULL);
+  assert(move_list != NULL);
+  
+  int num_moves = 0;
+  uint64_t moves;
+  int to;
+  
+  uint64_t from = __builtin_ctzll(board->colour[board->turn] & board->combined[KINGS]);
+  moves = magic_moves_king(from) & board->colour[!board->turn];
   while(moves)
   {
     to = __builtin_ctzll(moves);
@@ -395,7 +405,8 @@ int find_moves(s_board* board, s_move* move_list, int colour)
     num_moves += find_moves_bP_captures(board, &move_list[num_moves]);
   }
   
-  num_moves += find_moves_kings(board, &move_list[num_moves]);
+  num_moves += find_moves_kings_quiet(board, &move_list[num_moves]);
+  num_moves += find_moves_kings_captures(board, &move_list[num_moves]);
   
   return num_moves;
 }
@@ -423,7 +434,7 @@ int find_moves_captures(s_board* board, s_move* move_list, int colour)
     num_moves += find_moves_bP_captures(board, &move_list[num_moves]);
   }
   
-  num_moves += find_moves_kings(board, &move_list[num_moves]);
+  num_moves += find_moves_kings_captures(board, &move_list[num_moves]);
   
   return num_moves;
 }

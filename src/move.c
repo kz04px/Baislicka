@@ -5,7 +5,7 @@ int moves_sort(s_move* moves, int num)
 {
   assert(moves != NULL);
   assert(num >= 0);
-  assert(num <= MAX_MOVES);
+  assert(num < MAX_MOVES);
   
   s_move store;
   
@@ -83,7 +83,7 @@ int moves_sort(s_move* moves, int num)
   }
   
   capturing_piece = pos_queen;
-    
+  
   // Put all pawns capturing first
   for(i = pos_queen; i < pos_rook; ++i)
   {
@@ -198,6 +198,15 @@ s_move add_movecapture(s_board* board, int from, int to, int piece_type)
   assert(to >= 0);
   assert(to <= 63);
   assert(piece_type == wP || piece_type == bP || piece_type == KNIGHTS || piece_type == BISHOPS || piece_type == ROOKS || piece_type == QUEENS || piece_type == KINGS);
+  
+  if(!(((uint64_t)1<<from)&board->colour[board->turn]))
+  {
+    display_board(board);
+    print_u64(board->colour[WHITE]);
+    print_u64(board->colour[BLACK]);
+    getchar();
+  }
+  
   assert(((uint64_t)1<<from)&board->colour[board->turn]);
   
   if(board->colour[!board->turn]&((uint64_t)1<<to))
@@ -770,6 +779,7 @@ int move_is_legal(s_board* board, s_move* move)
   }
   
   s_move move_list[MAX_MOVES];
+  uint64_t allowed = ~board->colour[board->turn];
   
   int num_moves = 0;
   switch(move->piece_type)
@@ -780,22 +790,24 @@ int move_is_legal(s_board* board, s_move* move)
       break;
     case bP:
       num_moves = find_moves_bP_quiet(board, move_list);
-      num_moves = find_moves_bP_captures(board, move_list);
+      num_moves += find_moves_bP_captures(board, move_list);
       break;
     case KNIGHTS:
-      num_moves = find_moves_knights(board, move_list, ~board->colour[!board->turn]);
+      num_moves = find_moves_knights(board, move_list, allowed);
       break;
     case BISHOPS:
-      //num_moves = find_moves_bishops(board, move_list); // FIX ME
+      num_moves = find_moves_bishops_queens(board, move_list, allowed);
       break;
     case ROOKS:
-      //num_moves = find_moves_rooks(board, move_list); // FIX ME
+      num_moves = find_moves_rooks_queens(board, move_list, allowed);
       break;
     case QUEENS:
-      //num_moves = find_moves_queens(board, move_list); // FIX ME
+      num_moves = find_moves_bishops_queens(board, move_list, allowed);
+      num_moves += find_moves_rooks_queens(board, move_list, allowed);
       break;
     case KINGS:
-      num_moves = find_moves_kings(board, move_list);
+      num_moves = find_moves_kings_quiet(board, move_list);
+      num_moves += find_moves_kings_captures(board, move_list);
       break;
   }
   
@@ -806,11 +818,11 @@ int move_is_legal(s_board* board, s_move* move)
        move_list[i].to == move->to &&
        move_list[i].type == move->type)
     {
-      return 0;
+      return 1;
     }
   }
   
-  return -1;
+  return 0;
   
   /*
   switch(move->type)

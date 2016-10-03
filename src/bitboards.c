@@ -33,6 +33,7 @@ const int magicNumberShiftsBishop[] = {
 uint64_t magicMovesRook[64][4096] = {{0}}; // Tested: 4095
 uint64_t magicMovesBishop[64][512] = {{0}}; // Tested: 511
 uint64_t magicMovesKnight[64];
+uint64_t magicMovesKing[64];
 
 uint64_t occupancyVariation[64][4096] = {{0}}; // Tested: 4095
 uint64_t rookOccupancyAttackSet[64][4096] = {{0}}; // Tested: 4095
@@ -63,6 +64,23 @@ void generateKnightMoves()
     magicMovesKnight[sq] |= (from>>6)  & ~(U64_COL_G|U64_COL_H); // Left 2 down 1
     magicMovesKnight[sq] |= (from<<6)  & ~(U64_COL_A|U64_COL_B); // Right 2 up 1
     magicMovesKnight[sq] |= (from>>10) & ~(U64_COL_A|U64_COL_B); // Right 2 down 1
+  }
+}
+
+void generateKingMoves()
+{
+  int sq;
+  for(sq = 0; sq < 64; ++sq)
+  {
+    uint64_t from = (uint64_t)1<<sq;
+    magicMovesKing[sq]  = (from<<8); // Up 1
+    magicMovesKing[sq] |= (from>>8); // Down 1
+    magicMovesKing[sq] |= (from<<1) & (~U64_COL_H); // Left 1
+    magicMovesKing[sq] |= (from>>1) & (~U64_COL_A); // Right 1
+    magicMovesKing[sq] |= (from<<7) & (~U64_COL_A); // Up 1 Right 1
+    magicMovesKing[sq] |= (from<<9) & (~U64_COL_H); // Up 1 Left 1
+    magicMovesKing[sq] |= (from>>7) & (~U64_COL_H); // Down 1 Left 1
+    magicMovesKing[sq] |= (from>>9) & (~U64_COL_A); // Down 1 Right 1
   }
 }
 
@@ -236,6 +254,13 @@ uint64_t magic_moves_knight(int pos)
   return magicMovesKnight[pos];
 }
 
+uint64_t magic_moves_king(int pos)
+{
+  assert(0 <= pos && pos <= 63);
+  
+  return magicMovesKing[pos];
+}
+
 int u64_to_sq(uint64_t pos)
 {
   assert(pos);
@@ -285,6 +310,7 @@ void bitboards_init()
   generateOccupancyVariations(1);
   generateMoveDatabase(1);
   generateKnightMoves();
+  generateKingMoves();
 }
 
 uint64_t pinned_pieces_white(s_board* board, int sq)
