@@ -181,9 +181,7 @@ void move_make(s_board *board, s_move *move)
 {
   assert(board != NULL);
   assert(move != NULL);
-  assert(move->from >= 0);
   assert(move->from <= 63);
-  assert(move->to >= 0);
   assert(move->to <= 63);
   
   uint64_t from = (uint64_t)1<<(move->from);

@@ -42,14 +42,14 @@ Location: perftsuite_2.epd
 Tests: 3
 ----------------------------
 Depth: 7
-Nodes: 78592381
-kNPS:  2568
-Time:  30.594s
+Nodes: 75620984
+kNPS:  2585
+Time:  29.248s
 ----------------------------
 Depth: 8
-Nodes: 402794905
-kNPS:  2496
-Time:  161.362s
+Nodes: 354533475
+kNPS:  2435
+Time:  145.541s
 ----------------------------
 
 
@@ -73,64 +73,64 @@ Depth: 2
 g1 f3 (N) normal
 
 Depth: 3
-  Search time: 1ms
+  Search time: 2ms
   Nodes: 1711
   Branching: 4.035
-  Hash entries: 420 (0.01%)
-  kNPS: 1711
+  Hash entries: 420 (0.00%)
+  kNPS: 855
   Eval: 50
 g1 f3 (N) normal
 
 Depth: 4
-  Search time: 10ms
+  Search time: 16ms
   Nodes: 16176
   Branching: 9.454
   Hash entries: 1535 (0.02%)
-  kNPS: 1617
+  kNPS: 1011
   Eval: 0
 g1 f3 (N) normal
 
 Depth: 5
-  Search time: 30ms
+  Search time: 38ms
   Nodes: 57301
   Branching: 3.542
-  Hash entries: 10833 (0.16%)
-  kNPS: 1910
+  Hash entries: 10836 (0.11%)
+  kNPS: 1507
   Eval: 20
 g1 f3 (N) normal
 
 Depth: 6
-  Search time: 171ms
-  Nodes: 475543
-  Branching: 8.299
-  Hash entries: 46213 (0.69%)
-  kNPS: 2780
+  Search time: 189ms
+  Nodes: 476766
+  Branching: 8.320
+  Hash entries: 46293 (0.48%)
+  kNPS: 2522
   Eval: 0
 g1 f3 (N) normal
 
 Depth: 7
-  Search time: 511ms
-  Nodes: 1760872
-  Branching: 3.703
-  Hash entries: 269323 (4.01%)
-  kNPS: 3445
+  Search time: 537ms
+  Nodes: 1720958
+  Branching: 3.610
+  Hash entries: 266194 (2.78%)
+  kNPS: 3204
   Eval: 50
 g1 f3 (N) normal
 
 Depth: 8
-  Search time: 3066ms
-  Nodes: 11395654
-  Branching: 6.472
-  Hash entries: 1064217 (15.86%)
-  kNPS: 3716
+  Search time: 3375ms
+  Nodes: 11067109
+  Branching: 6.431
+  Hash entries: 1073883 (11.20%)
+  kNPS: 3279
   Eval: 0
 g1 f3 (N) normal
 
 Depth: 9
-  Search time: 32456ms
-  Nodes: 110984299
-  Branching: 9.739
-  Hash entries: 5694886 (84.86%)
-  kNPS: 3419
+  Search time: 30953ms
+  Nodes: 98643598
+  Branching: 8.913
+  Hash entries: 6714577 (70.04%)
+  kNPS: 3186
   Eval: 50
 e2 e4 (P) double_move

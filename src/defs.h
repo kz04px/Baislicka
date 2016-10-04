@@ -108,18 +108,18 @@ enum {H1= 0, G1, F1, E1, D1, C1, B1, A1};
 
 typedef struct
 {
-  int from;
-  int to;
-  int taken;
-  int piece_type;
-  int type;
-  int promotion;
+  uint8_t from;
+  uint8_t to;
+  uint8_t taken;
+  uint8_t piece_type;
+  uint8_t type;
+  uint8_t promotion;
   
   #ifdef HASHTABLE
     uint64_t key_old;
   #endif
   uint64_t ep_old;
-  int castling[4];
+  uint8_t castling[4];
 } s_move;
 
 typedef struct
@@ -131,7 +131,7 @@ typedef struct
 typedef struct
 {
   int turn;
-  int castling[4];
+  uint8_t castling[4];
   uint64_t ep;
   uint64_t combined[7];
   uint64_t colour[2];
@@ -144,9 +144,9 @@ typedef struct
 
 typedef struct
 {
-  int flags;
+  uint8_t flags;
   uint64_t key;
-  int depth;
+  uint8_t depth;
   int eval;
   s_move pv;
 } s_hashtable_entry;
