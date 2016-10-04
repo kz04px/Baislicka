@@ -27,9 +27,11 @@
 #define HASHTABLE_SIZE_MIN        0
 #define HASHTABLE_SIZE_DEFAULT  512
 #define HASHTABLE_SIZE_MAX     2048
+#define HISTORY_SIZE_MAX       1024
 #define INF 1000000
-#define MOVES_ALL 0
+#define MOVES_ALL      0
 #define MOVES_CAPTURES 1
+#define CONTEMPT_VALUE 100
 
 #define U64_COL_H 0x0101010101010101ULL
 #define U64_COL_G 0x0202020202020202ULL
@@ -136,6 +138,8 @@ typedef struct
   #ifdef HASHTABLE
     uint64_t key;
   #endif
+  int history_size;
+  uint64_t key_history[HISTORY_SIZE_MAX];
 } s_board;
 
 typedef struct
@@ -230,6 +234,7 @@ s_hashtable_entry *hashtable_poll(s_hashtable *hashtable, uint64_t key);
 s_hashtable_entry *hashtable_add(s_hashtable *hashtable, int flags, uint64_t key, int depth, int eval, s_move pv);
 
 // eval.c
+int is_threefold(s_board* board);
 int eval(s_board* board);
 
 // movegen.c
@@ -275,6 +280,7 @@ void print_move(s_move move);
 void print_moves(s_move* moves, int num_moves);
 void print_u64(uint64_t board);
 void display_board(s_board *board);
+void display_history(s_board* board);
 
 // uci.c
 void uci_listen();

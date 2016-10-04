@@ -165,8 +165,7 @@ int main()
     */
     
     /*
-    //set_fen(board, START_FEN);
-    set_fen(board, "rnbqkbnr/1ppppppp/p7/8/8/4P3/PPPP1PPP/RNBQKBNR w KQkq -");
+    set_fen(board, START_FEN);
     
     while(1)
     {
@@ -193,14 +192,6 @@ int main()
       
       move_make(board, &moves[lol]);
       board->turn = 1-board->turn;
-    }
-    */
-    
-    /*
-    printf("info depth %i score cp %i nodes %"PRIdPTR" time %i pv%s\n", i, results.eval, nodes, results.time_taken, move_string);
-    if(results.time_taken > 0)
-    {
-      printf("info nps %"PRIdPTR"\n", nodes/results.time_taken);
     }
     */
     

@@ -24,25 +24,33 @@ D   Time      NPS     Moves       Captures  EP     Castles Checks
 7   198.844s  16.1m   3195901860  108329926 319617 883453  33103848
 
 
+----------------------------
 Perft suite
 Location: perftsuite.epd
+----------------------------
 Depth: 5
 Time: 24.416s
+----------------------------
 Depth: 6
 Time: 772.967s
+----------------------------
 
 
+----------------------------
 Perft search suite
 Location: perftsuite_2.epd
 Tests: 3
+----------------------------
 Depth: 7
 Nodes: 78592381
-kNPS:  2758
-Time:  28.493s
+kNPS:  2568
+Time:  30.594s
+----------------------------
 Depth: 8
 Nodes: 402794905
-kNPS:  2604
-Time:  154.628s
+kNPS:  2496
+Time:  161.362s
+----------------------------
 
 
 test

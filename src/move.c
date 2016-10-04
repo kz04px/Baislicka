@@ -121,15 +121,6 @@ s_move add_movecapture(s_board* board, int from, int to, int piece_type)
   assert(to >= 0);
   assert(to <= 63);
   assert(piece_type == wP || piece_type == bP || piece_type == KNIGHTS || piece_type == BISHOPS || piece_type == ROOKS || piece_type == QUEENS || piece_type == KINGS);
-  
-  if(!(((uint64_t)1<<from)&board->colour[board->turn]))
-  {
-    display_board(board);
-    print_u64(board->colour[WHITE]);
-    print_u64(board->colour[BLACK]);
-    getchar();
-  }
-  
   assert(((uint64_t)1<<from)&board->colour[board->turn]);
   
   if(board->colour[!board->turn]&((uint64_t)1<<to))
@@ -384,6 +375,10 @@ void move_make(s_board *board, s_move *move)
     if(board->castling[bQSC] != move->castling[bQSC]) {board->key ^= key_castling[bQSC];}
     board->key ^= key_turn;
   #endif
+  
+  // History
+  board->key_history[board->history_size] = board->key;
+  board->history_size++;
 }
 
 void move_undo(s_board *board, s_move *move)
@@ -473,6 +468,9 @@ void move_undo(s_board *board, s_move *move)
   board->castling[wQSC] = move->castling[wQSC];
   board->castling[bKSC] = move->castling[bKSC];
   board->castling[bQSC] = move->castling[bQSC];
+  
+  // History
+  board->history_size--;
 }
 
 void move_make_ascii(s_board *board, char *move_string)

@@ -328,6 +328,20 @@ int alpha_beta(s_board* board, int alpha, int beta, int depth, s_pv *pv)
     {
       hashtable_hits++;
       
+      /*
+      // TEST
+      // Update whether the entry found is a threefold repetition or not
+      if(move_is_legal(board, &entry->pv))
+      {
+        move_make(board, &entry->pv);
+        if(is_threefold(board))
+        {
+          entry->eval = 0;
+        }
+        move_undo(board, &entry->pv);
+      }
+      */
+      
       if(entry->flags == EXACT)
       {
         #ifdef GET_PV
@@ -472,25 +486,31 @@ int alpha_beta(s_board* board, int alpha, int beta, int depth, s_pv *pv)
     }
     
     nodes++;
-    
     played = 1;
     
-    time_t time_spent = clock() - time_start;
-    if(time_spent < search_info.time_max)
+    if(is_threefold(board))
     {
-      board->turn = 1-(board->turn);
-      
-      #ifdef GET_PV
-        score = -alpha_beta(board, -beta, -alpha, depth-1, &pv_local);
-      #else
-        score = -alpha_beta(board, -beta, -alpha, depth-1, NULL);
-      #endif
-      
-      board->turn = 1-(board->turn);
+      score = CONTEMPT_VALUE;
     }
     else
     {
-      score = eval(board);
+      time_t time_spent = clock() - time_start;
+      if(time_spent < search_info.time_max)
+      {
+        board->turn = 1-(board->turn);
+        
+        #ifdef GET_PV
+          score = -alpha_beta(board, -beta, -alpha, depth-1, &pv_local);
+        #else
+          score = -alpha_beta(board, -beta, -alpha, depth-1, NULL);
+        #endif
+        
+        board->turn = 1-(board->turn);
+      }
+      else
+      {
+        score = eval(board);
+      }
     }
     
     move_undo(board, &moves[m]);

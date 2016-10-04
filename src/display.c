@@ -66,7 +66,7 @@ void print_move(s_move move)
       print_u64(move.to);
       break;
   }
-    
+  
   printf("\n");
 }
 
@@ -186,4 +186,15 @@ void display_board(s_board *board)
   printf("\n");
   
   printf("Ep: %"PRIdPTR"\n", board->ep);
+}
+
+void display_history(s_board* board)
+{
+  assert(board != NULL);
+  
+  int i;
+  for(i = 0; i < board->history_size; ++i)
+  {
+    printf("%i) %"PRIdPTR"\n", i, board->key_history[i]);
+  }
 }

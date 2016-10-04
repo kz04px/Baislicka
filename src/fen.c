@@ -208,5 +208,9 @@ int set_fen(s_board *board, const char *fen)
     board->key = create_key_board(board);
   #endif
   
+  // History
+  board->key_history[0] = board->key;
+  board->history_size = 1;
+  
   return 0;
 }

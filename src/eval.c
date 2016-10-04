@@ -91,6 +91,34 @@ const int isolated_pawn_value = -50;
 
 const int open_file_value = 25;
 
+int is_threefold(s_board* board)
+{
+  assert(board != NULL);
+  
+  int repeats = 1;
+  
+  if(board->history_size < 9)
+  {
+    return 0;
+  }
+  
+  int i;
+  for(i = board->history_size-3; i >= 0; i -= 2)
+  {
+    if(board->key_history[i] == board->key)
+    {
+      repeats++;
+      
+      if(repeats >= 3)
+      {
+        return 1;
+      }
+    }
+  }
+  
+  return 0;
+}
+
 int eval(s_board* board)
 {
   int score = 0;
