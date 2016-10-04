@@ -211,8 +211,9 @@ s_search_results search(s_board* board, int depth)
   int best_score = -INF;
   
   s_move moves[MAX_MOVES];
-  int num_moves = find_moves(board, moves, board->turn);
+  int num_moves = find_moves_captures(board, moves, board->turn);
   moves_sort(moves, num_moves);
+  num_moves += find_moves_quiet(board, &moves[num_moves], board->turn);
   
   #ifdef GET_PV
     results.pv.num_moves = 0;
@@ -381,8 +382,8 @@ int alpha_beta(s_board* board, int alpha, int beta, int depth, s_pv *pv)
   
   s_move moves[MAX_MOVES];
   int num_moves = find_moves_captures(board, &moves[0], board->turn);
-  num_moves += find_moves_quiet(board, &moves[num_moves], board->turn);
   moves_sort(moves, num_moves);
+  num_moves += find_moves_quiet(board, &moves[num_moves], board->turn);
   
   #ifdef HASHTABLE
     int best_move_num = 0;

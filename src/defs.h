@@ -253,6 +253,7 @@ int set_fen(s_board *board, const char *fen);
 void perft(s_board* board, int max_depth, char* fen);
 int perft_split(s_board* board, int depth, char* fen);
 void perft_suite(s_board* board, int max_depth, char* filepath);
+void perft_suite_search(s_board* board, int max_depth, char* filepath);
 int perft_movegen(s_board* board, const char* filepath);
 int perft_movegen_sides(s_board* board, const char* filepath);
 

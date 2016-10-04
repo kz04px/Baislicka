@@ -169,7 +169,7 @@ void perft_suite(s_board* board, int max_depth, char* filepath)
   
   time_t start;
   double time_taken;
-    
+  
   printf("Starting test suite\n");
   printf("\n");
   
@@ -571,4 +571,86 @@ int perft_movegen(s_board* board, const char* filepath)
   printf("\n");
   
   return 0;
+}
+
+void perft_suite_search(s_board* board, int max_depth, char* filepath)
+{
+  assert(board != NULL);
+  assert(max_depth > 0);
+  assert(filepath != NULL);
+  
+  FILE* file = fopen(filepath, "r");
+  if(!file)
+  {
+    printf("Failed to find %s\n", filepath);
+    printf("Aborting test suite\n");
+    return;
+  }
+  
+  time_t start;
+  double time_taken;
+  
+  printf("Starting test suite\n");
+  printf("\n");
+  
+  int num_tests = 0;
+  uint64_t nodes = 0;
+  s_search_results results;
+  
+  start = clock();
+  char line[1024];
+  while(fgets(line, sizeof(line), file))
+  {
+    int r = set_fen(board, line);
+    if(r != 0)
+    {
+      printf("Invalid fen (%s)\n", line);
+      printf("Error code: %i\n", r);
+      printf("Skipping test\n");
+      continue;
+    }
+    num_tests++;
+    
+    printf("Test %i:  ", num_tests);
+    
+    s_search_info info;
+    info.time_max = 10000000;
+    search_info_set(info);
+    
+    hashtable_clear(hashtable);
+    
+    int i;
+    for(i = 1; i <= max_depth; ++i)
+    {
+      results = search(board, i);
+    }
+    
+         if(results.time_taken < 10) {printf("     ");}
+    else if(results.time_taken < 100) {printf("    ");}
+    else if(results.time_taken < 1000) {printf("   ");}
+    else if(results.time_taken < 10000) {printf("  ");}
+    else if(results.time_taken < 100000) {printf(" ");}
+    printf("%ims", results.time_taken);
+    
+         if(abs(results.eval) < 10) {printf("    ");}
+    else if(abs(results.eval) < 100) {printf("   ");}
+    else if(abs(results.eval) < 1000) {printf("  ");}
+    else if(abs(results.eval) < 10000) {printf(" ");}
+    if(results.eval >= 0) {printf(" ");}
+    printf("%icp   ", results.eval);
+    
+    print_move(results.pv.moves[0]);
+    
+    nodes += results.nodes;
+  }
+  time_taken = ((double)clock()-start)/CLOCKS_PER_SEC;
+  
+  printf("\n");
+  printf("Results:\n");
+  printf("Location: %s\n", filepath);
+  printf("Depth: %i\n", max_depth);
+  printf("Nodes: %"PRIdPTR"\n", nodes);
+  printf("kNPS:  %"PRIdPTR"\n", (uint64_t)(nodes/time_taken/1000.0));
+  printf("Time:  %.3fs\n", time_taken);
+  printf("Tests: %i\n", num_tests);
 }

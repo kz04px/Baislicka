@@ -24,6 +24,7 @@ D   Time      NPS     Moves       Captures  EP     Castles Checks
 7   198.844s  16.1m   3195901860  108329926 319617 883453  33103848
 
 
+Perft suite
 Location: perftsuite.epd
 Depth: 5
 Time: 24.416s
@@ -31,6 +32,21 @@ Depth: 6
 Time: 772.967s
 
 
+Perft search suite
+Location: perftsuite_2.epd
+Tests: 3
+Depth: 7
+Nodes: 78592381
+kNPS:  2758
+Time:  28.493s
+Depth: 8
+Nodes: 402794905
+kNPS:  2604
+Time:  154.628s
+
+
+test
+Search started
 Depth: 1
   Search time: 0ms
   Nodes: 20
@@ -49,64 +65,64 @@ Depth: 2
 g1 f3 (N) normal
 
 Depth: 3
-  Search time: 3ms
-  Nodes: 1715
-  Branching: 4.045
+  Search time: 1ms
+  Nodes: 1711
+  Branching: 4.035
   Hash entries: 420 (0.01%)
-  kNPS: 571
+  kNPS: 1711
   Eval: 50
 g1 f3 (N) normal
 
 Depth: 4
-  Search time: 20ms
-  Nodes: 16291
-  Branching: 9.499
+  Search time: 10ms
+  Nodes: 16176
+  Branching: 9.454
   Hash entries: 1535 (0.02%)
-  kNPS: 814
+  kNPS: 1617
   Eval: 0
 g1 f3 (N) normal
 
 Depth: 5
   Search time: 30ms
-  Nodes: 61454
-  Branching: 3.772
+  Nodes: 57301
+  Branching: 3.542
   Hash entries: 10833 (0.16%)
-  kNPS: 2048
+  kNPS: 1910
   Eval: 20
 g1 f3 (N) normal
 
 Depth: 6
-  Search time: 180ms
-  Nodes: 508689
-  Branching: 8.278
+  Search time: 171ms
+  Nodes: 475543
+  Branching: 8.299
   Hash entries: 46213 (0.69%)
-  kNPS: 2826
+  kNPS: 2780
   Eval: 0
 g1 f3 (N) normal
 
 Depth: 7
-  Search time: 562ms
-  Nodes: 2101998
-  Branching: 4.132
-  Hash entries: 269979 (4.02%)
-  kNPS: 3740
+  Search time: 511ms
+  Nodes: 1760872
+  Branching: 3.703
+  Hash entries: 269323 (4.01%)
+  kNPS: 3445
   Eval: 50
 g1 f3 (N) normal
 
 Depth: 8
-  Search time: 3214ms
-  Nodes: 13522417
-  Branching: 6.433
-  Hash entries: 1073566 (16.00%)
-  kNPS: 4207
+  Search time: 3066ms
+  Nodes: 11395654
+  Branching: 6.472
+  Hash entries: 1064217 (15.86%)
+  kNPS: 3716
   Eval: 0
 g1 f3 (N) normal
 
 Depth: 9
-  Search time: 32901ms
-  Nodes: 134117660
-  Branching: 9.918
-  Hash entries: 5674381 (84.55%)
-  kNPS: 4076
+  Search time: 32456ms
+  Nodes: 110984299
+  Branching: 9.739
+  Hash entries: 5694886 (84.86%)
+  kNPS: 3419
   Eval: 50
 e2 e4 (P) double_move

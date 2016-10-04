@@ -1,112 +1,35 @@
 #include "defs.h"
 #include <string.h>
 
+// MVV-LVA (Most Valuable Victim - Least Valuable Aggressor)
 int moves_sort(s_move* moves, int num)
 {
   assert(moves != NULL);
   assert(num >= 0);
   assert(num < MAX_MOVES);
   
-  s_move store;
+  if(num < 2) {return 0;}
   
   int pos = 0;
   
-  int i;
-  
-  // Put all captures first
-  for(i = 0; i < num; ++i)
+  int p_taken;
+  for(p_taken = 5; p_taken >= 0; --p_taken)
   {
-    if(moves[i].type == CAPTURE)
+    int p_taking;
+    for(p_taking = 0; p_taking < 7; ++p_taking)
     {
-      store = moves[pos];
-      moves[pos] = moves[i];
-      moves[i] = store;
-      
-      pos++;
-    }
-  }
-  
-  // Put all queen captures first
-  int pos_queen = 0;
-  for(i = 0; i < pos; ++i)
-  {
-    if(moves[i].taken == QUEENS)
-    {
-      store = moves[pos_queen];
-      moves[pos_queen] = moves[i];
-      moves[i] = store;
-      
-      pos_queen++;
-    }
-  }
-  
-  int capturing_piece = 0;
-  
-  // Put all pawns capturing first
-  for(i = 0; i < pos_queen; ++i)
-  {
-    if(moves[i].piece_type == wP || moves[i].piece_type == bP)
-    {
-      store = moves[capturing_piece];
-      moves[capturing_piece] = moves[i];
-      moves[i] = store;
-      
-      capturing_piece++;
-    }
-  }
-  
-  // Put all knights & bishops next
-  for(i = capturing_piece; i < pos_queen; ++i)
-  {
-    if(moves[i].piece_type == KNIGHTS || moves[i].piece_type == BISHOPS)
-    {
-      store = moves[capturing_piece];
-      moves[capturing_piece] = moves[i];
-      moves[i] = store;
-        
-      capturing_piece++;
-    }
-  }
-  
-  // Put all rook captures second
-  int pos_rook = pos_queen;
-  for(i = pos_queen; i < pos; ++i)
-  {
-    if(moves[i].taken == ROOKS)
-    {
-      store = moves[pos_rook];
-      moves[pos_rook] = moves[i];
-      moves[i] = store;
-      
-      pos_rook++;
-    }
-  }
-  
-  capturing_piece = pos_queen;
-  
-  // Put all pawns capturing first
-  for(i = pos_queen; i < pos_rook; ++i)
-  {
-    if(moves[i].piece_type == wP || moves[i].piece_type == bP)
-    {
-      store = moves[capturing_piece];
-      moves[capturing_piece] = moves[i];
-      moves[i] = store;
-        
-      capturing_piece++;
-    }
-  }
-  
-  // Put all knights & bishops next
-  for(i = capturing_piece; i < pos_rook; ++i)
-  {
-    if(moves[i].piece_type == KNIGHTS || moves[i].piece_type == BISHOPS)
-    {
-      store = moves[capturing_piece];
-      moves[capturing_piece] = moves[i];
-      moves[i] = store;
-      
-      capturing_piece++;
+      int i;
+      for(i = pos; i < num; ++i)
+      {
+        if(moves[i].piece_type == p_taking && moves[i].taken == p_taken)
+        {
+          s_move store = moves[pos];
+          moves[pos] = moves[i];
+          moves[i] = store;
+          
+          pos++;
+        }
+      }
     }
   }
   

@@ -98,12 +98,14 @@ int main()
     s_board* board = (s_board*) malloc(1*sizeof(s_board));
     if(board == NULL) {return -1;}
     
+    perft_suite_search(board, 7, "perftsuite_2.epd");
     //perft_suite(board, 6, "perftsuite.epd");
     //perft(board, 7, START_FEN);
     //perft_split(board, 6, START_FEN);
     //perft_movegen(board, "perftsuite.epd");
     //perft_movegen_sides(board, "perftsuite.epd");
     
+    /*
     set_fen(board, START_FEN);
     
     s_search_info info;
@@ -160,7 +162,7 @@ int main()
       }
       printf("\n");
     }
-    
+    */
     
     /*
     //set_fen(board, START_FEN);
