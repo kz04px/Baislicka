@@ -53,11 +53,14 @@ int main()
       printf("Transposition table - disabled\n");
     #endif
     
-    #ifdef GET_PV
-      printf("Principal variation - enabled\n");
+    printf("Principal variation - enabled\n");
+    
+    #ifdef NULL_MOVE
+      printf("Null move pruning - enabled\n");
     #else
-      printf("Principal variation - disabled\n");
+      printf("Null move pruning - disabled\n");
     #endif
+    
     printf("\n");
     
     printf("Other info:\n");
@@ -155,7 +158,18 @@ int main()
       {
         printf("  Eval: %i\n", results.eval);
       }
-      print_move(results.pv.moves[0]);
+      
+      char move_string[4096];
+      char temp[16];
+      move_string[0] = '\0';
+      int n;
+      for(n = 0; n < results.pv.num_moves; ++n)
+      {
+        move_to_string(temp, &results.pv.moves[n]);
+        sprintf(move_string, "%s %s", move_string, temp);
+      }
+      printf("  pv: %s\n", move_string);
+      
       if(results.out_of_time == 1)
       {
         printf("  Out of time :<\n");

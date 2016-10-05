@@ -1,5 +1,7 @@
 #include "defs.h"
 
+#define R 2
+
 s_board *board = NULL;
 s_search_info search_info;
 
@@ -215,11 +217,9 @@ s_search_results search(s_board* board, int depth)
   moves_sort(moves, num_moves);
   num_moves += find_moves_quiet(board, &moves[num_moves], board->turn);
   
-  #ifdef GET_PV
-    results.pv.num_moves = 0;
-    s_pv pv_local;
-    pv_local.num_moves = 0;
-  #endif
+  results.pv.num_moves = 0;
+  s_pv pv_local;
+  pv_local.num_moves = 0;
   
   int m;
   for(m = 0; m < num_moves; ++m)
@@ -239,11 +239,7 @@ s_search_results search(s_board* board, int depth)
     {
       board->turn = 1-(board->turn);
       
-      #ifdef GET_PV
-        score = -alpha_beta(board, -INF, INF, depth-1, &pv_local);
-      #else
-        score = -alpha_beta(board, -INF, INF, depth-1, NULL);
-      #endif
+      score = -alpha_beta(board, -INF, INF, depth-1, 1, &pv_local);
       
       board->turn = 1-(board->turn);
     }
@@ -259,15 +255,13 @@ s_search_results search(s_board* board, int depth)
     {
       best_score = score;
       
-      #ifdef GET_PV
-        results.pv.moves[0] = moves[m];
-        int i;
-        for(i = 0; i < pv_local.num_moves && i < MAX_DEPTH-1; ++i)
-        {
-          results.pv.moves[i+1] = pv_local.moves[i];
-        }
-        results.pv.num_moves = pv_local.num_moves + 1;
-      #endif
+      results.pv.moves[0] = moves[m];
+      int i;
+      for(i = 0; i < pv_local.num_moves && i < MAX_DEPTH-1; ++i)
+      {
+        results.pv.moves[i+1] = pv_local.moves[i];
+      }
+      results.pv.num_moves = pv_local.num_moves + 1;
     }
   }
   
@@ -302,22 +296,15 @@ s_search_results search(s_board* board, int depth)
   return results;
 }
 
-int alpha_beta(s_board* board, int alpha, int beta, int depth, s_pv *pv)
+int alpha_beta(s_board* board, int alpha, int beta, int depth, int null_allowed, s_pv *pv)
 {
   assert(board != NULL);
   assert(depth >= 0);
-  #ifdef GET_PV
-    assert(pv != NULL);
-  #else
-    assert(pv == NULL);
-  #endif
+  assert(pv != NULL);
   
   int score;
-  
-  #ifdef GET_PV
-    s_pv pv_local;
-    pv_local.num_moves = 0;
-  #endif
+  s_pv pv_local;
+  pv_local.num_moves = 0;
   
   #ifdef HASHTABLE
     int alpha_original = alpha;
@@ -344,9 +331,7 @@ int alpha_beta(s_board* board, int alpha, int beta, int depth, s_pv *pv)
       
       if(entry->flags == EXACT)
       {
-        #ifdef GET_PV
-          pv->num_moves = 0;
-        #endif
+        pv->num_moves = 0;
         return entry->eval;
       }
       else if(entry->flags == LOWERBOUND)
@@ -366,31 +351,51 @@ int alpha_beta(s_board* board, int alpha, int beta, int depth, s_pv *pv)
       
       if(alpha >= beta)
       {
-        #ifdef GET_PV
-          pv->num_moves = 0;
-        #endif
+        pv->num_moves = 0;
         return entry->eval;
       }
     }
   #endif
   
-  #ifdef QUIESCENCE_SEARCH
-    if(depth == 0)
-    {
-      #ifdef GET_PV
-        pv->num_moves = 0;
-      #endif
-      
+  if(depth == 0)
+  {
+    pv->num_moves = 0;
+    #ifdef QUIESCENCE_SEARCH
       return quiesce(board, alpha, beta);
-    }
-  #else
-    if(depth == 0)
-    {
-      #ifdef GET_PV
-        pv->num_moves = 0;
-      #endif
-      
+    #else
       return eval(board);
+    #endif
+  }
+  
+  #ifdef NULL_MOVE
+    int in_check = square_attacked(board, board->combined[KINGS]&board->colour[board->turn], !board->turn);
+    if(null_allowed && depth > 2 && !in_check)
+    {
+      // Store
+      uint64_t store_ep = board->ep;
+      
+      // Make null move
+      //board->key ^= key_turn;
+      board->ep = 0;
+      board->turn = 1-(board->turn);
+      // History
+      board->key_history[board->history_size] = board->key;
+      board->history_size++;
+      
+      score = -alpha_beta(board, -beta, -beta+1, depth-1-R, 0, &pv_local);
+      
+      // Undo null move
+      //board->key ^= key_turn;
+      board->ep = store_ep;
+      board->turn = 1-(board->turn);
+      // History
+      board->history_size--;
+      
+      if(score >= beta)
+      {
+        pv->num_moves = 0;
+        return score;
+      }
     }
   #endif
   
@@ -411,14 +416,10 @@ int alpha_beta(s_board* board, int alpha, int beta, int depth, s_pv *pv)
         if(!square_attacked(board, board->combined[KINGS]&board->colour[board->turn], !board->turn))
         {
           board->turn = 1-(board->turn);
-    
+          
           nodes++;
           
-          #ifdef GET_PV
-            score = -alpha_beta(board, -beta, -alpha, depth-1, &pv_local);
-          #else
-            score = -alpha_beta(board, -beta, -alpha, depth-1, NULL);
-          #endif
+          score = -alpha_beta(board, -beta, -alpha, depth-1, &pv_local);
           
           board->turn = 1-(board->turn);
           
@@ -426,17 +427,15 @@ int alpha_beta(s_board* board, int alpha, int beta, int depth, s_pv *pv)
           {
             alpha = score;
             
-            #ifdef GET_PV
-              assert(pv_local.num_moves >= 0);
-              assert(pv_local.num_moves < MAX_DEPTH - 1);
-              pv->moves[0] = entry->pv;
-              int i;
-              for(i = 0; i < pv_local.num_moves && i < MAX_DEPTH - 1; ++i)
-              {
-                pv->moves[i+1] = pv_local.moves[i];
-              }
-              pv->num_moves = pv_local.num_moves + 1;
-            #endif
+            assert(pv_local.num_moves >= 0);
+            assert(pv_local.num_moves < MAX_DEPTH - 1);
+            pv->moves[0] = entry->pv;
+            int i;
+            for(i = 0; i < pv_local.num_moves && i < MAX_DEPTH - 1; ++i)
+            {
+              pv->moves[i+1] = pv_local.moves[i];
+            }
+            pv->num_moves = pv_local.num_moves + 1;
           }
           if(alpha >= beta)
           {
@@ -498,13 +497,7 @@ int alpha_beta(s_board* board, int alpha, int beta, int depth, s_pv *pv)
       if(time_spent < search_info.time_max)
       {
         board->turn = 1-(board->turn);
-        
-        #ifdef GET_PV
-          score = -alpha_beta(board, -beta, -alpha, depth-1, &pv_local);
-        #else
-          score = -alpha_beta(board, -beta, -alpha, depth-1, NULL);
-        #endif
-        
+        score = -alpha_beta(board, -beta, -alpha, depth-1, 1, &pv_local);
         board->turn = 1-(board->turn);
       }
       else
@@ -526,17 +519,15 @@ int alpha_beta(s_board* board, int alpha, int beta, int depth, s_pv *pv)
     {
       alpha = score;
       
-      #ifdef GET_PV
-        assert(pv_local.num_moves >= 0);
-        assert(pv_local.num_moves < MAX_DEPTH - 1);
-        pv->moves[0] = moves[m];
-        int i;
-        for(i = 0; i < pv_local.num_moves && i < MAX_DEPTH - 1; ++i)
-        {
-          pv->moves[i+1] = pv_local.moves[i];
-        }
-        pv->num_moves = pv_local.num_moves + 1;
-      #endif
+      assert(pv_local.num_moves >= 0);
+      assert(pv_local.num_moves < MAX_DEPTH - 1);
+      pv->moves[0] = moves[m];
+      int i;
+      for(i = 0; i < pv_local.num_moves && i < MAX_DEPTH - 1; ++i)
+      {
+        pv->moves[i+1] = pv_local.moves[i];
+      }
+      pv->num_moves = pv_local.num_moves + 1;
     }
     if(alpha >= beta)
     {
@@ -547,9 +538,7 @@ int alpha_beta(s_board* board, int alpha, int beta, int depth, s_pv *pv)
   // If we haven't played a move, then there are none
   if(!played)
   {
-    #ifdef GET_PV
-      assert(pv_local.num_moves == 0);
-    #endif
+    assert(pv_local.num_moves == 0);
     
     if(square_attacked(board, board->combined[KINGS]&board->colour[board->turn], !board->turn))
     {

@@ -91,6 +91,18 @@ const int isolated_pawn_value = -50;
 
 const int open_file_value = 25;
 
+int is_endgame(s_board* board)
+{
+  assert(board != NULL);
+  
+  if(__builtin_popcount(board->colour[WHITE]) < 5 && __builtin_popcount(board->colour[BLACK]) < 5)
+  {
+    return 1;
+  }
+  
+  return 0;
+}
+
 int is_threefold(s_board* board)
 {
   assert(board != NULL);

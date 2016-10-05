@@ -18,7 +18,7 @@
 #define SETBIT(x, n) ((x) = (x) | ((uint64_t)1<<(n)))
 #define GETBIT(x, n) (((x)>>(n))&1)
 #define MAX_MOVES 256
-#define MAX_DEPTH 16
+#define MAX_DEPTH 32
 #define POS_TO_COL(x) (7-x%8)
 #define POS_TO_ROW(x) (x/8)
 #define POS_TO_COL_CHAR(x) (POS_TO_COL(x)+'a')
@@ -86,10 +86,9 @@
 #define U64_G8 (U64_COL_G & U64_ROW_8)
 #define U64_H8 (U64_COL_H & U64_ROW_8)
 
-#define ALPHA_BETA
 #define QUIESCENCE_SEARCH
 #define HASHTABLE
-#define GET_PV
+//#define NULL_MOVE
 
 enum {WHITE, BLACK, BOTH};
 enum {wP, bP, KNIGHTS, BISHOPS, ROOKS, QUEENS, KINGS, EMPTY};
@@ -222,7 +221,7 @@ uint64_t pinned_pieces_black(s_board* board, int sq);
 int search_info_set(s_search_info info);
 void *search_base(void *n);
 s_search_results search(s_board* board, int depth);
-int alpha_beta(s_board* board, int alpha, int beta, int depth, s_pv *pv);
+int alpha_beta(s_board* board, int alpha, int beta, int depth, int null_allowed, s_pv *pv);
 
 // hash_table.c
 void key_init();
@@ -234,6 +233,7 @@ s_hashtable_entry *hashtable_poll(s_hashtable *hashtable, uint64_t key);
 s_hashtable_entry *hashtable_add(s_hashtable *hashtable, int flags, uint64_t key, int depth, int eval, s_move pv);
 
 // eval.c
+int is_endgame(s_board* board);
 int is_threefold(s_board* board);
 int eval(s_board* board);
 
