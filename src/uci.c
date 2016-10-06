@@ -93,6 +93,7 @@ void uci_listen()
         info->btime = 60000;
         info->winc = 0;
         info->binc = 0;
+        info->movestogo = 20;
         
         // This is a bit ugly
         while(part[1] != '\0')
@@ -116,13 +117,18 @@ void uci_listen()
           }
           else if(strncmp(part, "winc", 4) == 0)
           {
-            part += 6;
+            part += 5;
             info->winc = atoi(part);
           }
           else if(strncmp(part, "binc", 4) == 0)
           {
-            part += 6;
+            part += 5;
             info->binc = atoi(part);
+          }
+          else if(strncmp(part, "movestogo", 9) == 0)
+          {
+            part += 10;
+            info->movestogo = atoi(part);
           }
           
           part++;
@@ -132,6 +138,12 @@ void uci_listen()
         info->nodes = -1;
         info->mate = -1;
         info->movetime = -1;
+            
+        if(info->movestogo == 1)
+        {
+          info->wtime -= 50;
+          info->btime -= 50;
+        }
         
         search_info_set(*info);
         
