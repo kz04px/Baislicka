@@ -88,7 +88,7 @@
 
 #define QUIESCENCE_SEARCH
 #define HASHTABLE
-//#define NULL_MOVE
+#define NULL_MOVE
 
 enum {WHITE, BLACK, BOTH};
 enum {wP, bP, KNIGHTS, BISHOPS, ROOKS, QUEENS, KINGS, EMPTY};
@@ -118,6 +118,7 @@ typedef struct
     uint64_t key_old;
   #endif
   uint64_t ep_old;
+  uint8_t fifty_moves_old;
   uint8_t castling[4];
 } s_move;
 
@@ -137,6 +138,7 @@ typedef struct
   #ifdef HASHTABLE
     uint64_t key;
   #endif
+  uint8_t fifty_moves;
   int history_size;
   uint64_t key_history[HISTORY_SIZE_MAX];
 } s_board;
@@ -176,7 +178,6 @@ typedef struct
 {
   s_board *board;
   s_search_info *info;
-  int running;
 } s_thread_data;
 
 typedef struct
@@ -234,6 +235,7 @@ s_hashtable_entry *hashtable_add(s_hashtable *hashtable, int flags, uint64_t key
 
 // eval.c
 int is_endgame(s_board* board);
+int is_fifty_moves(s_board* board);
 int is_threefold(s_board* board);
 int eval(s_board* board);
 

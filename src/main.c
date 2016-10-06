@@ -201,10 +201,10 @@ int main()
         print_move(moves[i]);
       }
       
-      int lol;
-      scanf("%d",&lol);
+      int move_number;
+      scanf("%d", &move_number);
       
-      move_make(board, &moves[lol]);
+      move_make(board, &moves[move_number]);
       board->turn = 1-board->turn;
     }
     */

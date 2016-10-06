@@ -372,23 +372,25 @@ int alpha_beta(s_board* board, int alpha, int beta, int depth, int null_allowed,
     if(null_allowed && depth > 2 && !in_check)
     {
       // Store
-      uint64_t store_ep = board->ep;
+      uint64_t ep_old = board->ep;
+      uint64_t key_old = board->key;
+      uint8_t fifty_moves_old = board->fifty_moves;
       
       // Make null move
-      //board->key ^= key_turn;
       board->ep = 0;
+      board->key ^= key_turn;
+      board->fifty_moves = 0;
       board->turn = 1-(board->turn);
-      // History
       board->key_history[board->history_size] = board->key;
       board->history_size++;
       
       score = -alpha_beta(board, -beta, -beta+1, depth-1-R, 0, &pv_local);
       
       // Undo null move
-      //board->key ^= key_turn;
-      board->ep = store_ep;
+      board->ep = ep_old;
+      board->key ^= key_turn;
+      board->fifty_moves = fifty_moves_old;
       board->turn = 1-(board->turn);
-      // History
       board->history_size--;
       
       if(score >= beta)
@@ -487,7 +489,7 @@ int alpha_beta(s_board* board, int alpha, int beta, int depth, int null_allowed,
     nodes++;
     played = 1;
     
-    if(is_threefold(board))
+    if(is_threefold(board) || is_fifty_moves(board))
     {
       score = CONTEMPT_VALUE;
     }

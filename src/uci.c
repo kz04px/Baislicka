@@ -15,7 +15,6 @@ void uci_listen()
   s_thread_data data;
   data.board = board;
   data.info = info;
-  data.running = 1;
   
   set_fen(board, START_FEN);
   
@@ -135,15 +134,11 @@ void uci_listen()
         {
           fprintf(stderr, "Error creating thread\n");
         }
-        else
-        {
-          data.running = 0;
-        }
       }
       else if(strncmp(part, "stop", 4) == 0)
       {
         info->time_max = 0;
-        data.running = 1;
+        pthread_join(search_thread, NULL);
       }
       else if(strncmp(part, "setoption", 9) == 0)
       {

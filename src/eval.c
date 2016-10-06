@@ -103,21 +103,37 @@ int is_endgame(s_board* board)
   return 0;
 }
 
+int is_fifty_moves(s_board* board)
+{
+  assert(board != NULL);
+  assert(board->fifty_moves >= 0);
+  
+  if(board->fifty_moves >= 100)
+  {
+    return 1;
+  }
+  
+  return 0;
+}
+
 int is_threefold(s_board* board)
 {
   assert(board != NULL);
+  assert(board->fifty_moves >= 0);
+  assert(board->history_size >= board->fifty_moves);
   
-  int repeats = 1;
-  
-  if(board->history_size < 9)
+  if(board->fifty_moves < 8)
   {
     return 0;
   }
   
+  int repeats = 1;
+  
   int i;
-  for(i = board->history_size-3; i >= 0; i -= 2)
+  //for(i = board->history_size-3; i >= 0; i -= 2)
+  for(i = 3; i <= board->fifty_moves; i += 2)
   {
-    if(board->key_history[i] == board->key)
+    if(board->key_history[board->history_size-i] == board->key)
     {
       repeats++;
       

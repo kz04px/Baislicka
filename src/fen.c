@@ -204,6 +204,8 @@ int set_fen(s_board *board, const char *fen)
   }
   n += 2;
   
+  board->fifty_moves = atoi(&fen[n]);
+  
   #ifdef HASHTABLE
     board->key = create_key_board(board);
   #endif

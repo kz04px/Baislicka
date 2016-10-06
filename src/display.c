@@ -178,6 +178,8 @@ void display_board(s_board *board)
   if(board->turn == WHITE) {printf("Turn: w\n");}
   else {printf("Turn: b\n");}
   
+  printf("50 move rule: %i\n", board->fifty_moves);
+  
   printf("Castling: ");
   if(board->castling[wKSC]) {printf("K");}
   if(board->castling[wQSC]) {printf("Q");}
