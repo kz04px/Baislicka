@@ -41,6 +41,11 @@ void uci_listen()
         GUI_Send("readyok\n");
         break;
       }
+      else if(strncmp(part, "ucinewgame", 10) == 0)
+      {
+        hashtable_clear(hashtable);
+        break;
+      }
       else if(strncmp(part, "position", 8) == 0)
       {
         part += 9;
@@ -138,6 +143,7 @@ void uci_listen()
       else if(strncmp(part, "stop", 4) == 0)
       {
         info->time_max = 0;
+        search_info_set(*info);
         pthread_join(search_thread, NULL);
       }
       else if(strncmp(part, "setoption", 9) == 0)
