@@ -4,7 +4,7 @@ About:
   Basic chess engine in C
 
 Description:
-  Pain magic bitboards
+  Plain magic bitboards
   Quiescence search
   Transposition table
   Null move pruning
