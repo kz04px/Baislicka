@@ -42,14 +42,14 @@ Location: perftsuite_2.epd
 Tests: 3
 ----------------------------
 Depth: 7
-Nodes: 19301417
-kNPS:  2403
-Time:  8.031s
+Nodes: 31502780
+kNPS:  2687
+Time:  11.724s
 ----------------------------
 Depth: 8
-Nodes: 51875607
-kNPS:  2189
-Time:  23.697s
+Nodes: 260303357
+kNPS:  2929
+Time:  88.854s
 ----------------------------
 
 
@@ -60,7 +60,7 @@ Depth: 1
   Nodes: 20
   Branching: -
   Hash entries: 0 (0.00%)
-  Eval: 80
+  Eval: 50
   pv:  g1f3
 
 Depth: 2
@@ -73,73 +73,64 @@ Depth: 2
   pv:  g1f3 g8f6
 
 Depth: 3
-  Search time: 2ms
-  Nodes: 1706
-  Branching: 4.024
-  Hash entries: 420 (0.00%)
-  kNPS: 853
+  Search time: 3ms
+  Nodes: 1865
+  Branching: 4.399
+  Hash entries: 420 (0.02%)
+  kNPS: 621
   Eval: 50
   pv:  g1f3 g8f6 b1c3
 
 Depth: 4
-  Search time: 11ms
-  Nodes: 16005
-  Branching: 9.382
-  Hash entries: 1516 (0.02%)
-  kNPS: 1455
+  Search time: 9ms
+  Nodes: 12052
+  Branching: 6.462
+  Hash entries: 1255 (0.05%)
+  kNPS: 1339
   Eval: 0
   pv:  g1f3 g8f6 b1c3 b8c6
 
 Depth: 5
-  Search time: 23ms
-  Nodes: 40922
-  Branching: 2.557
-  Hash entries: 6784 (0.07%)
-  kNPS: 1779
-  Eval: 20
+  Search time: 19ms
+  Nodes: 39428
+  Branching: 3.271
+  Hash entries: 6229 (0.26%)
+  kNPS: 2075
+  Eval: 40
   pv:  g1f3 g8f6 b1c3 b8c6 e2e4
 
 Depth: 6
-  Search time: 166ms
-  Nodes: 439544
-  Branching: 10.741
-  Hash entries: 38221 (0.40%)
-  kNPS: 2647
+  Search time: 92ms
+  Nodes: 332107
+  Branching: 8.423
+  Hash entries: 31051 (1.30%)
+  kNPS: 3609
   Eval: 0
   pv:  g1f3 g8f6 b1c3 b8c6 e2e4 e7e5
 
 Depth: 7
-  Search time: 225ms
-  Nodes: 763868
-  Branching: 1.738
-  Hash entries: 120004 (1.25%)
-  kNPS: 3394
-  Eval: 50
-  pv:  g1f3 g8f6 e2e3 b8c6 f1e2 e7e5 e1g1
+  Search time: 271ms
+  Nodes: 1010485
+  Branching: 3.043
+  Hash entries: 125344 (5.23%)
+  kNPS: 3728
+  Eval: 30
+  pv:  e2e4 b8c6 g1f3 g8f6 e4e5 f6e4 b1c3
 
 Depth: 8
-  Search time: 1311ms
-  Nodes: 4890119
-  Branching: 6.402
-  Hash entries: 469152 (4.89%)
-  kNPS: 3730
-  Eval: 0
-  pv:  g1f3 g8f6 e2e3 e7e6 f1e2 f8d6 e1g1 e8g8
+  Search time: 3568ms
+  Nodes: 13394661
+  Branching: 13.256
+  Hash entries: 922686 (38.50%)
+  kNPS: 3754
+  Eval: 5
+  pv:  b1c3 d7d5 e2e4 d5d4 c3d5 e7e6 f1b5 b8d7
 
 Depth: 9
-  Search time: 8396ms
-  Nodes: 28870354
-  Branching: 5.904
-  Hash entries: 2772225 (28.92%)
-  kNPS: 3438
-  Eval: 50
-  pv:  e2e4 e7e5 g1f3 f8d6 f1e2 g8f6 b1c3
-
-Depth: 10
-  Search time: 75542ms
-  Nodes: 245318871
-  Branching: 8.497
-  Hash entries: 8682190 (90.56%)
-  kNPS: 3247
-  Eval: 5
-  pv:  g1f3 g8f6 b1c3 b8c6 e2e4 e7e5 f1b5 f8d6 b5c6 d7c6
+  Search time: 23482ms
+  Nodes: 84581899
+  Branching: 6.315
+  Hash entries: 2322913 (96.92%)
+  kNPS: 3601
+  Eval: 25
+  pv:  e2e4 e7e5 f1c4 g8f6 b1c3 b8c6 g1e2 f8c5 e1g1

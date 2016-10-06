@@ -25,7 +25,7 @@
 #define POS_TO_ROW_CHAR(x) (POS_TO_ROW(x)+'1')
 #define GUI_Send(...); printf(__VA_ARGS__); fflush(stdout);
 #define HASHTABLE_SIZE_MIN        0
-#define HASHTABLE_SIZE_DEFAULT  512
+#define HASHTABLE_SIZE_DEFAULT  128
 #define HASHTABLE_SIZE_MAX     2048
 #define HISTORY_SIZE_MAX       1024
 #define INF 1000000

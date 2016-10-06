@@ -190,6 +190,8 @@ int main()
       //printf("Black:\n");
       //print_u64(board->colour[BLACK]);
       
+      printf("is 3fold: %i\n", is_threefold(board));
+      
       s_move moves[MAX_MOVES];
       int num_moves = find_moves(board, moves, board->turn);
       moves_sort(moves, num_moves);
