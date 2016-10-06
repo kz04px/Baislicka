@@ -101,7 +101,7 @@ int main()
     s_board* board = (s_board*) malloc(1*sizeof(s_board));
     if(board == NULL) {return -1;}
     
-    perft_suite_search(board, 7, "perftsuite_2.epd");
+    perft_suite_search(board, 8, "perftsuite_2.epd");
     //perft_suite(board, 6, "perftsuite.epd");
     //perft(board, 7, START_FEN);
     //perft_split(board, 6, START_FEN);
@@ -119,7 +119,7 @@ int main()
     printf("Search started\n");
     
     int i;
-    for(i = 1; i <= 9; ++i)
+    for(i = 1; i <= 10; ++i)
     {
       printf("Depth: %i\n", i);
       s_search_results results = search(board, i);

@@ -106,7 +106,6 @@ int is_endgame(s_board* board)
 int is_fifty_moves(s_board* board)
 {
   assert(board != NULL);
-  assert(board->fifty_moves >= 0);
   
   if(board->fifty_moves >= 100)
   {
@@ -119,8 +118,7 @@ int is_fifty_moves(s_board* board)
 int is_threefold(s_board* board)
 {
   assert(board != NULL);
-  assert(board->fifty_moves >= 0);
-  assert(board->history_size >= board->fifty_moves);
+  //assert(board->history_size >= board->fifty_moves);
   
   if(board->fifty_moves < 8)
   {
@@ -147,6 +145,10 @@ int is_threefold(s_board* board)
   return 0;
 }
 
+const uint64_t files[8] = {U64_COL_A, U64_COL_B, U64_COL_C, U64_COL_D, U64_COL_E, U64_COL_F, U64_COL_G, U64_COL_H};
+const uint64_t adj_files[8] = {U64_COL_B, U64_COL_A|U64_COL_C, U64_COL_B|U64_COL_D, U64_COL_C|U64_COL_E,
+                               U64_COL_D|U64_COL_F, U64_COL_E|U64_COL_G, U64_COL_F|U64_COL_H, U64_COL_G};
+
 int eval(s_board* board)
 {
   int score = 0;
@@ -157,304 +159,35 @@ int eval(s_board* board)
   if((board->combined[KNIGHTS] & board->colour[WHITE]) & ((board->combined[KNIGHTS] & board->colour[WHITE])-1)) {score += knight_pair_value;}
   if((board->combined[KNIGHTS] & board->colour[BLACK]) & ((board->combined[KNIGHTS] & board->colour[BLACK])-1)) {score -= knight_pair_value;}
   
-  uint64_t white_pawns_col_a = U64_COL_A & (board->combined[wP]);
-  uint64_t white_pawns_col_b = U64_COL_B & (board->combined[wP]);
-  uint64_t white_pawns_col_c = U64_COL_C & (board->combined[wP]);
-  uint64_t white_pawns_col_d = U64_COL_D & (board->combined[wP]);
-  uint64_t white_pawns_col_e = U64_COL_E & (board->combined[wP]);
-  uint64_t white_pawns_col_f = U64_COL_F & (board->combined[wP]);
-  uint64_t white_pawns_col_g = U64_COL_G & (board->combined[wP]);
-  uint64_t white_pawns_col_h = U64_COL_H & (board->combined[wP]);
-  
-  uint64_t black_pawns_col_a = U64_COL_A & (board->combined[bP]);
-  uint64_t black_pawns_col_b = U64_COL_B & (board->combined[bP]);
-  uint64_t black_pawns_col_c = U64_COL_C & (board->combined[bP]);
-  uint64_t black_pawns_col_d = U64_COL_D & (board->combined[bP]);
-  uint64_t black_pawns_col_e = U64_COL_E & (board->combined[bP]);
-  uint64_t black_pawns_col_f = U64_COL_F & (board->combined[bP]);
-  uint64_t black_pawns_col_g = U64_COL_G & (board->combined[bP]);
-  uint64_t black_pawns_col_h = U64_COL_H & (board->combined[bP]);
-  
-  if(white_pawns_col_a)
+  int colour;
+  for(colour = WHITE; colour <= BLACK; colour++)
   {
-    // Check if doubled
-    if(white_pawns_col_a ^ (white_pawns_col_a & ~(white_pawns_col_a-1)))
+    int file;
+    for(file = 0; file <= 7; file++)
     {
-      score += doubled_pawn_value;
+      uint64_t col;
+      
+      // Check if doubled
+      col = files[file] & board->colour[colour]&(board->combined[wP]|board->combined[bP]);
+      if(col ^ (col & ~(col-1)))
+      {
+        score += doubled_pawn_value * ((colour == WHITE) ? 1 : -1);
+      }
+      
+      // Check if isolated
+      if(!(adj_files[file] & board->colour[colour]&(board->combined[wP]|board->combined[bP])))
+      {
+        score += isolated_pawn_value * ((colour == WHITE) ? 1 : -1);
+      }
+      
+      // Rooks & Queens on open files
+      col = files[file] & (board->combined[wP]|board->combined[bP]);
+      
+      if(!col && files[file] & ((board->combined[ROOKS] | board->combined[QUEENS]) & board->colour[colour]))
+      {
+        score += open_file_value * ((colour == WHITE) ? 1 : -1);
+      }
     }
-    
-    // Check if isolated
-    if(!white_pawns_col_b)
-    {
-      score += isolated_pawn_value;
-    }
-  }
-  
-  if(white_pawns_col_b)
-  {
-    // Check if doubled
-    if(white_pawns_col_b ^ (white_pawns_col_b & ~(white_pawns_col_b-1)))
-    {
-      score += doubled_pawn_value;
-    }
-    
-    // Check if isolated
-    if(!white_pawns_col_a && !white_pawns_col_c)
-    {
-      score += isolated_pawn_value;
-    }
-  }
-  
-  if(white_pawns_col_c)
-  {
-    // Check if doubled
-    if(white_pawns_col_c ^ (white_pawns_col_c & ~(white_pawns_col_c-1)))
-    {
-      score += doubled_pawn_value;
-    }
-    
-    // Check if isolated
-    if(!white_pawns_col_b && !white_pawns_col_d)
-    {
-      score += isolated_pawn_value;
-    }
-  }
-  
-  if(white_pawns_col_d)
-  {
-    // Check if doubled
-    if(white_pawns_col_d ^ (white_pawns_col_d & ~(white_pawns_col_d-1)))
-    {
-      score += doubled_pawn_value;
-    }
-    
-    // Check if isolated
-    if(!white_pawns_col_c && !white_pawns_col_e)
-    {
-      score += isolated_pawn_value;
-    }
-  }
-  
-  if(white_pawns_col_e)
-  {
-    // Check if doubled
-    if(white_pawns_col_e ^ (white_pawns_col_e & ~(white_pawns_col_e-1)))
-    {
-      score += doubled_pawn_value;
-    }
-    
-    // Check if isolated
-    if(!white_pawns_col_d && !white_pawns_col_f)
-    {
-      score += isolated_pawn_value;
-    }
-  }
-  
-  if(white_pawns_col_f)
-  {
-    // Check if doubled
-    if(white_pawns_col_f ^ (white_pawns_col_f & ~(white_pawns_col_f-1)))
-    {
-      score += doubled_pawn_value;
-    }
-    
-    // Check if isolated
-    if(!white_pawns_col_e && !white_pawns_col_g)
-    {
-      score += isolated_pawn_value;
-    }
-  }
-  
-  if(white_pawns_col_g)
-  {
-    // Check if doubled
-    if(white_pawns_col_g ^ (white_pawns_col_g & ~(white_pawns_col_g-1)))
-    {
-      score += doubled_pawn_value;
-    }
-    
-    // Check if isolated
-    if(!white_pawns_col_f && !white_pawns_col_h)
-    {
-      score += isolated_pawn_value;
-    }
-  }
-  
-  if(white_pawns_col_h)
-  {
-    // Check if doubled
-    if(white_pawns_col_h ^ (white_pawns_col_h & ~(white_pawns_col_h-1)))
-    {
-      score += doubled_pawn_value;
-    }
-    
-    // Check if isolated
-    if(!white_pawns_col_g)
-    {
-      score += isolated_pawn_value;
-    }
-  }
-  
-  if(black_pawns_col_a)
-  {
-    // Check if doubled
-    if(black_pawns_col_a ^ (black_pawns_col_a & ~(black_pawns_col_a-1)))
-    {
-      score -= doubled_pawn_value;
-    }
-    
-    // Check if isolated
-    if(!black_pawns_col_b)
-    {
-      score += isolated_pawn_value;
-    }
-  }
-  
-  if(black_pawns_col_b)
-  {
-    // Check if doubled
-    if(black_pawns_col_b ^ (black_pawns_col_b & ~(black_pawns_col_b-1)))
-    {
-      score -= doubled_pawn_value;
-    }
-    
-    // Check if isolated
-    if(!black_pawns_col_a && !black_pawns_col_c)
-    {
-      score -= isolated_pawn_value;
-    }
-  }
-  
-  if(black_pawns_col_c)
-  {
-    // Check if doubled
-    if(black_pawns_col_c ^ (black_pawns_col_c & ~(black_pawns_col_c-1)))
-    {
-      score -= doubled_pawn_value;
-    }
-    
-    // Check if isolated
-    if(!black_pawns_col_b && !black_pawns_col_d)
-    {
-      score -= isolated_pawn_value;
-    }
-  }
-  
-  if(black_pawns_col_d)
-  {
-    // Check if doubled
-    if(black_pawns_col_d ^ (black_pawns_col_d & ~(black_pawns_col_d-1)))
-    {
-      score -= doubled_pawn_value;
-    }
-    
-    // Check if isolated
-    if(!black_pawns_col_c && !black_pawns_col_e)
-    {
-      score -= isolated_pawn_value;
-    }
-  }
-  
-  if(black_pawns_col_e)
-  {
-    // Check if doubled
-    if(black_pawns_col_e ^ (black_pawns_col_e & ~(black_pawns_col_e-1)))
-    {
-      score -= doubled_pawn_value;
-    }
-    
-    // Check if isolated
-    if(!black_pawns_col_d && !black_pawns_col_f)
-    {
-      score -= isolated_pawn_value;
-    }
-  }
-  
-  if(black_pawns_col_f)
-  {
-    // Check if doubled
-    if(black_pawns_col_f ^ (black_pawns_col_f & ~(black_pawns_col_f-1)))
-    {
-      score -= doubled_pawn_value;
-    }
-    
-    // Check if isolated
-    if(!black_pawns_col_e && !black_pawns_col_g)
-    {
-      score -= isolated_pawn_value;
-    }
-  }
-  
-  if(black_pawns_col_g)
-  {
-    // Check if doubled
-    if(black_pawns_col_g ^ (black_pawns_col_g & ~(black_pawns_col_g-1)))
-    {
-      score -= doubled_pawn_value;
-    }
-    
-    // Check if isolated
-    if(!black_pawns_col_f && !black_pawns_col_h)
-    {
-      score -= isolated_pawn_value;
-    }
-  }
-  
-  if(black_pawns_col_h)
-  {
-    // Check if doubled
-    if(black_pawns_col_h ^ (black_pawns_col_h & ~(black_pawns_col_h-1)))
-    {
-      score -= doubled_pawn_value;
-    }
-    
-    // Check if isolated
-    if(!black_pawns_col_g)
-    {
-      score -= isolated_pawn_value;
-    }
-  }
-  
-  // Rooks & Queens on open files
-  if(!white_pawns_col_a && !black_pawns_col_a)
-  {
-    if(U64_COL_A & (board->combined[ROOKS] & board->colour[WHITE]) || U64_COL_A & (board->combined[QUEENS] & board->colour[WHITE])) {score += open_file_value;}
-    if(U64_COL_A & (board->combined[ROOKS] & board->colour[BLACK]) || U64_COL_A & (board->combined[QUEENS] & board->colour[BLACK])) {score -= open_file_value;}
-  }
-  if(!white_pawns_col_b && !black_pawns_col_b)
-  {
-    if(U64_COL_B & (board->combined[ROOKS] & board->colour[WHITE]) || U64_COL_B & (board->combined[QUEENS] & board->colour[WHITE])) {score += open_file_value;}
-    if(U64_COL_B & (board->combined[ROOKS] & board->colour[BLACK]) || U64_COL_B & (board->combined[QUEENS] & board->colour[BLACK])) {score -= open_file_value;}
-  }
-  if(!white_pawns_col_c && !black_pawns_col_c)
-  {
-    if(U64_COL_C & (board->combined[ROOKS] & board->colour[WHITE]) || U64_COL_C & (board->combined[QUEENS] & board->colour[WHITE])) {score += open_file_value;}
-    if(U64_COL_C & (board->combined[ROOKS] & board->colour[BLACK]) || U64_COL_C & (board->combined[QUEENS] & board->colour[BLACK])) {score -= open_file_value;}
-  }
-  if(!white_pawns_col_d && !black_pawns_col_d)
-  {
-    if(U64_COL_D & (board->combined[ROOKS] & board->colour[WHITE]) || U64_COL_D & (board->combined[QUEENS] & board->colour[WHITE])) {score += open_file_value;}
-    if(U64_COL_D & (board->combined[ROOKS] & board->colour[BLACK]) || U64_COL_D & (board->combined[QUEENS] & board->colour[BLACK])) {score -= open_file_value;}
-  }
-  if(!white_pawns_col_e && !black_pawns_col_e)
-  {
-    if(U64_COL_E & (board->combined[ROOKS] & board->colour[WHITE]) || U64_COL_E & (board->combined[QUEENS] & board->colour[WHITE])) {score += open_file_value;}
-    if(U64_COL_E & (board->combined[ROOKS] & board->colour[BLACK]) || U64_COL_E & (board->combined[QUEENS] & board->colour[BLACK])) {score -= open_file_value;}
-  }
-  if(!white_pawns_col_f && !black_pawns_col_f)
-  {
-    if(U64_COL_F & (board->combined[ROOKS] & board->colour[WHITE]) || U64_COL_F & (board->combined[QUEENS] & board->colour[WHITE])) {score += open_file_value;}
-    if(U64_COL_F & (board->combined[ROOKS] & board->colour[BLACK]) || U64_COL_F & (board->combined[QUEENS] & board->colour[BLACK])) {score -= open_file_value;}
-  }
-  if(!white_pawns_col_g && !black_pawns_col_g)
-  {
-    if(U64_COL_G & (board->combined[ROOKS] & board->colour[WHITE]) || U64_COL_G & (board->combined[QUEENS] & board->colour[WHITE])) {score += open_file_value;}
-    if(U64_COL_G & (board->combined[ROOKS] & board->colour[BLACK]) || U64_COL_G & (board->combined[QUEENS] & board->colour[BLACK])) {score -= open_file_value;}
-  }
-  if(!white_pawns_col_h && !black_pawns_col_h)
-  {
-    if(U64_COL_H & (board->combined[ROOKS] & board->colour[WHITE]) || U64_COL_H & (board->combined[QUEENS] & board->colour[WHITE])) {score += open_file_value;}
-    if(U64_COL_H & (board->combined[ROOKS] & board->colour[BLACK]) || U64_COL_H & (board->combined[QUEENS] & board->colour[BLACK])) {score -= open_file_value;}
   }
   
   int sq;

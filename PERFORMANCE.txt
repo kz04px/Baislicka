@@ -42,14 +42,14 @@ Location: perftsuite_2.epd
 Tests: 3
 ----------------------------
 Depth: 7
-Nodes: 39627629
-kNPS:  2783
-Time:  14.235s
+Nodes: 19301417
+kNPS:  2403
+Time:  8.031s
 ----------------------------
 Depth: 8
-Nodes: 105377368
-kNPS:  2220
-Time:  47.466s
+Nodes: 51875607
+kNPS:  2189
+Time:  23.697s
 ----------------------------
 
 
@@ -64,72 +64,82 @@ Depth: 1
   pv:  g1f3
 
 Depth: 2
-  Search time: 0ms
+  Search time: 1ms
   Nodes: 424
   Branching: 21.200
   Hash entries: 20 (0.00%)
+  kNPS: 424
   Eval: 0
   pv:  g1f3 g8f6
 
 Depth: 3
-  Search time: 1ms
-  Nodes: 1711
-  Branching: 4.035
+  Search time: 2ms
+  Nodes: 1706
+  Branching: 4.024
   Hash entries: 420 (0.00%)
-  kNPS: 1711
+  kNPS: 853
   Eval: 50
   pv:  g1f3 g8f6 b1c3
 
 Depth: 4
   Search time: 11ms
-  Nodes: 16176
-  Branching: 9.454
-  Hash entries: 1535 (0.02%)
-  kNPS: 1470
+  Nodes: 16005
+  Branching: 9.382
+  Hash entries: 1516 (0.02%)
+  kNPS: 1455
   Eval: 0
   pv:  g1f3 g8f6 b1c3 b8c6
 
 Depth: 5
-  Search time: 22ms
-  Nodes: 41151
-  Branching: 2.544
-  Hash entries: 6836 (0.07%)
-  kNPS: 1870
+  Search time: 23ms
+  Nodes: 40922
+  Branching: 2.557
+  Hash entries: 6784 (0.07%)
+  kNPS: 1779
   Eval: 20
   pv:  g1f3 g8f6 b1c3 b8c6 e2e4
 
 Depth: 6
-  Search time: 167ms
-  Nodes: 449287
-  Branching: 10.918
-  Hash entries: 39211 (0.41%)
-  kNPS: 2690
+  Search time: 166ms
+  Nodes: 439544
+  Branching: 10.741
+  Hash entries: 38221 (0.40%)
+  kNPS: 2647
   Eval: 0
   pv:  g1f3 g8f6 b1c3 b8c6 e2e4 e7e5
 
 Depth: 7
-  Search time: 233ms
-  Nodes: 821186
-  Branching: 1.828
-  Hash entries: 125571 (1.31%)
-  kNPS: 3524
+  Search time: 225ms
+  Nodes: 763868
+  Branching: 1.738
+  Hash entries: 120004 (1.25%)
+  kNPS: 3394
   Eval: 50
   pv:  g1f3 g8f6 e2e3 b8c6 f1e2 e7e5 e1g1
 
 Depth: 8
-  Search time: 1313ms
-  Nodes: 5071144
-  Branching: 6.175
-  Hash entries: 489009 (5.10%)
-  kNPS: 3862
+  Search time: 1311ms
+  Nodes: 4890119
+  Branching: 6.402
+  Hash entries: 469152 (4.89%)
+  kNPS: 3730
   Eval: 0
   pv:  g1f3 g8f6 e2e3 e7e6 f1e2 f8d6 e1g1 e8g8
 
 Depth: 9
-  Search time: 9107ms
-  Nodes: 32084292
-  Branching: 6.327
-  Hash entries: 2949216 (30.76%)
-  kNPS: 3523
+  Search time: 8396ms
+  Nodes: 28870354
+  Branching: 5.904
+  Hash entries: 2772225 (28.92%)
+  kNPS: 3438
   Eval: 50
   pv:  e2e4 e7e5 g1f3 f8d6 f1e2 g8f6 b1c3
+
+Depth: 10
+  Search time: 75542ms
+  Nodes: 245318871
+  Branching: 8.497
+  Hash entries: 8682190 (90.56%)
+  kNPS: 3247
+  Eval: 5
+  pv:  g1f3 g8f6 b1c3 b8c6 e2e4 e7e5 f1b5 f8d6 b5c6 d7c6

@@ -373,7 +373,6 @@ int alpha_beta(s_board* board, int alpha, int beta, int depth, int null_allowed,
     {
       // Store
       uint64_t ep_old = board->ep;
-      uint64_t key_old = board->key;
       uint8_t fifty_moves_old = board->fifty_moves;
       
       // Make null move
