@@ -412,16 +412,15 @@ int alpha_beta(s_board* board, int alpha, int beta, int depth, int null_allowed,
       /*
       if(move_is_legal(board, &entry->pv))
       {
-        move_make(board, &entry->pv);
+        s_move store = entry->pv;
+        move_make(board, &store);
         
         if(!square_attacked(board, board->combined[KINGS]&board->colour[board->turn], !board->turn))
         {
-          board->turn = 1-(board->turn);
-          
           nodes++;
           
-          score = -alpha_beta(board, -beta, -alpha, depth-1, &pv_local);
-          
+          board->turn = 1-(board->turn);
+          score = -alpha_beta(board, -beta, -alpha, depth-1, 1, &pv_local);
           board->turn = 1-(board->turn);
           
           if(score > alpha)
@@ -430,7 +429,7 @@ int alpha_beta(s_board* board, int alpha, int beta, int depth, int null_allowed,
             
             assert(pv_local.num_moves >= 0);
             assert(pv_local.num_moves < MAX_DEPTH - 1);
-            pv->moves[0] = entry->pv;
+            pv->moves[0] = store;
             int i;
             for(i = 0; i < pv_local.num_moves && i < MAX_DEPTH - 1; ++i)
             {
@@ -440,11 +439,12 @@ int alpha_beta(s_board* board, int alpha, int beta, int depth, int null_allowed,
           }
           if(alpha >= beta)
           {
-            move_undo(board, &entry->pv);
+            move_undo(board, &store);
             return score;
           }
         }
-        move_undo(board, &entry->pv);
+        
+        move_undo(board, &store);
       }
       */
       
@@ -467,8 +467,9 @@ int alpha_beta(s_board* board, int alpha, int beta, int depth, int null_allowed,
   
   /*
   s_move moves[MAX_MOVES];
-  int num_moves = find_moves(board, moves, board->turn);
+  int num_moves = find_moves_captures(board, &moves[0], board->turn);
   moves_sort(moves, num_moves);
+  num_moves += find_moves_quiet(board, &moves[num_moves], board->turn);
   */
   
   int best_score = -INF;
@@ -498,7 +499,9 @@ int alpha_beta(s_board* board, int alpha, int beta, int depth, int null_allowed,
       if(time_spent < search_info.time_max)
       {
         board->turn = 1-(board->turn);
+        
         score = -alpha_beta(board, -beta, -alpha, depth-1, 1, &pv_local);
+        
         board->turn = 1-(board->turn);
       }
       else

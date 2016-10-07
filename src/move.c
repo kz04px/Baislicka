@@ -174,6 +174,7 @@ s_move move_add(s_board *board, int from, int to, int type, int piece_type)
   move.type = type;
   move.taken = taken;
   move.piece_type = piece_type;
+  move.promotion = EMPTY;
   return move;
 }
 
@@ -394,6 +395,8 @@ void move_make(s_board *board, s_move *move)
   #endif
   
   // History
+  assert(board->history_size < HISTORY_SIZE_MAX);
+  assert(board->history_size >= 0);
   board->key_history[board->history_size] = board->key;
   board->history_size++;
 }
@@ -489,6 +492,7 @@ void move_undo(s_board *board, s_move *move)
   
   // History
   board->history_size--;
+  assert(board->history_size >= 0);
 }
 
 void move_make_ascii(s_board *board, char *move_string)
@@ -686,6 +690,16 @@ int move_is_legal(s_board* board, s_move* move)
   assert(board != NULL);
   assert(move != NULL);
   
+  /*
+  uint64_t from = (uint64_t)1<<move->from;
+  uint64_t to = (uint64_t)1<<move->to;
+  
+  if(!(board->combined[move->piece_type] & from)) {return 0;}
+  if(!(board->colour[board->turn] & from)) {return 0;}
+  
+  return 1;
+  */
+  
   s_move move_list[MAX_MOVES];
   uint64_t allowed = ~board->colour[board->turn];
   
@@ -724,7 +738,10 @@ int move_is_legal(s_board* board, s_move* move)
   {
     if(move_list[i].from == move->from &&
        move_list[i].to == move->to &&
-       move_list[i].type == move->type)
+       move_list[i].type == move->type &&
+       move_list[i].taken == move->taken &&
+       move_list[i].piece_type == move->piece_type &&
+       move_list[i].promotion == move->promotion)
     {
       return 1;
     }

@@ -95,7 +95,7 @@ s_hashtable_entry *hashtable_add(s_hashtable *hashtable, int flags, uint64_t key
   assert(hashtable != NULL);
   assert(key != 0);
   assert(depth > 0);
-  assert(depth <= MAX_DEPTH);
+  assert(depth < MAX_DEPTH);
 
   if(hashtable->entries[key%(hashtable->max_entries)].key == 0)
   {

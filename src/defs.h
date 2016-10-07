@@ -217,6 +217,7 @@ int u64_col(uint64_t pos);
 int u64_row(uint64_t pos);
 uint64_t pinned_pieces_white(s_board* board, int sq);
 uint64_t pinned_pieces_black(s_board* board, int sq);
+int error_check(s_board* board);
 
 // search.c
 int search_info_set(s_search_info info);

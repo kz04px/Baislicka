@@ -396,3 +396,50 @@ uint64_t pinned_pieces_black(s_board* board, int sq)
   
   return pinned;
 }
+
+int error_check(s_board* board)
+{
+  assert(board != NULL);
+  
+  if(__builtin_popcountll(board->colour[WHITE]) > 16) {return 1;}
+  if(__builtin_popcountll(board->colour[BLACK]) > 16) {return 2;}
+  
+  if(board->colour[WHITE] & board->colour[BLACK]) {return 3;}
+  
+  if(board->combined[wP] & board->combined[bP]) {return 4;}
+  if(board->combined[wP] & board->combined[KNIGHTS]) {return 5;}
+  if(board->combined[wP] & board->combined[BISHOPS]) {return 6;}
+  if(board->combined[wP] & board->combined[ROOKS]) {return 7;}
+  if(board->combined[wP] & board->combined[QUEENS]) {return 8;}
+  if(board->combined[wP] & board->combined[KINGS]) {return 9;}
+  
+  if(board->combined[bP] & board->combined[KNIGHTS]) {return 10;}
+  if(board->combined[bP] & board->combined[BISHOPS]) {return 11;}
+  if(board->combined[bP] & board->combined[ROOKS]) {return 12;}
+  if(board->combined[bP] & board->combined[QUEENS]) {return 13;}
+  if(board->combined[bP] & board->combined[KINGS]) {return 14;}
+  
+  if(board->combined[KNIGHTS] & board->combined[BISHOPS]) {return 15;}
+  if(board->combined[KNIGHTS] & board->combined[ROOKS]) {return 16;}
+  if(board->combined[KNIGHTS] & board->combined[QUEENS]) {return 17;}
+  if(board->combined[KNIGHTS] & board->combined[KINGS]) {return 18;}
+  
+  if(board->combined[BISHOPS] & board->combined[ROOKS]) {return 19;}
+  if(board->combined[BISHOPS] & board->combined[QUEENS]) {return 20;}
+  if(board->combined[BISHOPS] & board->combined[KINGS]) {return 21;}
+  
+  if(board->combined[ROOKS] & board->combined[QUEENS]) {return 22;}
+  if(board->combined[ROOKS] & board->combined[KINGS]) {return 23;}
+  
+  if(board->combined[QUEENS] & board->combined[KINGS]) {return 24;}
+  
+  if(__builtin_popcountll(board->combined[wP]) > 8) {return 25;}
+  if(__builtin_popcountll(board->combined[bP]) > 8) {return 26;}
+  if(__builtin_popcountll(board->combined[KNIGHTS]) > 10) {return 27;}
+  if(__builtin_popcountll(board->combined[BISHOPS]) > 10) {return 28;}
+  if(__builtin_popcountll(board->combined[ROOKS]) > 10) {return 29;}
+  if(__builtin_popcountll(board->combined[QUEENS]) > 10) {return 30;}
+  if(__builtin_popcountll(board->combined[KINGS]) != 2) {return 31;}
+  
+  return 0;
+}

@@ -31,7 +31,68 @@ void print_move(s_move move)
       break;
   }
   
-  // Type
+  switch(move.taken)
+  {
+    case bP:
+      printf("[p] ");
+      break;
+    case wP:
+      printf("[P] ");
+      break;
+    case KNIGHTS:
+      printf("[N] ");
+      break;
+    case BISHOPS:
+      printf("[B] ");
+      break;
+    case ROOKS:
+      printf("([R] ");
+      break;
+    case QUEENS:
+      printf("[Q] ");
+      break;
+    case KINGS:
+      printf("[K] ");
+      break;
+    case EMPTY:
+      printf("[-] ");
+      break;
+    default:
+      printf("[?] ");
+      break;
+  }
+  
+  switch(move.promotion)
+  {
+    case bP:
+      printf("[p] ");
+      break;
+    case wP:
+      printf("[P] ");
+      break;
+    case KNIGHTS:
+      printf("[N] ");
+      break;
+    case BISHOPS:
+      printf("[B] ");
+      break;
+    case ROOKS:
+      printf("([R] ");
+      break;
+    case QUEENS:
+      printf("[Q] ");
+      break;
+    case KINGS:
+      printf("[K] ");
+      break;
+    case EMPTY:
+      printf("[-] ");
+      break;
+    default:
+      printf("[?] ");
+      break;
+  }
+  
   switch(move.type)
   {
     case QUIET:
@@ -58,12 +119,6 @@ void print_move(s_move move)
     default:
       printf("??? (%i)", move.type);
       printf("\n");
-      
-      printf("from:\n");
-      print_u64(move.from);
-      
-      printf("to:\n");
-      print_u64(move.to);
       break;
   }
   

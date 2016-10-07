@@ -116,7 +116,7 @@ int is_endgame(s_board* board)
   }
   
   /*
-  if(__builtin_popcount(board->colour[WHITE]) < 5 && __builtin_popcount(board->colour[BLACK]) < 5)
+  if(__builtin_popcountll(board->colour[WHITE]) < 5 && __builtin_popcountll(board->colour[BLACK]) < 5)
   {
     return 1;
   }
@@ -140,7 +140,6 @@ int is_fifty_moves(s_board* board)
 int is_threefold(s_board* board)
 {
   assert(board != NULL);
-  //assert(board->history_size >= board->fifty_moves);
   
   if(board->fifty_moves < 8)
   {
@@ -150,9 +149,10 @@ int is_threefold(s_board* board)
   int repeats = 1;
   
   int i;
-  //for(i = board->history_size-3; i >= 0; i -= 2)
-  for(i = 3; i <= board->fifty_moves; i += 2)
+  for(i = 3; i <= board->fifty_moves && i < board->history_size - 1; i += 2)
   {
+    assert(board->history_size-i-1 >= 0);
+    
     if(board->key_history[board->history_size-i] == board->key)
     {
       repeats++;
