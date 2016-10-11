@@ -110,7 +110,18 @@ int is_endgame(s_board* board)
 {
   assert(board != NULL);
   
+  // Both sides have no queens
   if(!board->combined[QUEENS])
+  {
+    return 1;
+  }
+  
+  // Every side which has a queen has additionally no other pieces or one minorpiece maximum
+  if(board->colour[WHITE]&board->combined[QUEENS] && !(board->colour[WHITE] & (board->combined[KNIGHTS] | board->combined[BISHOPS] | board->combined[ROOKS])))
+  {
+    return 1;
+  }
+  if(board->colour[BLACK]&board->combined[QUEENS] && !(board->colour[BLACK] & (board->combined[KNIGHTS] | board->combined[BISHOPS] | board->combined[ROOKS])))
   {
     return 1;
   }
@@ -125,11 +136,11 @@ int is_endgame(s_board* board)
   return 0;
 }
 
-int is_fifty_moves(s_board* board)
+int is_fifty_move_draw(s_board* board)
 {
   assert(board != NULL);
   
-  if(board->fifty_moves >= 100)
+  if(board->num_halfmoves >= 100)
   {
     return 1;
   }
@@ -141,17 +152,19 @@ int is_threefold(s_board* board)
 {
   assert(board != NULL);
   
-  if(board->fifty_moves < 8)
+  if(board->num_halfmoves < 8)
   {
     return 0;
   }
   
-  int repeats = 1;
+  int repeats = 0;
+  
+  int lim = (board->num_halfmoves+1 < board->history_size) ? board->num_halfmoves+1 : board->history_size;
   
   int i;
-  for(i = 3; i <= board->fifty_moves && i < board->history_size - 1; i += 2)
+  for(i = 1; i <= lim; ++i)
   {
-    assert(board->history_size-i-1 >= 0);
+    //assert(board->history_size-i >= 0);
     
     if(board->key_history[board->history_size-i] == board->key)
     {

@@ -119,10 +119,17 @@ int main()
     printf("Search started\n");
     
     int i;
-    for(i = 1; i <= 10; ++i)
+    for(i = 1; i <= 9; ++i)
     {
       printf("Depth: %i\n", i);
       s_search_results results = search(board, i);
+      
+      int m;
+      for(m = 0; m < results.num_moves; ++m)
+      {
+        printf("%i  ", results.evals[m]);
+        print_move(results.moves[m]);
+      }
       
       printf("  Search time: %ims\n", results.time_taken);
       printf("  Nodes: %"PRIdPTR"\n", results.nodes);
@@ -143,29 +150,13 @@ int main()
         printf("  kNPS: %"PRIdPTR"\n", results.nodes/results.time_taken);
       }
       
-      if(results.mate)
-      {
-        if(board->turn == WHITE)
-        {
-          printf("  Eval: %i#\n", results.eval-INF);
-        }
-        else
-        {
-          printf("  Eval: %i#\n", INF-results.eval);
-        }
-      }
-      else
-      {
-        printf("  Eval: %i\n", results.eval);
-      }
-      
       char move_string[4096];
       char temp[16];
       move_string[0] = '\0';
       int n;
-      for(n = 0; n < results.pv.num_moves; ++n)
+      for(n = 0; n < results.pvs[results.best_move_num].num_moves; ++n)
       {
-        move_to_string(temp, &results.pv.moves[n]);
+        move_to_string(temp, &results.pvs[results.best_move_num].moves[n]);
         sprintf(move_string, "%s %s", move_string, temp);
       }
       printf("  pv: %s\n", move_string);

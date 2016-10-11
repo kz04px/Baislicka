@@ -118,7 +118,7 @@ typedef struct
     uint64_t key_old;
   #endif
   uint64_t ep_old;
-  uint8_t fifty_moves_old;
+  uint8_t num_halfmoves_old;
   uint8_t castling[4];
 } s_move;
 
@@ -138,7 +138,7 @@ typedef struct
   #ifdef HASHTABLE
     uint64_t key;
   #endif
-  uint8_t fifty_moves;
+  uint8_t num_halfmoves;
   int history_size;
   uint64_t key_history[HISTORY_SIZE_MAX];
 } s_board;
@@ -183,11 +183,14 @@ typedef struct
 typedef struct
 {
   int out_of_time;
-  int eval;
   int time_taken;
-  int mate;
   uint64_t nodes;
-  s_pv pv;
+  int best_move_num;
+  
+  int num_moves;
+  s_move moves[MAX_MOVES];
+  int evals[MAX_MOVES];
+  s_pv pvs[MAX_MOVES];
 } s_search_results;
 
 s_hashtable *hashtable;
@@ -236,7 +239,7 @@ s_hashtable_entry *hashtable_add(s_hashtable *hashtable, int flags, uint64_t key
 
 // eval.c
 int is_endgame(s_board* board);
-int is_fifty_moves(s_board* board);
+int is_fifty_move_draw(s_board* board);
 int is_threefold(s_board* board);
 int eval(s_board* board);
 

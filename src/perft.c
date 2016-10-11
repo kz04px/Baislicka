@@ -597,6 +597,10 @@ void perft_suite_search(s_board* board, int max_depth, char* filepath)
   uint64_t nodes = 0;
   s_search_results results;
   
+  s_move *bestmove = NULL;
+  s_pv *bestmove_pv = NULL;
+  int *bestmove_eval = NULL;
+  
   start = clock();
   char line[1024];
   while(fgets(line, sizeof(line), file))
@@ -625,6 +629,10 @@ void perft_suite_search(s_board* board, int max_depth, char* filepath)
       results = search(board, i);
     }
     
+    bestmove = &results.moves[results.best_move_num];
+    bestmove_pv = &results.pvs[results.best_move_num];
+    bestmove_eval = &results.evals[results.best_move_num];
+    
          if(results.time_taken < 10) {printf("     ");}
     else if(results.time_taken < 100) {printf("    ");}
     else if(results.time_taken < 1000) {printf("   ");}
@@ -632,14 +640,14 @@ void perft_suite_search(s_board* board, int max_depth, char* filepath)
     else if(results.time_taken < 100000) {printf(" ");}
     printf("%ims", results.time_taken);
     
-         if(abs(results.eval) < 10) {printf("    ");}
-    else if(abs(results.eval) < 100) {printf("   ");}
-    else if(abs(results.eval) < 1000) {printf("  ");}
-    else if(abs(results.eval) < 10000) {printf(" ");}
-    if(results.eval >= 0) {printf(" ");}
-    printf("%icp   ", results.eval);
+         if(abs(*bestmove_eval) < 10) {printf("    ");}
+    else if(abs(*bestmove_eval) < 100) {printf("   ");}
+    else if(abs(*bestmove_eval) < 1000) {printf("  ");}
+    else if(abs(*bestmove_eval) < 10000) {printf(" ");}
+    if(*bestmove_eval >= 0) {printf(" ");}
+    printf("%icp   ", *bestmove_eval);
     
-    print_move(results.pv.moves[0]);
+    print_move(*bestmove);
     
     nodes += results.nodes;
   }

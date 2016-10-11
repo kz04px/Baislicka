@@ -233,7 +233,12 @@ void display_board(s_board *board)
   if(board->turn == WHITE) {printf("Turn: w\n");}
   else {printf("Turn: b\n");}
   
-  printf("50 move rule: %i\n", board->fifty_moves);
+  printf("Key: %"PRIdPTR"\n", board->key);
+  printf("50 move rule: %i\n", board->num_halfmoves);
+  printf("history size: %i\n", board->history_size);
+  printf("is 3fold:   %i\n", is_threefold(board));
+  printf("is 50move:  %i\n", is_fifty_move_draw(board));
+  printf("is endgame: %i\n", is_endgame(board));
   
   printf("Castling: ");
   if(board->castling[wKSC]) {printf("K");}

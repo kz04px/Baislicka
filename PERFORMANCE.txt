@@ -42,14 +42,14 @@ Location: perftsuite_2.epd
 Tests: 3
 ----------------------------
 Depth: 7
-Nodes: 31502780
-kNPS:  2687
-Time:  11.724s
+Nodes: 31758738
+kNPS:  2707
+Time:  11.731s
 ----------------------------
 Depth: 8
-Nodes: 260303357
-kNPS:  2929
-Time:  88.854s
+Nodes: 177899373
+kNPS:  2800
+Time:  63.534s
 ----------------------------
 
 

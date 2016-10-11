@@ -78,6 +78,7 @@ void uci_listen()
       else if(strncmp(part, "display", 7) == 0)
       {
         display_board(board);
+        display_history(board);
       }
       else if(strncmp(part, "go", 2) == 0)
       {

@@ -89,10 +89,12 @@ void *search_base(void *n)
   int target_depth = 1;
   char move_string[4096];
   char temp[16];
-  
-  s_move bestmove;
   s_move ponder;
   s_search_results results;
+  
+  s_move *bestmove = NULL;
+  s_pv *bestmove_pv = NULL;
+  int *bestmove_eval = NULL;
   
   int i;
   for(i = 1; i <= target_depth && i < MAX_DEPTH; ++i)
@@ -101,41 +103,49 @@ void *search_base(void *n)
     
     if(results.out_of_time == 1) {break;}
     
+    assert(results.best_move_num >= 0);
+    assert(results.best_move_num < results.num_moves);
+    
+    bestmove = &results.moves[results.best_move_num];
+    bestmove_pv = &results.pvs[results.best_move_num];
+    bestmove_eval = &results.evals[results.best_move_num];
+    
     move_string[0] = '\0';
     int n;
-    for(n = 0; n < results.pv.num_moves; ++n)
+    for(n = 0; n < bestmove_pv->num_moves; ++n)
     {
-      move_to_string(temp, &results.pv.moves[n]);
+      move_to_string(temp, &bestmove_pv->moves[n]);
       sprintf(move_string, "%s %s", move_string, temp);
     }
     
-    if(results.mate == 0)
+    if(board->turn == WHITE)
     {
-      GUI_Send("info depth %i score cp %i nodes %"PRIdPTR" time %i pv%s\n", i, results.eval, nodes, results.time_taken, move_string);
-    }
-    else
-    {
-      if(results.mate == 1)
+      if(*bestmove_eval > INF-MAX_DEPTH)
       {
-        if(board->turn == WHITE)
-        {
-          GUI_Send("info depth %i score mate %i nodes %"PRIdPTR" time %i pv%s\n", i, INF-results.eval, nodes, results.time_taken, move_string);
-        }
-        else
-        {
-          GUI_Send("info depth %i score mate %i nodes %"PRIdPTR" time %i pv%s\n", i, -results.eval-INF, nodes, results.time_taken, move_string);
-        }
+        GUI_Send("info depth %i score mate %i nodes %"PRIdPTR" time %i pv%s\n", i, INF-(*bestmove_eval), nodes, results.time_taken, move_string);
+      }
+      else if(*bestmove_eval < -INF+MAX_DEPTH)
+      {
+        GUI_Send("info depth %i score mate %i nodes %"PRIdPTR" time %i pv%s\n", i, -(*bestmove_eval)-INF, nodes, results.time_taken, move_string);
       }
       else
       {
-        if(board->turn == WHITE)
-        {
-          GUI_Send("info depth %i score mate %i nodes %"PRIdPTR" time %i pv%s\n", i, -INF-results.eval, nodes, results.time_taken, move_string);
-        }
-        else
-        {
-          GUI_Send("info depth %i score mate %i nodes %"PRIdPTR" time %i pv%s\n", i, -results.eval+INF, nodes, results.time_taken, move_string);
-        }
+        GUI_Send("info depth %i score cp %i nodes %"PRIdPTR" time %i pv%s\n", i, *bestmove_eval, nodes, results.time_taken, move_string);
+      }
+    }
+    else
+    {
+      if(*bestmove_eval < -INF+MAX_DEPTH)
+      {
+        GUI_Send("info depth %i score mate %i nodes %"PRIdPTR" time %i pv%s\n", i, -INF-(*bestmove_eval), nodes, results.time_taken, move_string);
+      }
+      else if(*bestmove_eval > INF-MAX_DEPTH)
+      {
+        GUI_Send("info depth %i score mate %i nodes %"PRIdPTR" time %i pv%s\n", i, -(*bestmove_eval)+INF, nodes, results.time_taken, move_string);
+      }
+      else
+      {
+        GUI_Send("info depth %i score cp %i nodes %"PRIdPTR" time %i pv%s\n", i, *bestmove_eval, nodes, results.time_taken, move_string);
       }
     }
     
@@ -144,13 +154,12 @@ void *search_base(void *n)
       GUI_Send("info nps %"PRIdPTR"\n", 1000*nodes/results.time_taken);
     }
     
-    bestmove = results.pv.moves[0];
-    if(results.pv.num_moves > 1)
+    if(bestmove_pv->num_moves > 1)
     {
-      ponder = results.pv.moves[1];
+      ponder = bestmove_pv->moves[1];
     }
     
-    if(results.mate != 0)
+    if(*bestmove_eval < -INF+MAX_DEPTH || *bestmove_eval > INF-MAX_DEPTH)
     {
       break;
     }
@@ -161,15 +170,32 @@ void *search_base(void *n)
     }
   }
   
-  if(i == 1)
+  if(i == 1 && results.out_of_time == 1)
   {
     printf("Warning: Didn't complete depth 1 search in time\n");
-    bestmove = results.pv.moves[0];
+    bestmove = &results.moves[0];
   }
   
-  move_to_string(move_string, &bestmove);
-  print_move(bestmove);
+  move_to_string(move_string, bestmove);
+  print_move(*bestmove);
   GUI_Send("bestmove %s\n", move_string);
+  
+  /*
+  // Test
+  int m;
+  for(m = 0; m < results.num_moves; ++m)
+  {
+    if(results.evals[m] >= 0)
+    {
+      printf(" %i  ", results.evals[m]);
+    }
+    else
+    {
+      printf("%i  ", results.evals[m]);
+    }
+    print_move(results.moves[m]);
+  }
+  */
   
   /*
   if(results.pv.num_moves == 1)
@@ -197,9 +223,7 @@ s_search_results search(s_board* board, int depth)
   
   s_search_results results;
   results.out_of_time = 0;
-  results.eval = 0;
   results.time_taken = 0;
-  results.mate = 0;
   
   search_depth = depth;
   nodes = 0;
@@ -212,62 +236,73 @@ s_search_results search(s_board* board, int depth)
   
   int best_score = -INF;
   
-  s_move moves[MAX_MOVES];
-  int num_moves = find_moves_captures(board, moves, board->turn);
-  moves_sort(moves, num_moves);
-  num_moves += find_moves_quiet(board, &moves[num_moves], board->turn);
+  results.num_moves = find_moves_captures(board, results.moves, board->turn);
+  moves_sort(results.moves, results.num_moves);
+  results.num_moves += find_moves_quiet(board, &results.moves[results.num_moves], board->turn);
   
-  results.pv.num_moves = 0;
   s_pv pv_local;
   pv_local.num_moves = 0;
   
   int m;
-  for(m = 0; m < num_moves; ++m)
+  for(m = 0; m < results.num_moves; ++m)
   {
-    move_make(board, &moves[m]);
+    results.pvs[m].num_moves = 0;
+    move_make(board, &results.moves[m]);
     
     if(square_attacked(board, board->combined[KINGS]&board->colour[board->turn], !board->turn))
     {
-      move_undo(board, &moves[m]);
+      move_undo(board, &results.moves[m]);
       continue;
     }
     
     nodes++;
     
-    time_t time_spent = clock() - time_start;
-    if(time_spent < search_info.time_max)
+    if(is_threefold(board) || is_fifty_move_draw(board))
     {
-      board->turn = 1-(board->turn);
-      
-      score = -alpha_beta(board, -INF, INF, depth-1, 1, &pv_local);
-      
-      board->turn = 1-(board->turn);
+      score = -CONTEMPT_VALUE;
     }
     else
     {
-      score = eval(board);
-      results.out_of_time = 1;
+      time_t time_spent = clock() - time_start;
+      if(time_spent < search_info.time_max)
+      {
+        board->turn = 1-(board->turn);
+        
+        score = -alpha_beta(board, -INF, INF, depth-1, 1, &pv_local);
+        
+        board->turn = 1-(board->turn);
+      }
+      else
+      {
+        score = eval(board);
+        results.out_of_time = 1;
+      }
     }
     
-    move_undo(board, &moves[m]);
+    move_undo(board, &results.moves[m]);
+    
+    results.pvs[m].moves[0] = results.moves[m];
+    int i;
+    for(i = 0; i < pv_local.num_moves && i < MAX_DEPTH-1; ++i)
+    {
+      results.pvs[m].moves[i+1] = pv_local.moves[i];
+    }
+    results.pvs[m].num_moves = pv_local.num_moves + 1;
+    
+    results.evals[m] = score;
     
     if(score > best_score)
     {
       best_score = score;
-      
-      results.pv.moves[0] = moves[m];
-      int i;
-      for(i = 0; i < pv_local.num_moves && i < MAX_DEPTH-1; ++i)
-      {
-        results.pv.moves[i+1] = pv_local.moves[i];
-      }
-      results.pv.num_moves = pv_local.num_moves + 1;
+      results.best_move_num = m;
     }
   }
   
   results.nodes = nodes;
   results.time_taken = clock() - time_start;
   
+  /*
+  // FIX ME
   if(best_score <= -INF+MAX_DEPTH)
   {
     if(board->turn == WHITE)
@@ -290,8 +325,7 @@ s_search_results search(s_board* board, int depth)
       results.mate = -1;
     }
   }
-  
-  results.eval = best_score;
+  */
   
   return results;
 }
@@ -301,6 +335,12 @@ int alpha_beta(s_board* board, int alpha, int beta, int depth, int null_allowed,
   assert(board != NULL);
   assert(depth >= 0);
   assert(pv != NULL);
+  
+  // Test
+  if(is_threefold(board) || is_fifty_move_draw(board))
+  {
+    return CONTEMPT_VALUE;
+  }
   
   int score;
   s_pv pv_local;
@@ -323,7 +363,7 @@ int alpha_beta(s_board* board, int alpha, int beta, int depth, int null_allowed,
         move_make(board, &entry->pv);
         if(is_threefold(board))
         {
-          entry->eval = 0;
+          entry->eval = -CONTEMPT_VALUE;
         }
         move_undo(board, &entry->pv);
       }
@@ -368,17 +408,16 @@ int alpha_beta(s_board* board, int alpha, int beta, int depth, int null_allowed,
   }
   
   #ifdef NULL_MOVE
-    int in_check = square_attacked(board, board->combined[KINGS]&board->colour[board->turn], !board->turn);
-    if(null_allowed && depth > 2 && !in_check)
+    if(!is_endgame(board) && null_allowed && depth > 2 && !square_attacked(board, board->combined[KINGS]&board->colour[board->turn], !board->turn))
     {
       // Store
       uint64_t ep_old = board->ep;
-      uint8_t fifty_moves_old = board->fifty_moves;
+      uint8_t num_halfmoves_old = board->num_halfmoves;
       
       // Make null move
       board->ep = 0;
       board->key ^= key_turn;
-      board->fifty_moves = 0;
+      board->num_halfmoves = 0;
       board->turn = 1-(board->turn);
       board->key_history[board->history_size] = board->key;
       board->history_size++;
@@ -388,7 +427,7 @@ int alpha_beta(s_board* board, int alpha, int beta, int depth, int null_allowed,
       // Undo null move
       board->ep = ep_old;
       board->key ^= key_turn;
-      board->fifty_moves = fifty_moves_old;
+      board->num_halfmoves = num_halfmoves_old;
       board->turn = 1-(board->turn);
       board->history_size--;
       
@@ -489,25 +528,18 @@ int alpha_beta(s_board* board, int alpha, int beta, int depth, int null_allowed,
     nodes++;
     played = 1;
     
-    if(is_threefold(board) || is_fifty_moves(board))
+    time_t time_spent = clock() - time_start;
+    if(time_spent < search_info.time_max)
     {
-      score = CONTEMPT_VALUE;
+      board->turn = 1-(board->turn);
+      
+      score = -alpha_beta(board, -beta, -alpha, depth-1, 1, &pv_local);
+      
+      board->turn = 1-(board->turn);
     }
     else
     {
-      time_t time_spent = clock() - time_start;
-      if(time_spent < search_info.time_max)
-      {
-        board->turn = 1-(board->turn);
-        
-        score = -alpha_beta(board, -beta, -alpha, depth-1, 1, &pv_local);
-        
-        board->turn = 1-(board->turn);
-      }
-      else
-      {
-        score = eval(board);
-      }
+      score = eval(board);
     }
     
     move_undo(board, &moves[m]);
@@ -570,7 +602,24 @@ int alpha_beta(s_board* board, int alpha, int beta, int depth, int null_allowed,
     {
       flag = LOWERBOUND;
     }
-    hashtable_add(hashtable, flag, board->key, depth, best_score, moves[best_move_num]);
+    
+    // Mate eval test
+    if(best_score > INF-MAX_DEPTH)
+    {
+      flag = LOWERBOUND;
+      hashtable_add(hashtable, flag, board->key, depth, INF-MAX_DEPTH, moves[best_move_num]);
+    }
+    else if(best_score < -INF+MAX_DEPTH)
+    {
+      flag = UPPERBOUND;
+      hashtable_add(hashtable, flag, board->key, depth, -INF+MAX_DEPTH, moves[best_move_num]);
+    }
+    else
+    {
+      hashtable_add(hashtable, flag, board->key, depth, best_score, moves[best_move_num]);
+    }
+    
+    //hashtable_add(hashtable, flag, board->key, depth, best_score, moves[best_move_num]);
   #endif
   
   return best_score;

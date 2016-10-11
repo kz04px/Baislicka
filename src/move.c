@@ -192,7 +192,7 @@ void move_make(s_board *board, s_move *move)
   #ifdef HASHTABLE
     move->key_old = board->key;
   #endif
-  move->fifty_moves_old = board->fifty_moves;
+  move->num_halfmoves_old = board->num_halfmoves;
   move->ep_old = board->ep;
   move->castling[wKSC] = board->castling[wKSC];
   move->castling[wQSC] = board->castling[wQSC];
@@ -207,7 +207,7 @@ void move_make(s_board *board, s_move *move)
   #endif
   
   board->ep = 0;
-  board->fifty_moves++;
+  board->num_halfmoves++;
   
   /*
   board->castling[wQSC] = !(from & U64_E1);
@@ -260,7 +260,7 @@ void move_make(s_board *board, s_move *move)
       
       if(move->piece_type == wP || move->piece_type == bP)
       {
-        board->fifty_moves = 0;
+        board->num_halfmoves = 0;
       }
       
       #ifdef HASHTABLE
@@ -276,7 +276,7 @@ void move_make(s_board *board, s_move *move)
       board->colour[board->turn] ^= to;
       board->colour[!board->turn] ^= to;
       
-      board->fifty_moves = 0;
+      board->num_halfmoves = 0;
       
       #ifdef HASHTABLE
         board->key ^= key_piece_positions[move->piece_type][board->turn][move->from];
@@ -290,7 +290,7 @@ void move_make(s_board *board, s_move *move)
       board->colour[board->turn] ^= from;
       board->colour[board->turn] ^= to;
       
-      board->fifty_moves = 0;
+      board->num_halfmoves = 0;
       
       if(board->turn == WHITE)
       {
@@ -313,7 +313,7 @@ void move_make(s_board *board, s_move *move)
       board->colour[board->turn] ^= from;
       board->colour[board->turn] ^= to;
       
-      board->fifty_moves = 0;
+      board->num_halfmoves = 0;
       
       if(move->taken != EMPTY)
       {
@@ -336,7 +336,7 @@ void move_make(s_board *board, s_move *move)
       board->colour[board->turn] ^= from;
       board->colour[board->turn] ^= to;
       
-      board->fifty_moves = 0;
+      board->num_halfmoves = 0;
       
       if(board->turn == WHITE)
       {
@@ -367,7 +367,7 @@ void move_make(s_board *board, s_move *move)
       board->combined[ROOKS] ^= ksc_rook[board->turn];
       board->colour[board->turn] ^= (ksc_king[board->turn] | ksc_rook[board->turn]);
       
-      board->fifty_moves = 0;
+      board->num_halfmoves = 0;
       
       #ifdef HASHTABLE
         board->key ^= key_ksc[board->turn];
@@ -378,7 +378,7 @@ void move_make(s_board *board, s_move *move)
       board->combined[ROOKS] ^= qsc_rook[board->turn];
       board->colour[board->turn] ^= (qsc_king[board->turn] | qsc_rook[board->turn]);
       
-      board->fifty_moves = 0;
+      board->num_halfmoves = 0;
       
       #ifdef HASHTABLE
         board->key ^= key_qsc[board->turn];
@@ -484,7 +484,7 @@ void move_undo(s_board *board, s_move *move)
     board->key = move->key_old;
   #endif
   board->ep = move->ep_old;
-  board->fifty_moves = move->fifty_moves_old;
+  board->num_halfmoves = move->num_halfmoves_old;
   board->castling[wKSC] = move->castling[wKSC];
   board->castling[wQSC] = move->castling[wQSC];
   board->castling[bKSC] = move->castling[bKSC];
