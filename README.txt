@@ -4,7 +4,7 @@ About:
   Basic chess engine in C
 
 Description:
-  Plain magic bitboards
+  Fixed shift fancy magic bitboards
   Quiescence search
   Transposition table
   Null move pruning
@@ -28,3 +28,5 @@ Thanks:
   - Tomasz Michniewski's simplified evaluation function
     http://chessprogramming.wikispaces.com/Simplified+evaluation+function
     
+  - Volker Annuss' work on fixed shift magics
+    http://www.talkchess.com/forum/viewtopic.php?topic_view=threads&p=670709&t=60065
