@@ -14,19 +14,16 @@ int set_fen(s_board *board, const char *fen)
   }
   
   int i;
-  for(i = 0; i < 7; ++i)
+  for(i = 0; i < 6; ++i)
   {
-    board->combined[i] = 0;
+    board->pieces[i] = 0;
   }
   board->colour[WHITE] = 0;
   board->colour[BLACK] = 0;
   
   board->ep = 0;
   
-  board->castling[wKSC] = 0;
-  board->castling[wQSC] = 0;
-  board->castling[bKSC] = 0;
-  board->castling[bQSC] = 0;
+  board->castling = 0;
   
   /*
   int i, j;
@@ -40,14 +37,14 @@ int set_fen(s_board *board, const char *fen)
   }
   */
   
-  int n = 0, x = 63;
+  int n = 0, x = A8;
   while(fen[n] != ' ')
   {
     switch(fen[n])
     {
       case '/':
       {
-        x++;
+        x -= 17;
         break;
       }
       case '1':
@@ -59,78 +56,78 @@ int set_fen(s_board *board, const char *fen)
       case '7':
       case '8':
       {
-        x -= fen[n] - '1'; // FIXME: fen[n] = '0';
+        x += fen[n] - '1'; // FIXME: fen[n] = '0';
         break;
       }
       case 'p':
       {
-        board->combined[bP] ^= (uint64_t)1<<x;
+        board->pieces[PAWNS] ^= (uint64_t)1<<x;
         board->colour[BLACK] ^= (uint64_t)1<<x;
         break;
       }
       case 'n':
       {
-        board->combined[KNIGHTS] ^= (uint64_t)1<<x;
+        board->pieces[KNIGHTS] ^= (uint64_t)1<<x;
         board->colour[BLACK] ^= (uint64_t)1<<x;
         break;
       }
       case 'b':
       {
-        board->combined[BISHOPS] ^= (uint64_t)1<<x;
+        board->pieces[BISHOPS] ^= (uint64_t)1<<x;
         board->colour[BLACK] ^= (uint64_t)1<<x;
         break;
       }
       case 'r':
       {
-        board->combined[ROOKS] ^= (uint64_t)1<<x;
+        board->pieces[ROOKS] ^= (uint64_t)1<<x;
         board->colour[BLACK] ^= (uint64_t)1<<x;
         break;
       }
       case 'q':
       {
-        board->combined[QUEENS] ^= (uint64_t)1<<x;
+        board->pieces[QUEENS] ^= (uint64_t)1<<x;
         board->colour[BLACK] ^= (uint64_t)1<<x;
         break;
       }
       case 'k':
       {
-        board->combined[KINGS] ^= (uint64_t)1<<x;
+        board->pieces[KINGS] ^= (uint64_t)1<<x;
         board->colour[BLACK] ^= (uint64_t)1<<x;
         break;
       }
       case 'P':
       {
-        board->combined[wP] ^= (uint64_t)1<<x;
+        board->pieces[PAWNS] ^= (uint64_t)1<<x;
         board->colour[WHITE] ^= (uint64_t)1<<x;
         break;
       }
       case 'N':
       {
-        board->combined[KNIGHTS] ^= (uint64_t)1<<x;
+        board->pieces[KNIGHTS] ^= (uint64_t)1<<x;
         board->colour[WHITE] ^= (uint64_t)1<<x;
         break;
       }
       case 'B':
       {
-        board->combined[BISHOPS] ^= (uint64_t)1<<x;
+        board->pieces[BISHOPS] ^= (uint64_t)1<<x;
         board->colour[WHITE] ^= (uint64_t)1<<x;
         break;
       }
       case 'R':
       {
-        board->combined[ROOKS] ^= (uint64_t)1<<x;
+        board->pieces[ROOKS] ^= (uint64_t)1<<x;
         board->colour[WHITE] ^= (uint64_t)1<<x;
         break;
       }
       case 'Q':
       {
-        board->combined[QUEENS] ^= (uint64_t)1<<x;
+        board->pieces[QUEENS] ^= (uint64_t)1<<x;
         board->colour[WHITE] ^= (uint64_t)1<<x;
         break;
       }
       case 'K':
       {
-        board->combined[KINGS] ^= (uint64_t)1<<x;
+        board->pieces[KINGS] ^= (uint64_t)1<<x;
         board->colour[WHITE] ^= (uint64_t)1<<x;
         break;
       }
@@ -140,7 +137,7 @@ int set_fen(s_board *board, const char *fen)
       }
     }
     n++;
-    x--;
+    x++;
   }
   n += 1;
   
@@ -164,22 +161,22 @@ int set_fen(s_board *board, const char *fen)
     {
       case 'K':
       {
-        board->castling[wKSC] = 1;
+        board->castling |= wKSC;
         break;
       }
       case 'Q':
       {
-        board->castling[wQSC] = 1;
+        board->castling |= wQSC;
         break;
       }
       case 'k':
       {
-        board->castling[bKSC] = 1;
+        board->castling |= bKSC;
         break;
       }
       case 'q':
       {
-        board->castling[bQSC] = 1;
+        board->castling |= bQSC;
         break;
       }
       case '-':
@@ -197,9 +194,11 @@ int set_fen(s_board *board, const char *fen)
   
   if(fen[n] != '-')
   {
-    int col = fen[n] - 'a';
-    int row = fen[n+1] - '1';
-    board->ep = (uint64_t)1<<(row*8 + 7 - col);
+    int file = fen[n] - 'a';
+    int rank = fen[n+1] - '1';
+    assert(0 <= file && file <= 7);
+    assert(0 <= rank && rank <= 7);
+    board->ep = rank*8 + file;
     n++;
   }
   n += 2;

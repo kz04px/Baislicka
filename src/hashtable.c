@@ -16,9 +16,9 @@ uint64_t create_key_board(s_board *board)
   {
     int p;
     
-    for(p = 0; p < 7; ++p)
+    for(p = 0; p < 6; ++p)
     {
-      if((board->combined[p]>>sq)&1)
+      if((board->pieces[p]>>sq)&1)
       {
         if((board->colour[WHITE]>>sq)&1)
         {
@@ -45,13 +45,13 @@ uint64_t create_key_board(s_board *board)
 
   if(board->ep)
   {
-    key ^= key_ep_col[u64_col(board->ep)];
+    key ^= key_ep_file[SQ_TO_FILE(board->ep)];
   }
 
-  if(board->castling[wKSC]) {key ^= key_castling[wKSC];}
-  if(board->castling[wQSC]) {key ^= key_castling[wQSC];}
-  if(board->castling[bKSC]) {key ^= key_castling[bKSC];}
-  if(board->castling[bQSC]) {key ^= key_castling[bQSC];}
+  if(board->castling & wKSC) {key ^= key_castling[0];}
+  if(board->castling & wQSC) {key ^= key_castling[1];}
+  if(board->castling & bKSC) {key ^= key_castling[2];}
+  if(board->castling & bQSC) {key ^= key_castling[3];}
   
   return key;
 }
@@ -59,7 +59,7 @@ uint64_t create_key_board(s_board *board)
 void key_init()
 {
   int piece;
-  for(piece = 0; piece < 7; ++piece)
+  for(piece = 0; piece < 6; ++piece)
   {
     int p;
     for(p = 0; p < 64; ++p)
@@ -79,7 +79,7 @@ void key_init()
 
   for(i = 0; i < 8; ++i)
   {
-    key_ep_col[i] = RAND_64;
+    key_ep_file[i] = RAND_64;
   }
 }
 

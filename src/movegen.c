@@ -9,41 +9,41 @@ int find_moves_wP_captures(s_board* board, s_move* move_list)
   uint64_t moves;
   int to;
   
+  uint64_t wP = board->pieces[PAWNS] & board->colour[WHITE];
+  
   // ep
   if(board->ep)
   {
-    int ep_sq = __builtin_ctzll(board->ep);
-    
     // Down & Left
-    if((board->ep>>7) & board->combined[wP] & (~U64_COL_H))
+    if(((uint64_t)1<<(board->ep-9)) & wP & (~U64_FILE_H))
     {
-      move_list[num_moves] = move_add(board, ep_sq-7, ep_sq, EP, wP);
+      move_list[num_moves] = move_add(board, board->ep-9, board->ep, EP, PAWNS);
       num_moves++;
     }
     
     // Down & Right
-    if((board->ep>>9) & board->combined[wP] & (~U64_COL_A))
+    if(((uint64_t)1<<(board->ep-7)) & wP & (~U64_FILE_A))
     {
-      move_list[num_moves] = move_add(board, ep_sq-9, ep_sq, EP, wP);
+      move_list[num_moves] = move_add(board, board->ep-7, board->ep, EP, PAWNS);
       num_moves++;
     }
   }
   
   // Up 1 Left 1
-  moves = (board->combined[wP]<<9) & (board->colour[BLACK]) & (~U64_COL_H);
-  while(moves)
-  {
-    to = __builtin_ctzll(moves);
-    num_moves += move_add_pawn_white(board, &move_list[num_moves], to-9, to);
-    moves &= moves-1;
-  }
-  
-  // Up 1 Right 1
-  moves = (board->combined[wP]<<7) & (board->colour[BLACK]) & (~U64_COL_A);
+  moves = (wP<<7) & (board->colour[BLACK]) & (~U64_FILE_H);
   while(moves)
   {
     to = __builtin_ctzll(moves);
     num_moves += move_add_pawn_white(board, &move_list[num_moves], to-7, to);
+    moves &= moves-1;
+  }
+  
+  // Up 1 Right 1
+  moves = (wP<<9) & (board->colour[BLACK]) & (~U64_FILE_A);
+  while(moves)
+  {
+    to = __builtin_ctzll(moves);
+    num_moves += move_add_pawn_white(board, &move_list[num_moves], to-9, to);
     moves &= moves-1;
   }
   
@@ -60,7 +60,7 @@ int find_moves_wP_quiet(s_board* board, s_move* move_list)
   int to;
   
   // Up 1
-  moves = (board->combined[wP]<<8) & (~(board->colour[WHITE]|board->colour[BLACK]));
+  moves = ((board->pieces[PAWNS] & board->colour[WHITE])<<8) & (~(board->colour[WHITE]|board->colour[BLACK]));
   while(moves)
   {
     to = __builtin_ctzll(moves);
@@ -69,7 +69,7 @@ int find_moves_wP_quiet(s_board* board, s_move* move_list)
     // Up 2
     if(to <= 23 && 16 <= to && (((uint64_t)1<<(to+8))&(~(board->colour[WHITE]|board->colour[BLACK]))))
     {
-      move_list[num_moves] = move_add(board, to-8, to+8, DOUBLE_PAWN, wP);
+      move_list[num_moves] = move_add(board, to-8, to+8, DOUBLE_PAWN, PAWNS);
       num_moves++;
     }
     
@@ -88,43 +88,43 @@ int find_moves_bP_captures(s_board* board, s_move* move_list)
   uint64_t moves;
   int to;
   
+  uint64_t bP = board->pieces[PAWNS] & board->colour[BLACK];
+  
   // ep
   if(board->ep)
   {
-    int ep_sq = __builtin_ctzll(board->ep);
-    
-    // Up & Right
-    if((board->ep<<7) & (board->combined[bP]) & (~U64_COL_A))
+    // Up & Left
+    if(((uint64_t)1<<(board->ep+7)) & bP & (~U64_FILE_H))
     {
-      move_list[num_moves] = move_add(board, ep_sq+7, ep_sq, EP, bP);
+      move_list[num_moves] = move_add(board, board->ep+7, board->ep, EP, PAWNS);
       num_moves++;
     }
     
-    // Up & Left
-    if((board->ep<<9) & (board->combined[bP]) & (~U64_COL_H))
+    // Up & Right
+    if(((uint64_t)1<<(board->ep+9)) & bP & (~U64_FILE_A))
     {
-      move_list[num_moves] = move_add(board, ep_sq+9, ep_sq, EP, bP);
+      move_list[num_moves] = move_add(board, board->ep+9, board->ep, EP, PAWNS);
       num_moves++;
     }
   }
   
   // Down 1 Left 1
-  moves = (board->combined[bP]>>7) & (board->colour[WHITE]) & (~U64_COL_H);
-  while(moves)
-  {
-    to = __builtin_ctzll(moves);
-    
-    num_moves += move_add_pawn_black(board, &move_list[num_moves], to+7, to);
-    moves &= moves-1;
-  }
-  
-  // Down 1 Right 1
-  moves = (board->combined[bP]>>9) & (board->colour[WHITE]) & (~U64_COL_A);
+  moves = (bP>>9) & (board->colour[WHITE]) & (~U64_FILE_H);
   while(moves)
   {
     to = __builtin_ctzll(moves);
     
     num_moves += move_add_pawn_black(board, &move_list[num_moves], to+9, to);
+    moves &= moves-1;
+  }
+  
+  // Down 1 Right 1
+  moves = (bP>>7) & (board->colour[WHITE]) & (~U64_FILE_A);
+  while(moves)
+  {
+    to = __builtin_ctzll(moves);
+    
+    num_moves += move_add_pawn_black(board, &move_list[num_moves], to+7, to);
     moves &= moves-1;
   }
   
@@ -141,7 +141,7 @@ int find_moves_bP_quiet(s_board* board, s_move* move_list)
   int to;
   
   // Down 1
-  moves = (board->combined[bP]>>8) & (~(board->colour[WHITE]|board->colour[BLACK]));
+  moves = ((board->pieces[PAWNS] & board->colour[BLACK])>>8) & (~(board->colour[WHITE]|board->colour[BLACK]));
   while(moves)
   {
     to = __builtin_ctzll(moves);
@@ -150,7 +150,7 @@ int find_moves_bP_quiet(s_board* board, s_move* move_list)
     // Down 2
     if(40 <= to && to <= 47 && (((uint64_t)1<<(to-8))&(~(board->colour[WHITE]|board->colour[BLACK]))))
     {
-      move_list[num_moves] = move_add(board, to+8, to-8, DOUBLE_PAWN, bP);
+      move_list[num_moves] = move_add(board, to+8, to-8, DOUBLE_PAWN, PAWNS);
       num_moves++;
     }
     
@@ -172,7 +172,7 @@ int find_moves_kings_quiet(s_board* board, s_move* move_list)
   // castling
   if(board->turn == WHITE)
   {
-    if(board->castling[wKSC] &&
+    if((board->castling & wKSC) &&
        !((board->colour[WHITE]|board->colour[BLACK])&U64_F1) &&
        !((board->colour[WHITE]|board->colour[BLACK])&U64_G1) &&
        square_attacked(board, U64_E1, BLACK) == 0 &&
@@ -182,7 +182,7 @@ int find_moves_kings_quiet(s_board* board, s_move* move_list)
       move_list[num_moves] = move_add(board, E1, G1, KSC, KINGS);
       num_moves++;
     }
-    if(board->castling[wQSC] &&
+    if((board->castling & wQSC) &&
        !((board->colour[WHITE]|board->colour[BLACK])&U64_B1) &&
        !((board->colour[WHITE]|board->colour[BLACK])&U64_C1) &&
        !((board->colour[WHITE]|board->colour[BLACK])&U64_D1) &&
@@ -196,7 +196,7 @@ int find_moves_kings_quiet(s_board* board, s_move* move_list)
   }
   else
   {
-    if(board->castling[bKSC] &&
+    if((board->castling & bKSC) &&
        !((board->colour[WHITE]|board->colour[BLACK])&U64_F8) &&
        !((board->colour[WHITE]|board->colour[BLACK])&U64_G8) &&
        square_attacked(board, U64_E8, WHITE) == 0 &&
@@ -206,7 +206,7 @@ int find_moves_kings_quiet(s_board* board, s_move* move_list)
       move_list[num_moves] = move_add(board, E8, G8, KSC, KINGS);
       num_moves++;
     }
-    if(board->castling[bQSC] &&
+    if((board->castling & bQSC) &&
        !((board->colour[WHITE]|board->colour[BLACK])&U64_B8) &&
        !((board->colour[WHITE]|board->colour[BLACK])&U64_C8) &&
        !((board->colour[WHITE]|board->colour[BLACK])&U64_D8) &&
@@ -219,7 +219,7 @@ int find_moves_kings_quiet(s_board* board, s_move* move_list)
     }
   }
   
-  uint64_t from = __builtin_ctzll(board->colour[board->turn] & board->combined[KINGS]);
+  uint64_t from = __builtin_ctzll(board->colour[board->turn] & board->pieces[KINGS]);
   moves = magic_moves_king(from) & ~(board->colour[board->turn]|board->colour[!board->turn]);
   while(moves)
   {
@@ -241,7 +241,7 @@ int find_moves_kings_captures(s_board* board, s_move* move_list)
   uint64_t moves;
   int to;
   
-  uint64_t from = __builtin_ctzll(board->colour[board->turn] & board->combined[KINGS]);
+  uint64_t from = __builtin_ctzll(board->colour[board->turn] & board->pieces[KINGS]);
   moves = magic_moves_king(from) & board->colour[!board->turn];
   while(moves)
   {
@@ -265,7 +265,7 @@ int find_moves_knights(s_board* board, s_move* move_list, uint64_t allowed)
   int to;
   uint64_t copy;
   
-  copy = board->combined[KNIGHTS] & board->colour[board->turn];
+  copy = board->pieces[KNIGHTS] & board->colour[board->turn];
   while(copy)
   {
     from = __builtin_ctzll(copy);
@@ -296,11 +296,11 @@ int find_moves_bishops_queens(s_board* board, s_move* move_list, uint64_t allowe
   uint64_t copy;
   
   // Bishops
-  copy = board->combined[BISHOPS] & board->colour[board->turn];
+  copy = board->pieces[BISHOPS] & board->colour[board->turn];
   while(copy)
   {
     from = __builtin_ctzll(copy);
-    moves = magic_moves_diagonal((board->colour[WHITE]|board->colour[BLACK]), from) & allowed;
+    moves = magic_moves_bishop((board->colour[WHITE]|board->colour[BLACK]), from) & allowed;
     
     while(moves)
     {
@@ -313,11 +313,11 @@ int find_moves_bishops_queens(s_board* board, s_move* move_list, uint64_t allowe
   }
   
   // Queens (diagonal)
-  copy = board->combined[QUEENS] & board->colour[board->turn];
+  copy = board->pieces[QUEENS] & board->colour[board->turn];
   while(copy)
   {
     from = __builtin_ctzll(copy);
-    moves = magic_moves_diagonal((board->colour[WHITE]|board->colour[BLACK]), from) & allowed;
+    moves = magic_moves_bishop((board->colour[WHITE]|board->colour[BLACK]), from) & allowed;
     
     while(moves)
     {
@@ -344,11 +344,11 @@ int find_moves_rooks_queens(s_board* board, s_move* move_list, uint64_t allowed)
   uint64_t copy;
   
   // Rook
-  copy = board->combined[ROOKS] & board->colour[board->turn];
+  copy = board->pieces[ROOKS] & board->colour[board->turn];
   while(copy)
   {
     from = __builtin_ctzll(copy);
-    moves = magic_moves_hor_ver((board->colour[WHITE]|board->colour[BLACK]), from) & allowed;
+    moves = magic_moves_rook((board->colour[WHITE]|board->colour[BLACK]), from) & allowed;
     
     while(moves)
     {
@@ -361,11 +361,11 @@ int find_moves_rooks_queens(s_board* board, s_move* move_list, uint64_t allowed)
   }
   
   // Queen (horizontal and vertical)
-  copy = board->combined[QUEENS] & board->colour[board->turn];
+  copy = board->pieces[QUEENS] & board->colour[board->turn];
   while(copy)
   {
     from = __builtin_ctzll(copy);
-    moves = magic_moves_hor_ver((board->colour[WHITE]|board->colour[BLACK]), from) & allowed;
+    moves = magic_moves_rook((board->colour[WHITE]|board->colour[BLACK]), from) & allowed;
     
     while(moves)
     {
@@ -389,7 +389,6 @@ int find_moves(s_board* board, s_move* move_list, int colour)
   uint64_t allowed = ~board->colour[board->turn];
   
   int num_moves = 0;
-  
   num_moves += find_moves_bishops_queens(board, &move_list[num_moves], allowed);
   num_moves += find_moves_rooks_queens(board, &move_list[num_moves], allowed);
   num_moves += find_moves_knights(board, &move_list[num_moves], allowed);

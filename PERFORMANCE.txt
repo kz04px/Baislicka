@@ -17,11 +17,12 @@ Perft Results - Release build -O3
 D   Time      NPS     Moves       Captures  EP     Castles Checks
 1   0.000s    -       20          0         0      0       0
 2   0.000s    -       400         0         0      0       0
-3   0.001s    -       8902        34        0      0       12
-4   0.026s    7.6m    197281      1576      0      0       469
-5   0.311s    15.6m   4865609     82719     258    0       27351
-6   7.553s    15.8m   119060324   2812008   5248   0       809099
-7   198.844s  16.1m   3195901860  108329926 319617 883453  33103848
+3   0.000s    -       8902        34        0      0       12
+4   0.010s    19.7m   197281      1576      0      0       469
+5   0.247s    19.7m   4865609     82719     258    0       27351
+6   6.035s    19.7m   119060324   2812008   5248   0       809099
+7   170.921s  18.7m   3195901860  108329926 319617 883453  33103848
+
 
 
 ----------------------------
@@ -29,7 +30,7 @@ Perft suite
 Location: perftsuite.epd
 ----------------------------
 Depth: 5
-Time: 24.416s
+Time: 20.309s
 ----------------------------
 Depth: 6
 Time: 772.967s
@@ -42,14 +43,14 @@ Location: perftsuite_2.epd
 Tests: 3
 ----------------------------
 Depth: 7
-Nodes: 31758738
-kNPS:  2707
-Time:  11.731s
+Nodes: 27535075
+kNPS:  2518
+Time:  10.934s
 ----------------------------
 Depth: 8
-Nodes: 177899373
-kNPS:  2800
-Time:  63.534s
+Nodes: 323148494
+kNPS:  3021
+Time:  106.952s
 ----------------------------
 
 
@@ -61,76 +62,75 @@ Depth: 1
   Branching: -
   Hash entries: 0 (0.00%)
   Eval: 50
-  pv:  g1f3
+  pv:  b1c3
 
 Depth: 2
-  Search time: 1ms
+  Search time: 0ms
   Nodes: 424
   Branching: 21.200
   Hash entries: 20 (0.00%)
-  kNPS: 424
   Eval: 0
-  pv:  g1f3 g8f6
+  pv:  b1c3 b8c6
 
 Depth: 3
-  Search time: 3ms
-  Nodes: 1865
-  Branching: 4.399
-  Hash entries: 420 (0.02%)
-  kNPS: 621
+  Search time: 1ms
+  Nodes: 1844
+  Branching: 4.349
+  Hash entries: 420 (0.01%)
+  kNPS: 1844
   Eval: 50
-  pv:  g1f3 g8f6 b1c3
+  pv:  b1c3 b8c6 g1f3
 
 Depth: 4
-  Search time: 9ms
-  Nodes: 12052
-  Branching: 6.462
-  Hash entries: 1255 (0.05%)
-  kNPS: 1339
+  Search time: 8ms
+  Nodes: 12353
+  Branching: 6.699
+  Hash entries: 1265 (0.03%)
+  kNPS: 1544
   Eval: 0
-  pv:  g1f3 g8f6 b1c3 b8c6
+  pv:  b1c3 b8c6 g1f3 g8f6
 
 Depth: 5
-  Search time: 19ms
-  Nodes: 39428
-  Branching: 3.271
-  Hash entries: 6229 (0.26%)
-  kNPS: 2075
+  Search time: 18ms
+  Nodes: 40663
+  Branching: 3.292
+  Hash entries: 6296 (0.15%)
+  kNPS: 2259
   Eval: 40
-  pv:  g1f3 g8f6 b1c3 b8c6 e2e4
+  pv:  b1c3 b8c6 g1f3 g8f6 d2d4
 
 Depth: 6
-  Search time: 92ms
-  Nodes: 332107
-  Branching: 8.423
-  Hash entries: 31051 (1.30%)
-  kNPS: 3609
+  Search time: 91ms
+  Nodes: 344795
+  Branching: 8.479
+  Hash entries: 32024 (0.76%)
+  kNPS: 3788
   Eval: 0
-  pv:  g1f3 g8f6 b1c3 b8c6 e2e4 e7e5
+  pv:  b1c3 b8c6 g1f3 g8f6 d2d4 d7d5
 
 Depth: 7
-  Search time: 271ms
-  Nodes: 1010485
-  Branching: 3.043
-  Hash entries: 125344 (5.23%)
-  kNPS: 3728
+  Search time: 356ms
+  Nodes: 1393685
+  Branching: 4.042
+  Hash entries: 163750 (3.90%)
+  kNPS: 3914
   Eval: 30
-  pv:  e2e4 b8c6 g1f3 g8f6 e4e5 f6e4 b1c3
+  pv:  e2e4 b8c6 g1f3 g8f6
 
 Depth: 8
-  Search time: 3568ms
-  Nodes: 13394661
-  Branching: 13.256
-  Hash entries: 922686 (38.50%)
-  kNPS: 3754
+  Search time: 3229ms
+  Nodes: 13219454
+  Branching: 9.485
+  Hash entries: 1029162 (24.54%)
+  kNPS: 4093
   Eval: 5
   pv:  b1c3 d7d5 e2e4 d5d4 c3d5 e7e6 f1b5 b8d7
 
 Depth: 9
-  Search time: 23482ms
-  Nodes: 84581899
-  Branching: 6.315
-  Hash entries: 2322913 (96.92%)
-  kNPS: 3601
+  Search time: 14230ms
+  Nodes: 53616267
+  Branching: 4.056
+  Hash entries: 3148372 (75.06%)
+  kNPS: 3767
   Eval: 25
-  pv:  e2e4 e7e5 f1c4 g8f6 b1c3 b8c6 g1e2 f8c5 e1g1
+  pv:  e2e4 e7e5 f1c4 b8c6 b1c3

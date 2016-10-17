@@ -5,7 +5,6 @@ int main()
 {
   srand(0x480ec5cb);
   
-  // Initialise magic bitboards
   bitboards_init();
   
   #ifdef HASHTABLE
@@ -124,12 +123,12 @@ int main()
       printf("Depth: %i\n", i);
       s_search_results results = search(board, i);
       
-      int m;
-      for(m = 0; m < results.num_moves; ++m)
-      {
-        printf("%i  ", results.evals[m]);
-        print_move(results.moves[m]);
-      }
+      //int m;
+      //for(m = 0; m < results.num_moves; ++m)
+      //{
+      //  printf("%i  ", results.evals[m]);
+      //  print_move(results.moves[m]);
+      //}
       
       printf("  Search time: %ims\n", results.time_taken);
       printf("  Nodes: %"PRIdPTR"\n", results.nodes);
@@ -150,6 +149,8 @@ int main()
         printf("  kNPS: %"PRIdPTR"\n", results.nodes/results.time_taken);
       }
       
+      printf("  Eval: %i\n", results.evals[results.best_move_num]);
+      
       char move_string[4096];
       char temp[16];
       move_string[0] = '\0';
@@ -166,6 +167,13 @@ int main()
         printf("  Out of time :<\n");
       }
       printf("\n");
+      
+      //display_board(board);
+      //print_u64(board->colour[WHITE]);
+      //printf("\n");
+      //print_u64(board->colour[BLACK]);
+      //printf("\n");
+      //getchar();
     }
     */
     

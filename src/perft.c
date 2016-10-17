@@ -20,13 +20,29 @@ void perft_search(s_board* board, int d)
   s_move moves[MAX_MOVES];
   int num_moves = find_moves(board, moves, board->turn);
   
+  // Set old permissions
+  #ifdef HASHTABLE
+    uint64_t key_old = board->key;
+  #endif
+  uint8_t num_halfmoves_old = board->num_halfmoves;
+  uint8_t ep_old = board->ep;
+  uint8_t castling_old = board->castling;
+  
   int m;
   for(m = 0; m < num_moves; ++m)
-  {    
+  {
     move_make(board, &moves[m]);
     
-    if(square_attacked(board, board->combined[KINGS]&board->colour[board->turn], !board->turn))
+    if(square_attacked(board, board->pieces[KINGS]&board->colour[board->turn], !board->turn))
     {
+      // Restore old permissions
+      #ifdef HASHTABLE
+        board->key = key_old;
+      #endif
+      board->ep = ep_old;
+      board->num_halfmoves = num_halfmoves_old;
+      board->castling = castling_old;
+      
       move_undo(board, &moves[m]);
       continue;
     }
@@ -35,13 +51,13 @@ void perft_search(s_board* board, int d)
     {
       moves_total++;
     
-      if(square_attacked(board, board->combined[KINGS]&board->colour[!board->turn], board->turn))
+      if(square_attacked(board, board->pieces[KINGS]&board->colour[!board->turn], board->turn))
       {
         moves_check++;
       }
       
       /*
-      if(calculate_attacked_white(board, (board->colour[BLACK] & board->combined[KINGS])) || calculate_attacked_black(board, (board->colour[WHITE] & board->combined[KINGS])))
+      if(calculate_attacked_white(board, (board->colour[BLACK] & board->pieces[KINGS])) || calculate_attacked_black(board, (board->colour[WHITE] & board->pieces[KINGS])))
       {
         moves_check++;
       }
@@ -77,6 +93,14 @@ void perft_search(s_board* board, int d)
       perft_search(board, d-1);
       board->turn = 1-(board->turn);
     }
+    
+    // Restore old permissions
+    #ifdef HASHTABLE
+      board->key = key_old;
+    #endif
+    board->ep = ep_old;
+    board->num_halfmoves = num_halfmoves_old;
+    board->castling = castling_old;
     
     move_undo(board, &moves[m]);
   }
@@ -115,7 +139,7 @@ int perft_split(s_board* board, int depth, char* fen)
   {
     move_make(board, &moves[m]);
     
-    if(square_attacked(board, board->combined[KINGS]&board->colour[board->turn], !board->turn))
+    if(square_attacked(board, board->pieces[KINGS]&board->colour[board->turn], !board->turn))
     {
       move_undo(board, &moves[m]);
       continue;

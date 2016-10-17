@@ -2,14 +2,11 @@
 
 void print_move(s_move move)
 {
-  printf("%c%c %c%c ", POS_TO_COL_CHAR(move.from), POS_TO_ROW_CHAR(move.from), POS_TO_COL_CHAR(move.to), POS_TO_ROW_CHAR(move.to));
+  printf("%c%c %c%c ", SQ_TO_FILE_CHAR(move.from), SQ_TO_RANK_CHAR(move.from), SQ_TO_FILE_CHAR(move.to), SQ_TO_RANK_CHAR(move.to));
   
   switch(move.piece_type)
   {
-    case bP:
-      printf("(p) ");
-      break;
-    case wP:
+    case PAWNS:
       printf("(P) ");
       break;
     case KNIGHTS:
@@ -33,11 +30,8 @@ void print_move(s_move move)
   
   switch(move.taken)
   {
-    case bP:
+    case PAWNS:
       printf("[p] ");
-      break;
-    case wP:
-      printf("[P] ");
       break;
     case KNIGHTS:
       printf("[N] ");
@@ -46,13 +40,10 @@ void print_move(s_move move)
       printf("[B] ");
       break;
     case ROOKS:
-      printf("([R] ");
+      printf("[R] ");
       break;
     case QUEENS:
       printf("[Q] ");
-      break;
-    case KINGS:
-      printf("[K] ");
       break;
     case EMPTY:
       printf("[-] ");
@@ -64,12 +55,6 @@ void print_move(s_move move)
   
   switch(move.promotion)
   {
-    case bP:
-      printf("[p] ");
-      break;
-    case wP:
-      printf("[P] ");
-      break;
     case KNIGHTS:
       printf("[N] ");
       break;
@@ -77,13 +62,10 @@ void print_move(s_move move)
       printf("[B] ");
       break;
     case ROOKS:
-      printf("([R] ");
+      printf("[R] ");
       break;
     case QUEENS:
       printf("[Q] ");
-      break;
-    case KINGS:
-      printf("[K] ");
       break;
     case EMPTY:
       printf("[-] ");
@@ -118,7 +100,6 @@ void print_move(s_move move)
       break;
     default:
       printf("??? (%i)", move.type);
-      printf("\n");
       break;
   }
   
@@ -142,29 +123,32 @@ void print_moves(s_move* moves, int num_moves)
 void print_u64(uint64_t board)
 {
   int i;
-  for(i = 63; i >= 0; --i)
+  for(i = A8; i >= A1; ++i)
   {
     printf("%i", (int)(1&(board>>i)));
-    if(i%8 == 0) {printf("\n");}
+    if(i%8 == 7) {i -= 16; printf("\n");}
   }
-  printf("\n");
+  
   return;
 }
 
 void display_board(s_board *board)
 {
   int i;
-  for(i = 63; i >= 0; --i)
+  for(i = A8; i >= A1; ++i)
   {
-    if(GETBIT(board->combined[wP], i))
+    if(GETBIT(board->pieces[PAWNS], i))
     {
-      printf("P");
+      if(GETBIT(board->colour[WHITE], i))
+      {
+        printf("P");
+      }
+      else
+      {
+        printf("p");
+      }
     }
-    else if(GETBIT(board->combined[bP], i))
-    {
-      printf("p");
-    }
-    else if(GETBIT(board->combined[KNIGHTS], i))
+    else if(GETBIT(board->pieces[KNIGHTS], i))
     {
       if(GETBIT(board->colour[WHITE], i))
       {
@@ -175,7 +159,7 @@ void display_board(s_board *board)
         printf("n");
       }
     }
-    else if(GETBIT(board->combined[BISHOPS], i))
+    else if(GETBIT(board->pieces[BISHOPS], i))
     {
       if(GETBIT(board->colour[WHITE], i))
       {
@@ -186,7 +170,7 @@ void display_board(s_board *board)
         printf("b");
       }
     }
-    else if(GETBIT(board->combined[ROOKS], i))
+    else if(GETBIT(board->pieces[ROOKS], i))
     {
       if(GETBIT(board->colour[WHITE], i))
       {
@@ -197,7 +181,7 @@ void display_board(s_board *board)
         printf("r");
       }
     }
-    else if(GETBIT(board->combined[QUEENS], i))
+    else if(GETBIT(board->pieces[QUEENS], i))
     {
       if(GETBIT(board->colour[WHITE], i))
       {
@@ -208,7 +192,7 @@ void display_board(s_board *board)
         printf("q");
       }
     }
-    else if(GETBIT(board->combined[KINGS], i))
+    else if(GETBIT(board->pieces[KINGS], i))
     {
       if(GETBIT(board->colour[WHITE], i))
       {
@@ -224,10 +208,7 @@ void display_board(s_board *board)
       printf("-");
     }
     
-    if(i%8 == 0)
-    {
-      printf("\n");
-    }
+    if(i%8 == 7) {i -= 16; printf("\n");}
   }
   
   if(board->turn == WHITE) {printf("Turn: w\n");}
@@ -239,15 +220,16 @@ void display_board(s_board *board)
   printf("is 3fold:   %i\n", is_threefold(board));
   printf("is 50move:  %i\n", is_fifty_move_draw(board));
   printf("is endgame: %i\n", is_endgame(board));
+  printf("Eval: %i\n", eval(board));
   
   printf("Castling: ");
-  if(board->castling[wKSC]) {printf("K");}
-  if(board->castling[wQSC]) {printf("Q");}
-  if(board->castling[bKSC]) {printf("k");}
-  if(board->castling[bQSC]) {printf("q");}
+  if(board->castling & wKSC) {printf("K");}
+  if(board->castling & wQSC) {printf("Q");}
+  if(board->castling & bKSC) {printf("k");}
+  if(board->castling & bQSC) {printf("q");}
   printf("\n");
   
-  printf("Ep: %"PRIdPTR"\n", board->ep);
+  printf("Ep: %c%c\n", SQ_TO_FILE_CHAR(board->ep), SQ_TO_RANK_CHAR(board->ep));
 }
 
 void display_history(s_board* board)

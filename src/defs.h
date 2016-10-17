@@ -11,99 +11,98 @@
 #define ENGINE_VERSION "2.0"
 #define ENGINE_AUTHOR "Twipply"
 #define START_FEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
-#define TEST1_FEN "k7/5n2/8/8/5R2/8/3b1P2/K7 w - - 0 0"
-#define TEST2_FEN "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1"
-#define TEST3_FEN "8/3K4/8/3k4/8/8/8/7N w - - 0 0"
-#define TEST4_FEN "8/1kp1p3/6N1/4B3/8/8/R3K2R/8 w - - 0 0"
 #define SETBIT(x, n) ((x) = (x) | ((uint64_t)1<<(n)))
 #define GETBIT(x, n) (((x)>>(n))&1)
 #define MAX_MOVES 256
 #define MAX_DEPTH 32
-#define POS_TO_COL(x) (7-x%8)
-#define POS_TO_ROW(x) (x/8)
-#define POS_TO_COL_CHAR(x) (POS_TO_COL(x)+'a')
-#define POS_TO_ROW_CHAR(x) (POS_TO_ROW(x)+'1')
+#define SQ_TO_FILE(x) (x%8)
+#define SQ_TO_RANK(x) (x/8)
+#define SQ_TO_FILE_CHAR(x) (SQ_TO_FILE(x)+'a')
+#define SQ_TO_RANK_CHAR(x) (SQ_TO_RANK(x)+'1')
 #define GUI_Send(...); printf(__VA_ARGS__); fflush(stdout);
 #define HASHTABLE_SIZE_MIN        0
 #define HASHTABLE_SIZE_DEFAULT  128
 #define HASHTABLE_SIZE_MAX     2048
 #define HISTORY_SIZE_MAX       1024
 #define INF 1000000
-#define MOVES_ALL      0
-#define MOVES_CAPTURES 1
 #define CONTEMPT_VALUE 100
 
-#define U64_COL_H 0x0101010101010101ULL
-#define U64_COL_G 0x0202020202020202ULL
-#define U64_COL_F 0x0404040404040404ULL
-#define U64_COL_E 0x0808080808080808ULL
-#define U64_COL_D 0x1010101010101010ULL
-#define U64_COL_C 0x2020202020202020ULL
-#define U64_COL_B 0x4040404040404040ULL
-#define U64_COL_A 0x8080808080808080ULL
-#define U64_ROW_1 0x00000000000000FFULL
-#define U64_ROW_2 0x000000000000FF00ULL
-#define U64_ROW_3 0x0000000000FF0000ULL
-#define U64_ROW_4 0x00000000FF000000ULL
-#define U64_ROW_5 0x000000FF00000000ULL
-#define U64_ROW_6 0x0000FF0000000000ULL
-#define U64_ROW_7 0x00FF000000000000ULL
-#define U64_ROW_8 0xFF00000000000000ULL
+#define U64_FILE_A 0x0101010101010101ULL
+#define U64_FILE_B 0x0202020202020202ULL
+#define U64_FILE_C 0x0404040404040404ULL
+#define U64_FILE_D 0x0808080808080808ULL
+#define U64_FILE_E 0x1010101010101010ULL
+#define U64_FILE_F 0x2020202020202020ULL
+#define U64_FILE_G 0x4040404040404040ULL
+#define U64_FILE_H 0x8080808080808080ULL
+#define U64_RANK_1 0x00000000000000FFULL
+#define U64_RANK_2 0x000000000000FF00ULL
+#define U64_RANK_3 0x0000000000FF0000ULL
+#define U64_RANK_4 0x00000000FF000000ULL
+#define U64_RANK_5 0x000000FF00000000ULL
+#define U64_RANK_6 0x0000FF0000000000ULL
+#define U64_RANK_7 0x00FF000000000000ULL
+#define U64_RANK_8 0xFF00000000000000ULL
 
-#define U64_A1 (U64_COL_A & U64_ROW_1)
-#define U64_B1 (U64_COL_B & U64_ROW_1)
-#define U64_C1 (U64_COL_C & U64_ROW_1)
-#define U64_D1 (U64_COL_D & U64_ROW_1)
-#define U64_E1 (U64_COL_E & U64_ROW_1)
-#define U64_F1 (U64_COL_F & U64_ROW_1)
-#define U64_G1 (U64_COL_G & U64_ROW_1)
-#define U64_H1 (U64_COL_H & U64_ROW_1)
+#define U64_A1 (U64_FILE_A & U64_RANK_1)
+#define U64_B1 (U64_FILE_B & U64_RANK_1)
+#define U64_C1 (U64_FILE_C & U64_RANK_1)
+#define U64_D1 (U64_FILE_D & U64_RANK_1)
+#define U64_E1 (U64_FILE_E & U64_RANK_1)
+#define U64_F1 (U64_FILE_F & U64_RANK_1)
+#define U64_G1 (U64_FILE_G & U64_RANK_1)
+#define U64_H1 (U64_FILE_H & U64_RANK_1)
 
-#define U64_A4 (U64_COL_A & U64_ROW_4)
-#define U64_B4 (U64_COL_B & U64_ROW_4)
-#define U64_C4 (U64_COL_C & U64_ROW_4)
-#define U64_D4 (U64_COL_D & U64_ROW_4)
-#define U64_E4 (U64_COL_E & U64_ROW_4)
-#define U64_F4 (U64_COL_F & U64_ROW_4)
-#define U64_G4 (U64_COL_G & U64_ROW_4)
-#define U64_H4 (U64_COL_H & U64_ROW_4)
+#define U64_A4 (U64_FILE_A & U64_RANK_4)
+#define U64_B4 (U64_FILE_B & U64_RANK_4)
+#define U64_C4 (U64_FILE_C & U64_RANK_4)
+#define U64_D4 (U64_FILE_D & U64_RANK_4)
+#define U64_E4 (U64_FILE_E & U64_RANK_4)
+#define U64_F4 (U64_FILE_F & U64_RANK_4)
+#define U64_G4 (U64_FILE_G & U64_RANK_4)
+#define U64_H4 (U64_FILE_H & U64_RANK_4)
 
-#define U64_A5 (U64_COL_A & U64_ROW_5)
-#define U64_B5 (U64_COL_B & U64_ROW_5)
-#define U64_C5 (U64_COL_C & U64_ROW_5)
-#define U64_D5 (U64_COL_D & U64_ROW_5)
-#define U64_E5 (U64_COL_E & U64_ROW_5)
-#define U64_F5 (U64_COL_F & U64_ROW_5)
-#define U64_G5 (U64_COL_G & U64_ROW_5)
-#define U64_H5 (U64_COL_H & U64_ROW_5)
+#define U64_A5 (U64_FILE_A & U64_RANK_5)
+#define U64_B5 (U64_FILE_B & U64_RANK_5)
+#define U64_C5 (U64_FILE_C & U64_RANK_5)
+#define U64_D5 (U64_FILE_D & U64_RANK_5)
+#define U64_E5 (U64_FILE_E & U64_RANK_5)
+#define U64_F5 (U64_FILE_F & U64_RANK_5)
+#define U64_G5 (U64_FILE_G & U64_RANK_5)
+#define U64_H5 (U64_FILE_H & U64_RANK_5)
 
-#define U64_A8 (U64_COL_A & U64_ROW_8)
-#define U64_B8 (U64_COL_B & U64_ROW_8)
-#define U64_C8 (U64_COL_C & U64_ROW_8)
-#define U64_D8 (U64_COL_D & U64_ROW_8)
-#define U64_E8 (U64_COL_E & U64_ROW_8)
-#define U64_F8 (U64_COL_F & U64_ROW_8)
-#define U64_G8 (U64_COL_G & U64_ROW_8)
-#define U64_H8 (U64_COL_H & U64_ROW_8)
+#define U64_A8 (U64_FILE_A & U64_RANK_8)
+#define U64_B8 (U64_FILE_B & U64_RANK_8)
+#define U64_C8 (U64_FILE_C & U64_RANK_8)
+#define U64_D8 (U64_FILE_D & U64_RANK_8)
+#define U64_E8 (U64_FILE_E & U64_RANK_8)
+#define U64_F8 (U64_FILE_F & U64_RANK_8)
+#define U64_G8 (U64_FILE_G & U64_RANK_8)
+#define U64_H8 (U64_FILE_H & U64_RANK_8)
+
+#define wKSC 1
+#define bKSC 2
+#define wQSC 4
+#define bQSC 8
 
 #define QUIESCENCE_SEARCH
 #define HASHTABLE
 #define NULL_MOVE
+//define KILLER_MOVES
 
 enum {WHITE, BLACK, BOTH};
-enum {wP, bP, KNIGHTS, BISHOPS, ROOKS, QUEENS, KINGS, EMPTY};
-enum {wKSC, bKSC, wQSC, bQSC};
+enum {PAWNS, KNIGHTS, BISHOPS, ROOKS, QUEENS, KINGS, EMPTY};
 enum {KSC, QSC, QUIET, DOUBLE_PAWN, CAPTURE, PROMOTE, EP};
 enum {EXACT, LOWERBOUND, UPPERBOUND};
 
-enum {H8=56, G8, F8, E8, D8, C8, B8, A8};
-enum {H7=48, G7, F7, E7, D7, C7, B7, A7};
-enum {H6=40, G6, F6, E6, D6, C6, B6, A6};
-enum {H5=32, G5, F5, E5, D5, C5, B5, A5};
-enum {H4=24, G4, F4, E4, D4, C4, B4, A4};
-enum {H3=16, G3, F3, E3, D3, C3, B3, A3};
-enum {H2= 8, G2, F2, E2, D2, C2, B2, A2};
-enum {H1= 0, G1, F1, E1, D1, C1, B1, A1};
+enum {A8=56, B8, C8, D8, E8, F8, G8, H8};
+enum {A7=48, B7, C7, D7, E7, F7, G7, H7};
+enum {A6=40, B6, C6, D6, E6, F6, G6, H6};
+enum {A5=32, B5, C5, D5, E5, F5, G5, H5};
+enum {A4=24, B4, C4, D4, E4, F4, G4, H4};
+enum {A3=16, B3, C3, D3, E3, F3, G3, H3};
+enum {A2= 8, B2, C2, D2, E2, F2, G2, H2};
+enum {A1= 0, B1, C1, D1, E1, F1, G1, H1};
 
 typedef struct
 {
@@ -113,13 +112,6 @@ typedef struct
   uint8_t piece_type;
   uint8_t type;
   uint8_t promotion;
-  
-  #ifdef HASHTABLE
-    uint64_t key_old;
-  #endif
-  uint64_t ep_old;
-  uint8_t num_halfmoves_old;
-  uint8_t castling[4];
 } s_move;
 
 typedef struct
@@ -131,9 +123,9 @@ typedef struct
 typedef struct
 {
   int turn;
-  uint8_t castling[4];
-  uint64_t ep;
-  uint64_t combined[7];
+  uint8_t castling;
+  uint8_t ep;
+  uint64_t pieces[6];
   uint64_t colour[2];
   #ifdef HASHTABLE
     uint64_t key;
@@ -194,10 +186,10 @@ typedef struct
 } s_search_results;
 
 s_hashtable *hashtable;
-uint64_t key_piece_positions[7][2][10*12];
+uint64_t key_piece_positions[6][2][10*12];
 uint64_t key_turn;
 uint64_t key_castling[4];
-uint64_t key_ep_col[8];
+uint64_t key_ep_file[8];
 uint64_t key_ksc[2];
 uint64_t key_qsc[2];
 
@@ -211,13 +203,14 @@ int square_attacked(s_board* board, uint64_t pos, int side);
 
 // bitboards.c
 void bitboards_init();
-uint64_t magic_moves_hor_ver(uint64_t pieces_all, int pos);
-uint64_t magic_moves_diagonal(uint64_t pieces_all, int pos);
-uint64_t magic_moves_knight(int pos);
-uint64_t magic_moves_king(int pos);
-int u64_to_sq(uint64_t pos);
-int u64_col(uint64_t pos);
-int u64_row(uint64_t pos);
+uint64_t magic_moves_pawns(const int side, const int sq);
+uint64_t magic_moves_knight(int sq);
+uint64_t magic_moves_bishop(uint64_t occ, int sq);
+uint64_t magic_moves_rook(uint64_t occ, int sq);
+uint64_t magic_moves_queen(uint64_t occ, int sq);
+uint64_t magic_moves_king(int sq);
+int u64_file(uint64_t pos);
+int u64_rank(uint64_t pos);
 uint64_t pinned_pieces_white(s_board* board, int sq);
 uint64_t pinned_pieces_black(s_board* board, int sq);
 int error_check(s_board* board);
