@@ -35,36 +35,59 @@ int main()
   qsc_rook[WHITE] = U64_D1 | U64_A1;
   qsc_rook[BLACK] = U64_D8 | U64_A8;
   
+  #if defined(SORT_MOVES) && defined(GENERATE_SORTED)
+    printf("Warning: Move sorting and sorted move generation both enabled\n");
+    printf("         Recommended to disable one or both\n");
+  #endif
+  
   #ifndef NDEBUG
     printf("Search debug info:\n");
     printf("Alphabeta search\n");
     printf("Max search depth: %i\n", MAX_DEPTH);
     
     #ifdef QUIESCENCE_SEARCH
-      printf("Quiescence search - enabled\n");
+      printf("Enabled  - Quiescence search\n");
     #else
-      printf("Quiescence search - disabled\n");
+      printf("Disabled - Quiescence search\n");
     #endif
     
     #ifdef HASHTABLE
-      printf("Transposition table - enabled\n");
+      printf("Enabled  - Transposition table\n");
     #else
-      printf("Transposition table - disabled\n");
+      printf("Disabled - Transposition table\n");
     #endif
     
-    printf("Principal variation - enabled\n");
+    printf("Enabled  - Principal variation\n");
     
     #ifdef NULL_MOVE
-      printf("Null move pruning - enabled\n");
+      printf("Enabled  - Null move pruning\n");
     #else
-      printf("Null move pruning - disabled\n");
+      printf("Disabled - Null move pruning\n");
+    #endif
+    
+    #ifdef KILLER_MOVES
+      printf("Enabled  - Killer move heuristic\n");
+    #else
+      printf("Disabled - Killer move heuristic\n");
+    #endif
+    
+    #ifdef SORT_MOVES
+      printf("Enabled  - MVV-LVA move sorting\n");
+    #else
+      printf("Disabled - MVV-LVA move sorting\n");
+    #endif
+    
+    #ifdef GENERATE_SORTED
+      printf("Enabled  - Sorted move generation\n");
+    #else
+      printf("Disabled - Sorted move generation\n");
     #endif
     
     printf("\n");
     
     printf("Other info:\n");
-    printf("sizeof(s_board): %"PRIdPTR"B\n", sizeof(s_board)); // 160B
-    printf("sizeof(s_move):  %"PRIdPTR"B\n", sizeof(s_move));  //  64B
+    printf("sizeof(s_board): %"PRIdPTR"B\n", sizeof(s_board));
+    printf("sizeof(s_move):  %"PRIdPTR"B\n", sizeof(s_move));
     #ifdef HASHTABLE
       printf("sizeof(s_hashtable_entry):  %"PRIdPTR"B\n", sizeof(s_hashtable_entry));
       printf("Hashtable entries per MB:  %"PRIdPTR"\n", 1024*1024/sizeof(s_hashtable_entry));
@@ -100,10 +123,10 @@ int main()
     s_board* board = (s_board*) malloc(1*sizeof(s_board));
     if(board == NULL) {return -1;}
     
-    perft_suite_search(board, 8, "perftsuite_2.epd");
-    //perft_suite(board, 6, "perftsuite.epd");
+    perft_suite(board, 5, "perftsuite.epd");
     //perft(board, 7, START_FEN);
     //perft_split(board, 6, START_FEN);
+    //perft_suite_search(board, 8, "perftsuite_2.epd");
     //perft_movegen(board, "perftsuite.epd");
     //perft_movegen_sides(board, "perftsuite.epd");
     
@@ -192,8 +215,11 @@ int main()
       printf("is 3fold: %i\n", is_threefold(board));
       
       s_move moves[MAX_MOVES];
-      int num_moves = find_moves(board, moves, board->turn);
-      moves_sort(moves, num_moves);
+      int num_moves = find_moves_captures(board, &moves[0], board->turn);
+      #ifdef SORT_MOVES
+        moves_sort(moves, num_moves);
+      #endif
+      num_moves += find_moves_quiet(board, &moves[num_moves], board->turn);
       
       int i;
       for(i = 0; i < num_moves; ++i)

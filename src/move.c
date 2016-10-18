@@ -36,7 +36,7 @@ int moves_sort(s_move* moves, int num)
   return 0;
 }
 
-int move_add_pawn_white(s_board* board, s_move* moves, int from, int to)
+int move_add_pawn(s_board* board, s_move* moves, int from, int to)
 {
   assert(board != NULL);
   assert(moves != NULL);
@@ -45,31 +45,7 @@ int move_add_pawn_white(s_board* board, s_move* moves, int from, int to)
   assert(to >= 0);
   assert(to <= 63);
   
-  if(((uint64_t)1<<to)&U64_RANK_8)
-  {
-    moves[0] = add_promotion_move(board, from, to, PAWNS, QUEENS);
-    moves[1] = add_promotion_move(board, from, to, PAWNS, KNIGHTS);
-    moves[2] = add_promotion_move(board, from, to, PAWNS, ROOKS);
-    moves[3] = add_promotion_move(board, from, to, PAWNS, BISHOPS);
-    return 4;
-  }
-  else
-  {
-    moves[0] = add_movecapture(board, from, to, PAWNS);
-    return 1;
-  }
-}
-
-int move_add_pawn_black(s_board* board, s_move* moves, int from, int to)
-{
-  assert(board != NULL);
-  assert(moves != NULL);
-  assert(from >= 0);
-  assert(from <= 63);
-  assert(to >= 0);
-  assert(to <= 63);
-  
-  if(((uint64_t)1<<to)&U64_RANK_1)
+  if(((uint64_t)1<<to)&(U64_RANK_1|U64_RANK_8))
   {
     moves[0] = add_promotion_move(board, from, to, PAWNS, QUEENS);
     moves[1] = add_promotion_move(board, from, to, PAWNS, KNIGHTS);
@@ -657,13 +633,13 @@ int move_is_legal(s_board* board, s_move* move)
       if(board->turn == WHITE)
       {
         num_moves = find_moves_wP_quiet(board, &move_list[0]);
-        num_moves += find_moves_wP_captures(board, &move_list[num_moves]);
       }
       else
       {
         num_moves = find_moves_bP_quiet(board, &move_list[0]);
-        num_moves += find_moves_bP_captures(board, &move_list[num_moves]);
       }
+      num_moves += find_moves_pawn_ep(board, &move_list[num_moves]);
+      num_moves += find_moves_pawn_captures(board, &move_list[num_moves], allowed);
       break;
     case KNIGHTS:
       num_moves = find_moves_knights(board, &move_list[0], allowed);
@@ -679,8 +655,8 @@ int move_is_legal(s_board* board, s_move* move)
       num_moves += find_moves_rooks_queens(board, &move_list[num_moves], allowed);
       break;
     case KINGS:
-      num_moves = find_moves_kings_quiet(board, &move_list[0]);
-      num_moves += find_moves_kings_captures(board, &move_list[num_moves]);
+      num_moves = find_moves_kings(board, &move_list[0], allowed);
+      num_moves += find_moves_kings_castles(board, &move_list[num_moves]);
       break;
   }
   

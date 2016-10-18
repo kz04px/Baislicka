@@ -88,7 +88,9 @@
 #define QUIESCENCE_SEARCH
 #define HASHTABLE
 #define NULL_MOVE
-//define KILLER_MOVES
+#define SORT_MOVES
+//#define GENERATE_SORTED
+//#define KILLER_MOVES
 
 enum {WHITE, BLACK, BOTH};
 enum {PAWNS, KNIGHTS, BISHOPS, ROOKS, QUEENS, KINGS, EMPTY};
@@ -237,18 +239,17 @@ int is_threefold(s_board* board);
 int eval(s_board* board);
 
 // movegen.c
-int find_moves(s_board* board, s_move* move_list, int colour);
-int find_moves_captures(s_board* board, s_move* move_list, int colour);
-int find_moves_quiet(s_board* board, s_move* move_list, int colour);
+int find_moves_pawn_ep(s_board* board, s_move* move_list);
+int find_moves_pawn_captures(s_board* board, s_move* move_list, uint64_t allowed);
 int find_moves_wP_quiet(s_board* board, s_move* move_list);
-int find_moves_wP_captures(s_board* board, s_move* move_list);
 int find_moves_bP_quiet(s_board* board, s_move* move_list);
-int find_moves_bP_captures(s_board* board, s_move* move_list);
 int find_moves_knights(s_board* board, s_move* move_list, uint64_t allowed);
 int find_moves_bishops_queens(s_board* board, s_move* move_list, uint64_t allowed);
 int find_moves_rooks_queens(s_board* board, s_move* move_list, uint64_t allowed);
-int find_moves_kings_quiet(s_board* board, s_move* move_list);
-int find_moves_kings_captures(s_board* board, s_move* move_list);
+int find_moves_kings(s_board* board, s_move* move_list, uint64_t allowed);
+int find_moves_kings_castles(s_board* board, s_move* move_list);
+int find_moves_captures(s_board* board, s_move* move_list, int colour);
+int find_moves_quiet(s_board* board, s_move* move_list, int colour);
 
 // fen.c
 int set_fen(s_board *board, const char *fen);
@@ -263,8 +264,7 @@ int perft_movegen_sides(s_board* board, const char* filepath);
 
 // move.c
 s_move move_add(s_board *board, int from, int to, int type, int piece_type);
-int move_add_pawn_white(s_board* board, s_move* move_list, int from, int to);
-int move_add_pawn_black(s_board* board, s_move* move_list, int from, int to);
+int move_add_pawn(s_board* board, s_move* move_list, int from, int to);
 s_move add_movecapture(s_board* board, int from, int to, int piece_type);
 s_move add_promotion_move(s_board *board, int from, int to, int piece_type, int promo_piece);
 void move_make(s_board *board, s_move *move);

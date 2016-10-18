@@ -31,7 +31,9 @@ int quiesce(s_board *board, int alpha, int beta)
   
   s_move moves[MAX_MOVES];
   int num_moves = find_moves_captures(board, moves, board->turn);
-  moves_sort(moves, num_moves);
+  #ifdef SORT_MOVES
+    moves_sort(moves, num_moves);
+  #endif
   int score;
   
   // Set old permissions
@@ -266,7 +268,9 @@ s_search_results search(s_board* board, int depth)
   int best_score = -INF;
   
   results.num_moves = find_moves_captures(board, results.moves, board->turn);
-  moves_sort(results.moves, results.num_moves);
+  #ifdef SORT_MOVES
+    moves_sort(results.moves, results.num_moves);
+  #endif
   results.num_moves += find_moves_quiet(board, &results.moves[results.num_moves], board->turn);
   
   // Set old permissions
@@ -468,7 +472,9 @@ int alpha_beta(s_board* board, int alpha, int beta, int depth, int null_allowed,
   
   s_move moves[MAX_MOVES];
   int num_moves = find_moves_captures(board, &moves[0], board->turn);
-  moves_sort(moves, num_moves);
+  #ifdef SORT_MOVES
+    moves_sort(moves, num_moves);
+  #endif
   num_moves += find_moves_quiet(board, &moves[num_moves], board->turn);
   
   #ifdef HASHTABLE
@@ -549,7 +555,9 @@ int alpha_beta(s_board* board, int alpha, int beta, int depth, int null_allowed,
   /*
   s_move moves[MAX_MOVES];
   int num_moves = find_moves_captures(board, &moves[0], board->turn);
-  moves_sort(moves, num_moves);
+  #ifdef SORT_MOVES
+    moves_sort(moves, num_moves);
+  #endif
   num_moves += find_moves_quiet(board, &moves[num_moves], board->turn);
   */
   

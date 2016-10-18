@@ -90,8 +90,8 @@ const int piece_location_bonus[5][64] = {
 const int bishop_pair_value = 25;
 const int knight_pair_value = 15;
 
-const int doubled_pawn_value  = -25;
-const int isolated_pawn_value = -50;
+const int doubled_pawn_value  = -10;
+const int isolated_pawn_value = -20;
 
 const int open_file_value = 25;
 

@@ -18,7 +18,8 @@ void perft_search(s_board* board, int d)
   assert(board->turn == WHITE || board->turn == BLACK);
   
   s_move moves[MAX_MOVES];
-  int num_moves = find_moves(board, moves, board->turn);
+  int num_moves = find_moves_captures(board, &moves[0], board->turn);
+  num_moves += find_moves_quiet(board, &moves[num_moves], board->turn);
   
   // Set old permissions
   #ifdef HASHTABLE
@@ -56,13 +57,6 @@ void perft_search(s_board* board, int d)
         moves_check++;
       }
       
-      /*
-      if(calculate_attacked_white(board, (board->colour[BLACK] & board->pieces[KINGS])) || calculate_attacked_black(board, (board->colour[WHITE] & board->pieces[KINGS])))
-      {
-        moves_check++;
-      }
-      */
-      
       switch(moves[m].type)
       {
         case QUIET:
@@ -82,6 +76,9 @@ void perft_search(s_board* board, int d)
         case QSC:
           if(board->turn == WHITE) {moves_wQSC++;}
           else                     {moves_bQSC++;}
+          break;
+        case PROMOTE:
+          if(moves[m].taken != EMPTY) {moves_capture++;}
           break;
         default:
           break;
@@ -130,7 +127,8 @@ int perft_split(s_board* board, int depth, char* fen)
   start = clock();
   
   s_move moves[MAX_MOVES];
-  int num_moves = find_moves(board, moves, board->turn);
+  int num_moves = find_moves_captures(board, &moves[0], board->turn);
+  num_moves += find_moves_quiet(board, &moves[num_moves], board->turn);
   
   printf("Num moves: %i\n\n", num_moves);
   
@@ -163,8 +161,8 @@ int perft_split(s_board* board, int depth, char* fen)
       board->turn = 1-(board->turn);
     }
     
+    printf("%I64u - ", moves_total);
     print_move(moves[m]);
-    printf("%I64u\n", moves_total);
     
     move_undo(board, &moves[m]);
     
@@ -520,9 +518,9 @@ int perft_movegen(s_board* board, const char* filepath)
     for(i = 0; i < repeats; ++i)
     {
       find_moves_wP_quiet(board, moves);
-      find_moves_wP_captures(board, moves);
+      find_moves_pawn_captures(board, moves, board->colour[WHITE]);
       find_moves_bP_quiet(board, moves);
-      find_moves_bP_captures(board, moves);
+      find_moves_pawn_captures(board, moves, board->colour[BLACK]);
     }
     time_taken = ((double)clock()-start)/CLOCKS_PER_SEC;
     time_total += time_taken;
