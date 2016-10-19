@@ -1,6 +1,25 @@
 #include "defs.h"
 #include <string.h>
 
+/*
+#define wKSC 1
+#define bKSC 2
+#define wQSC 4
+#define bQSC 8
+*/
+
+const uint8_t castling_perms[64] = {
+// A  B  C  D  E  F  G  H
+  11,15,15,15,10,15,15,14, // 1
+  15,15,15,15,15,15,15,15, // 2
+  15,15,15,15,15,15,15,15, // 3
+  15,15,15,15,15,15,15,15, // 4
+  15,15,15,15,15,15,15,15, // 5
+  15,15,15,15,15,15,15,15, // 6
+  15,15,15,15,15,15,15,15, // 7
+   7,15,15,15, 5,15,15,13  // 8
+};
+
 // MVV-LVA (Most Valuable Victim - Least Valuable Aggressor)
 int moves_sort(s_move* moves, int num)
 {
@@ -147,25 +166,6 @@ s_move move_add(s_board *board, int from, int to, int type, int piece_type)
   return move;
 }
 
-/*
-#define wKSC 1
-#define bKSC 2
-#define wQSC 4
-#define bQSC 8
-*/
-
-const uint8_t castling_perms[64] = {
-// A  B  C  D  E  F  G  H
-  11,15,15,15,10,15,15,14, // 1
-  15,15,15,15,15,15,15,15, // 2
-  15,15,15,15,15,15,15,15, // 3
-  15,15,15,15,15,15,15,15, // 4
-  15,15,15,15,15,15,15,15, // 5
-  15,15,15,15,15,15,15,15, // 6
-  15,15,15,15,15,15,15,15, // 7
-   7,15,15,15, 5,15,15,13  // 8
-};
-
 void move_make(s_board *board, s_move *move)
 {
   assert(board != NULL);
@@ -182,6 +182,7 @@ void move_make(s_board *board, s_move *move)
     {
       board->key ^= key_ep_file[SQ_TO_FILE(board->ep)];
     }
+    board->key ^= key_castling[board->castling];
   #endif
   
   board->ep = 0;
@@ -190,6 +191,10 @@ void move_make(s_board *board, s_move *move)
   // Castling permissions
   board->castling &= castling_perms[move->from];
   board->castling &= castling_perms[move->to];
+  
+  #ifdef HASHTABLE
+    board->key ^= key_castling[board->castling];
+  #endif
   
   switch(move->type)
   {

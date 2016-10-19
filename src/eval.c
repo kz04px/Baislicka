@@ -169,12 +169,38 @@ int is_threefold(s_board* board)
   return 0;
 }
 
+int insufficient_material(s_board* board)
+{
+  assert(board != NULL);
+  
+  // KP
+  if(board->pieces[PAWNS])  {return 0;}
+  // KQ
+  if(board->pieces[QUEENS]) {return 0;}
+  // KR
+  if(board->pieces[ROOKS])  {return 0;}
+  // KNB
+  if(board->colour[WHITE]&board->pieces[KNIGHTS] && board->colour[WHITE]&board->pieces[BISHOPS]) {return 0;}
+  if(board->colour[BLACK]&board->pieces[KNIGHTS] && board->colour[BLACK]&board->pieces[BISHOPS]) {return 0;}
+  
+  return 1;
+}
+
 const uint64_t files[8] = {U64_FILE_A, U64_FILE_B, U64_FILE_C, U64_FILE_D, U64_FILE_E, U64_FILE_F, U64_FILE_G, U64_FILE_H};
 const uint64_t adj_files[8] = {U64_FILE_B, U64_FILE_A|U64_FILE_C, U64_FILE_B|U64_FILE_D, U64_FILE_C|U64_FILE_E,
                                U64_FILE_D|U64_FILE_F, U64_FILE_E|U64_FILE_G, U64_FILE_F|U64_FILE_H, U64_FILE_G};
 
 int eval(s_board* board)
 {
+  int endgame = is_endgame(board);
+  
+  /*
+  if(endgame && insufficient_material(board))
+  {
+    return 0;
+  }
+  */
+  
   int score = 0;
   
   // Piece pairs
@@ -244,8 +270,6 @@ int eval(s_board* board)
       copy &= copy-1;
     }
   }
-  
-  int endgame = is_endgame(board);
   
   // Kings
   sq = __builtin_ctzll(board->pieces[KINGS]&board->colour[WHITE]);

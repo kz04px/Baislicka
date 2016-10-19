@@ -208,7 +208,6 @@ void *search_base(void *n)
   }
   
   move_to_string(move_string, bestmove);
-  print_move(*bestmove);
   GUI_Send("bestmove %s\n", move_string);
   
   /*
@@ -391,11 +390,29 @@ int alpha_beta(s_board* board, int alpha, int beta, int depth, int null_allowed,
       // Update whether the entry found is a threefold repetition or not
       if(move_is_legal(board, &entry->pv))
       {
+        // Set old permissions
+        #ifdef HASHTABLE
+          uint64_t key_old = board->key;
+        #endif
+        uint8_t num_halfmoves_old = board->num_halfmoves;
+        uint8_t ep_old = board->ep;
+        uint8_t castling_old = board->castling;
+        
         move_make(board, &entry->pv);
+        
         if(is_threefold(board))
         {
           entry->eval = -CONTEMPT_VALUE;
         }
+        
+        // Restore old permissions
+        #ifdef HASHTABLE
+          board->key = key_old;
+        #endif
+        board->ep = ep_old;
+        board->num_halfmoves = num_halfmoves_old;
+        board->castling = castling_old;
+        
         move_undo(board, &entry->pv);
       }
       */

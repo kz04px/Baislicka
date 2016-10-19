@@ -47,11 +47,8 @@ uint64_t create_key_board(s_board *board)
   {
     key ^= key_ep_file[SQ_TO_FILE(board->ep)];
   }
-
-  if(board->castling & wKSC) {key ^= key_castling[0];}
-  if(board->castling & wQSC) {key ^= key_castling[1];}
-  if(board->castling & bKSC) {key ^= key_castling[2];}
-  if(board->castling & bQSC) {key ^= key_castling[3];}
+  
+  key ^= key_castling[board->castling];
   
   return key;
 }
@@ -72,7 +69,7 @@ void key_init()
   key_turn = RAND_64;
 
   int i;
-  for(i = 0; i < 4; ++i)
+  for(i = 0; i < 16; ++i)
   {
     key_castling[i] = RAND_64;
   }
