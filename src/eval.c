@@ -276,7 +276,7 @@ int eval(s_board* board)
   score += king_location_bonus[endgame][sq];
   
   sq = __builtin_ctzll(board->pieces[KINGS]&board->colour[BLACK]);
-  score += king_location_bonus[endgame][sq^56];
+  score -= king_location_bonus[endgame][sq^56];
   
   if(board->turn == WHITE)
   {
