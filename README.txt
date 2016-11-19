@@ -8,6 +8,7 @@ Description:
   Quiescence search
   Transposition table
   Null move pruning
+  Killer move heuristic
 
 Platforms:
   Windows
@@ -23,8 +24,9 @@ Thanks:
   - Chris Moreton’s programming blog post on plain magic bitboards
     http://www.afewmorelines.com/understanding-magic-bitboards-in-chess-programming/
     
-  - The creator of perftsuite.epd
-  
+  - Roman Hartmann, the creator of perftsuite.epd and ROCE
+    http://www.rocechess.ch/perft.html
+    
   - Tomasz Michniewski's simplified evaluation function
     http://chessprogramming.wikispaces.com/Simplified+evaluation+function
     
