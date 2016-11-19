@@ -9,16 +9,7 @@ int square_attacked(s_board *board, uint64_t pos, int side)
   int sq = __builtin_ctzll(pos);
   
   // Pawns
-  if(side == WHITE)
-  {
-    if(((board->pieces[PAWNS]&board->colour[WHITE]) << 9) & (~U64_FILE_A) & pos) {return 1;} // Up 1 right 1
-    if(((board->pieces[PAWNS]&board->colour[WHITE]) << 7) & (~U64_FILE_H) & pos) {return 1;} // Up 1 left 1
-  }
-  else
-  {
-    if(((board->pieces[PAWNS]&board->colour[BLACK]) >> 7) & (~U64_FILE_A) & pos) {return 1;} // Down 1 right 1
-    if(((board->pieces[PAWNS]&board->colour[BLACK]) >> 9) & (~U64_FILE_H) & pos) {return 1;} // Down 1 left 1
-  }
+  if(magic_moves_pawns(1-side, sq) & board->pieces[PAWNS] & board->colour[side]) {return 1;}
   
   // Knights
   if((board->colour[side] & board->pieces[KNIGHTS]) & magic_moves_knight(sq)) {return 1;}
@@ -45,16 +36,7 @@ uint64_t calculate_attacking(s_board *board, uint64_t pos, int side)
   uint64_t attackers = 0;
   
   // Pawns
-  if(side == WHITE)
-  {
-    if(((board->pieces[PAWNS]&board->colour[WHITE]) << 9) & (~U64_FILE_A) & (pos)) {attackers |= pos>>9;} // Up 1 right 1
-    if(((board->pieces[PAWNS]&board->colour[WHITE]) << 7) & (~U64_FILE_H) & (pos)) {attackers |= pos>>7;} // Up 1 left 1
-  }
-  else
-  {
-    if(((board->pieces[PAWNS]&board->colour[BLACK]) >> 7) & (~U64_FILE_A) & (pos)) {attackers |= pos<<7;} // Down 1 right 1
-    if(((board->pieces[PAWNS]&board->colour[BLACK]) >> 9) & (~U64_FILE_H) & (pos)) {attackers |= pos<<9;} // Down 1 left 1
-  }
+  attackers |= board->colour[side] & board->pieces[PAWNS] & magic_moves_pawns(1-side, sq);
   
   // Knights
   attackers |= board->colour[side] & board->pieces[KNIGHTS] & magic_moves_knight(sq);
