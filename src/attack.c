@@ -1,6 +1,6 @@
 #include "defs.h"
 
-int square_attacked(s_board* board, uint64_t pos, int side)
+int square_attacked(s_board *board, uint64_t pos, int side)
 {
   assert(board != NULL);
   assert(pos);
@@ -35,7 +35,7 @@ int square_attacked(s_board* board, uint64_t pos, int side)
   return 0;
 }
 
-uint64_t calculate_attacking(s_board* board, uint64_t pos, int side)
+uint64_t calculate_attacking(s_board *board, uint64_t pos, int side)
 {
   assert(board != NULL);
   assert(pos);

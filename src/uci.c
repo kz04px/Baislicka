@@ -8,13 +8,13 @@ void uci_listen()
   
   // board & search information
   s_board *board = (s_board*) malloc(1*sizeof(s_board));
-  s_search_info *info = (s_search_info*) malloc(1*sizeof(s_search_info));
+  s_search_settings *settings = (s_search_settings*) malloc(1*sizeof(s_search_settings));
   
   // search thread
   pthread_t search_thread;
   s_thread_data data;
   data.board = board;
-  data.info = info;
+  data.settings = settings;
   
   set_fen(board, START_FEN);
   
@@ -44,6 +44,7 @@ void uci_listen()
       else if(strncmp(part, "ucinewgame", 10) == 0)
       {
         hashtable_clear(hashtable);
+        set_fen(board, START_FEN);
         break;
       }
       else if(strncmp(part, "position", 8) == 0)
@@ -72,7 +73,6 @@ void uci_listen()
           if(part[i+3] < '1' || '8' < part[i+3]) {continue;}
           
           move_make_ascii(board, &part[i]);
-          board->turn = 1-(board->turn);
         }
       }
       else if(strncmp(part, "display", 7) == 0)
@@ -90,73 +90,73 @@ void uci_listen()
         */
         
         // arbitrary default values 1+0
-        info->wtime = 60000;
-        info->btime = 60000;
-        info->winc = 0;
-        info->binc = 0;
-        info->movestogo = 20;
+        settings->wtime = 60000;
+        settings->btime = 60000;
+        settings->winc = 0;
+        settings->binc = 0;
+        settings->movestogo = 20;
         
         // This is a bit ugly
         while(part[1] != '\0')
         {
           if(strncmp(part, "infinite", 8) == 0)
           {
-            info->wtime = INT_MAX;
-            info->btime = INT_MAX;
+            settings->wtime = INT_MAX;
+            settings->btime = INT_MAX;
             break;
           }
           
           if(strncmp(part, "wtime", 5) == 0)
           {
             part += 6;
-            info->wtime = atoi(part);
+            settings->wtime = atoi(part);
           }
           else if(strncmp(part, "btime", 5) == 0)
           {
             part += 6;
-            info->btime = atoi(part);
+            settings->btime = atoi(part);
           }
           else if(strncmp(part, "winc", 4) == 0)
           {
             part += 5;
-            info->winc = atoi(part);
+            settings->winc = atoi(part);
           }
           else if(strncmp(part, "binc", 4) == 0)
           {
             part += 5;
-            info->binc = atoi(part);
+            settings->binc = atoi(part);
           }
           else if(strncmp(part, "movestogo", 9) == 0)
           {
             part += 10;
-            info->movestogo = atoi(part);
+            settings->movestogo = atoi(part);
           }
           
           part++;
         }
         
-        info->depth = -1;
-        info->nodes = -1;
-        info->mate = -1;
-        info->movetime = -1;
+        settings->depth = -1;
+        settings->nodes = -1;
+        settings->mate = -1;
+        settings->movetime = -1;
             
-        if(info->movestogo == 1)
+        if(settings->movestogo == 1)
         {
-          info->wtime -= 50;
-          info->btime -= 50;
+          settings->wtime -= 50;
+          settings->btime -= 50;
         }
         
-        search_info_set(*info);
+        search_settings_set(*settings);
         
-        if(pthread_create(&search_thread, NULL, search_base, &data))
+        if(pthread_create(&search_thread, NULL, search_root, &data))
         {
           fprintf(stderr, "Error creating thread\n");
         }
       }
       else if(strncmp(part, "stop", 4) == 0)
       {
-        info->time_max = 0;
-        search_info_set(*info);
+        settings->time_max = 0;
+        search_settings_set(*settings);
         pthread_join(search_thread, NULL);
       }
       else if(strncmp(part, "setoption", 9) == 0)
@@ -187,12 +187,36 @@ void uci_listen()
           }
         #endif
       }
+      else if(strncmp(part, "test", 4) == 0)
+      {
+        int repeats = 0;
+        int lim = (board->num_halfmoves+1 < board->history_size) ? board->num_halfmoves+1 : board->history_size;
+        
+        printf("--- TEST ---\n");
+        printf("Key: %"PRIdPTR"\n", board->key);
+        printf("board->history_size: %i\n", board->history_size);
+        printf("lim: %i\n", lim);
+        
+        int i;
+        for(i = 1; i <= lim; ++i)
+        {
+          printf("%i) %"PRIdPTR"  %"PRIdPTR"  %"PRIdPTR"\n", i, board->key_history[board->history_size-i], board->key, create_key_board(board));
+          if(board->key_history[board->history_size-i] == board->key)
+          {
+            repeats++;
+            printf("repeats: %i\n", repeats);
+          }
+        }
+        
+        printf("repeats: %i\n", repeats);
+        printf("--- TEST ---\n");
+      }
       
       part++;
     }
   }
   
   free(board);
-  free(info);
+  free(settings);
   return;
 }

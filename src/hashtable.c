@@ -106,7 +106,6 @@ s_hashtable_entry *hashtable_add(s_hashtable *hashtable, int flags, uint64_t key
   hashtable->entries[key%(hashtable->max_entries)].pv = pv;
 
   return NULL;
-  //return &hashtable->entries[key%(hashtable->max_entries)];
 }
 
 int hashtable_init(s_hashtable *hashtable, int size_megabytes)
@@ -167,4 +166,18 @@ void hashtable_free(s_hashtable *hashtable)
 
   if(hashtable->entries) {free(hashtable->entries);}
   free(hashtable);
+}
+
+int eval_to_tt(int eval, int ply)
+{
+  if(eval >  INF-MAX_DEPTH) {return eval + ply;}
+  if(eval < -INF+MAX_DEPTH) {return eval - ply;}
+  return eval;
+}
+
+int eval_from_tt(int eval, int ply)
+{
+  if(eval >  INF-MAX_DEPTH) {return eval - ply;}
+  if(eval < -INF+MAX_DEPTH) {return eval + ply;}
+  return eval;
 }

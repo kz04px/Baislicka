@@ -11,7 +11,7 @@ uint64_t moves_wQSC;
 uint64_t moves_bKSC;
 uint64_t moves_bQSC;
 
-void perft_search(s_board* board, int d)
+void perft_search(s_board *board, int d)
 {
   assert(board != NULL);
   assert(d > 0);
@@ -22,27 +22,18 @@ void perft_search(s_board* board, int d)
   num_moves += find_moves_quiet(board, &moves[num_moves], board->turn);
   
   // Set old permissions
-  #ifdef HASHTABLE
-    uint64_t key_old = board->key;
-  #endif
-  uint8_t num_halfmoves_old = board->num_halfmoves;
-  uint8_t ep_old = board->ep;
-  uint8_t castling_old = board->castling;
+  s_irreversible permissions;
+  store_irreversible(&permissions, board);
   
   int m;
   for(m = 0; m < num_moves; ++m)
   {
     move_make(board, &moves[m]);
     
-    if(square_attacked(board, board->pieces[KINGS]&board->colour[board->turn], !board->turn))
+    if(square_attacked(board, board->pieces[KINGS]&board->colour[!board->turn], board->turn))
     {
       // Restore old permissions
-      #ifdef HASHTABLE
-        board->key = key_old;
-      #endif
-      board->ep = ep_old;
-      board->num_halfmoves = num_halfmoves_old;
-      board->castling = castling_old;
+      restore_irreversible(&permissions, board);
       
       move_undo(board, &moves[m]);
       continue;
@@ -51,8 +42,8 @@ void perft_search(s_board* board, int d)
     if(d == 1)
     {
       moves_total++;
-    
-      if(square_attacked(board, board->pieces[KINGS]&board->colour[!board->turn], board->turn))
+      
+      if(square_attacked(board, board->pieces[KINGS]&board->colour[board->turn], !board->turn))
       {
         moves_check++;
       }
@@ -86,18 +77,11 @@ void perft_search(s_board* board, int d)
     }
     else
     {
-      board->turn = 1-(board->turn);
       perft_search(board, d-1);
-      board->turn = 1-(board->turn);
     }
     
     // Restore old permissions
-    #ifdef HASHTABLE
-      board->key = key_old;
-    #endif
-    board->ep = ep_old;
-    board->num_halfmoves = num_halfmoves_old;
-    board->castling = castling_old;
+    restore_irreversible(&permissions, board);
     
     move_undo(board, &moves[m]);
   }
@@ -105,7 +89,7 @@ void perft_search(s_board* board, int d)
   return;
 }
 
-int perft_split(s_board* board, int depth, char* fen)
+int perft_split(s_board *board, int depth, char *fen)
 {
   assert(board != NULL);
   assert(depth > 0);
@@ -137,7 +121,7 @@ int perft_split(s_board* board, int depth, char* fen)
   {
     move_make(board, &moves[m]);
     
-    if(square_attacked(board, board->pieces[KINGS]&board->colour[board->turn], !board->turn))
+    if(square_attacked(board, board->pieces[KINGS]&board->colour[!board->turn], board->turn))
     {
       move_undo(board, &moves[m]);
       continue;
@@ -156,9 +140,7 @@ int perft_split(s_board* board, int depth, char* fen)
     
     if(depth > 1)
     {
-      board->turn = 1-(board->turn);
       perft_search(board, depth-1);
-      board->turn = 1-(board->turn);
     }
     
     printf("%I64u - ", moves_total);
@@ -175,13 +157,13 @@ int perft_split(s_board* board, int depth, char* fen)
   return 0;
 }
 
-void perft_suite(s_board* board, int max_depth, char* filepath)
+void perft_suite(s_board *board, int max_depth, char *filepath)
 {
   assert(board != NULL);
   assert(max_depth > 0);
   assert(filepath != NULL);
   
-  FILE* file = fopen(filepath, "r");
+  FILE *file = fopen(filepath, "r");
   if(!file)
   {
     printf("Failed to find %s\n", filepath);
@@ -203,7 +185,7 @@ void perft_suite(s_board* board, int max_depth, char* filepath)
   char line[1024];
   while(fgets(line, sizeof(line), file))
   {
-    char* pch = strtok(line, ";");
+    char *pch = strtok(line, ";");
     
     int r = set_fen(board, line);
     if(r != 0)
@@ -268,7 +250,7 @@ void perft_suite(s_board* board, int max_depth, char* filepath)
   printf("Failed: %i (%.1f%%)\n", num_failed, 100*(float)num_failed/num_tests);
 }
 
-void perft(s_board* board, int max_depth, char* fen)
+void perft(s_board *board, int max_depth, char *fen)
 {
   assert(board != NULL);
   assert(max_depth > 0);
@@ -391,7 +373,7 @@ void perft(s_board* board, int max_depth, char* fen)
  * balance out - if the times are still not approximately the
  * same then presumably the movegen functions are imbalanced
  */
-int perft_movegen_sides(s_board* board, const char* filepath)
+int perft_movegen_sides(s_board *board, const char *filepath)
 {
   assert(board != NULL);
   assert(filepath != NULL);
@@ -406,7 +388,7 @@ int perft_movegen_sides(s_board* board, const char* filepath)
   int i;
   int test = 0;
   
-  FILE* file = fopen(filepath, "r");
+  FILE *file = fopen(filepath, "r");
   if(file == NULL) {return -1;}
   
   printf("Test White  Black\n");
@@ -415,7 +397,7 @@ int perft_movegen_sides(s_board* board, const char* filepath)
   {
     //if(test == 20) {break;}
     
-    char* pch = strtok(line, ";");
+    char *pch = strtok(line, ";");
     
     int r = set_fen(board, pch);
     if(r != 0)
@@ -468,7 +450,7 @@ int perft_movegen_sides(s_board* board, const char* filepath)
   return 0;
 }
 
-int perft_movegen(s_board* board, const char* filepath)
+int perft_movegen(s_board *board, const char *filepath)
 {
   assert(board != NULL);
   assert(filepath != NULL);
@@ -487,7 +469,7 @@ int perft_movegen(s_board* board, const char* filepath)
   int i;
   int test = 0;
   
-  FILE* file = fopen(filepath, "r");
+  FILE *file = fopen(filepath, "r");
   if(file == NULL) {return -1;}
   
   printf("Test Pawn   Knight Bishop Rook  King   Total\n");
@@ -497,7 +479,7 @@ int perft_movegen(s_board* board, const char* filepath)
     if(test == 20) {break;}
     time_total = 0;
     
-    char* pch = strtok(line, ";");
+    char *pch = strtok(line, ";");
     
     int r = set_fen(board, pch);
     if(r != 0)
@@ -595,13 +577,13 @@ int perft_movegen(s_board* board, const char* filepath)
   return 0;
 }
 
-void perft_suite_search(s_board* board, int max_depth, char* filepath)
+void perft_suite_search(s_board *board, int max_depth, char *filepath)
 {
   assert(board != NULL);
   assert(max_depth > 0);
   assert(filepath != NULL);
   
-  FILE* file = fopen(filepath, "r");
+  FILE *file = fopen(filepath, "r");
   if(!file)
   {
     printf("Failed to find %s\n", filepath);
@@ -639,16 +621,16 @@ void perft_suite_search(s_board* board, int max_depth, char* filepath)
     
     printf("Test %i:  ", num_tests);
     
-    s_search_info info;
-    info.time_max = 10000000;
-    search_info_set(info);
+    s_search_settings settings;
+    settings.time_max = 10000000;
+    search_settings_set(settings);
     
     hashtable_clear(hashtable);
     
     int i;
     for(i = 1; i <= max_depth; ++i)
     {
-      results = search(board, i);
+      results = search(board, i, -INF, INF);
     }
     
     bestmove = &results.moves[results.best_move_num];

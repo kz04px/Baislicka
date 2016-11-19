@@ -42,8 +42,13 @@ int main()
   
   #ifndef NDEBUG
     printf("Search debug info:\n");
-    printf("Alphabeta search\n");
     printf("Max search depth: %i\n", MAX_DEPTH);
+    
+    #ifdef ALPHA_BETA
+      printf("Enabled  - Alphabeta search\n");
+    #elif defined(PVS)
+      printf("Enabled  - Principal Variation Search\n");
+    #endif
     
     #ifdef QUIESCENCE_SEARCH
       printf("Enabled  - Quiescence search\n");
@@ -120,22 +125,22 @@ int main()
   }
   else if(strncmp(message, "test", 4) == 0)
   {
-    s_board* board = (s_board*) malloc(1*sizeof(s_board));
+    s_board *board = (s_board*) malloc(1*sizeof(s_board));
     if(board == NULL) {return -1;}
     
-    perft_suite(board, 5, "perftsuite.epd");
-    //perft(board, 7, START_FEN);
+    //perft_suite(board, 5, "perftsuite.epd");
+    perft(board, 7, START_FEN);
     //perft_split(board, 6, START_FEN);
     //perft_suite_search(board, 8, "perftsuite_2.epd");
     //perft_movegen(board, "perftsuite.epd");
     //perft_movegen_sides(board, "perftsuite.epd");
     
-    /*
+    
     set_fen(board, START_FEN);
     
-    s_search_info info;
-    info.time_max = 10000000;
-    search_info_set(info);
+    s_search_settings settings;
+    settings.time_max = 10000000;
+    search_settings_set(settings);
     uint64_t nodes_last = 0;
     
     printf("Search started\n");
@@ -144,7 +149,8 @@ int main()
     for(i = 1; i <= 9; ++i)
     {
       printf("Depth: %i\n", i);
-      s_search_results results = search(board, i);
+      //display_board(board);
+      s_search_results results = search(board, i, -INF, INF);
       
       //int m;
       //for(m = 0; m < results.num_moves; ++m)
@@ -198,7 +204,7 @@ int main()
       //printf("\n");
       //getchar();
     }
-    */
+    
     
     /*
     set_fen(board, START_FEN);
@@ -232,7 +238,6 @@ int main()
       scanf("%d", &move_number);
       
       move_make(board, &moves[move_number]);
-      board->turn = 1-board->turn;
     }
     */
     

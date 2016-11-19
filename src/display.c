@@ -25,6 +25,7 @@ void print_move(s_move move)
       printf("(K) ");
       break;
     default:
+      printf("[?] ");
       break;
   }
   
@@ -106,7 +107,7 @@ void print_move(s_move move)
   printf("\n");
 }
 
-void print_moves(s_move* moves, int num_moves)
+void print_moves(s_move *moves, int num_moves)
 {
   assert(moves != NULL);
   
@@ -232,7 +233,7 @@ void display_board(s_board *board)
   printf("Ep: %c%c\n", SQ_TO_FILE_CHAR(board->ep), SQ_TO_RANK_CHAR(board->ep));
 }
 
-void display_history(s_board* board)
+void display_history(s_board *board)
 {
   assert(board != NULL);
   

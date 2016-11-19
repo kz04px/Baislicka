@@ -9,7 +9,7 @@
 
 #define ENGINE_NAME "Baislicka"
 #define ENGINE_VERSION "2.0"
-#define ENGINE_AUTHOR "Twipply"
+#define ENGINE_AUTHOR "kz04px"
 #define START_FEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 #define SETBIT(x, n) ((x) = (x) | ((uint64_t)1<<(n)))
 #define GETBIT(x, n) (((x)>>(n))&1)
@@ -25,7 +25,8 @@
 #define HASHTABLE_SIZE_MAX     2048
 #define HISTORY_SIZE_MAX       1024
 #define INF 1000000
-#define CONTEMPT_VALUE 100
+#define CONTEMPT_VALUE 0
+#define NO_MOVE ((s_move) {0})
 
 #define U64_FILE_A 0x0101010101010101ULL
 #define U64_FILE_B 0x0202020202020202ULL
@@ -90,7 +91,10 @@
 #define NULL_MOVE
 #define SORT_MOVES
 //#define GENERATE_SORTED
-//#define KILLER_MOVES
+#define KILLER_MOVES
+#define ALPHA_BETA
+//#define PVS
+//#define ASPIRATION_WINDOW
 
 enum {WHITE, BLACK, BOTH};
 enum {PAWNS, KNIGHTS, BISHOPS, ROOKS, QUEENS, KINGS, EMPTY};
@@ -166,26 +170,58 @@ typedef struct
   int mate;
   int movetime;
   clock_t time_max;
-} s_search_info;
+} s_search_settings;
 
 typedef struct
 {
   s_board *board;
-  s_search_info *info;
+  s_search_settings *settings;
 } s_thread_data;
+
+typedef struct
+{
+  #ifdef HASHTABLE
+    uint64_t key;
+  #endif
+  uint8_t num_halfmoves;
+  uint8_t ep;
+  uint8_t castling;
+} s_irreversible;
+
+typedef struct
+{
+  int ply;
+  int seldepth;
+  clock_t time_start;
+  uint64_t nodes;
+  uint64_t hashtable_hits;
+} s_search_info;
 
 typedef struct
 {
   int out_of_time;
   int time_taken;
+  int seldepth;
   uint64_t nodes;
-  int best_move_num;
+  uint64_t hashtable_hits;
   
+  int best_move_num;
   int num_moves;
   s_move moves[MAX_MOVES];
   int evals[MAX_MOVES];
   s_pv pvs[MAX_MOVES];
 } s_search_results;
+
+typedef struct
+{
+  int stage;
+  int move_num;
+  int num_moves;
+  int capture_piece;
+  s_move hash_move;
+  s_move killer_move;
+  s_move moves[MAX_MOVES];
+} s_move_generator;
 
 s_hashtable *hashtable;
 uint64_t key_piece_positions[6][2][10*12];
@@ -201,7 +237,7 @@ uint64_t qsc_king[2];
 uint64_t qsc_rook[2];
 
 // attack.c
-int square_attacked(s_board* board, uint64_t pos, int side);
+int square_attacked(s_board *board, uint64_t pos, int side);
 
 // bitboards.c
 void bitboards_init();
@@ -213,15 +249,21 @@ uint64_t magic_moves_queen(uint64_t occ, int sq);
 uint64_t magic_moves_king(int sq);
 int u64_file(uint64_t pos);
 int u64_rank(uint64_t pos);
-uint64_t pinned_pieces_white(s_board* board, int sq);
-uint64_t pinned_pieces_black(s_board* board, int sq);
-int error_check(s_board* board);
+uint64_t pinned_pieces_white(s_board *board, int sq);
+uint64_t pinned_pieces_black(s_board *board, int sq);
+int error_check(s_board *board);
+uint64_t get_file(int file);
+uint64_t get_adj_files(int file);
+uint64_t is_passed_pawn(int side, int sq, uint64_t blockers);
 
 // search.c
-int search_info_set(s_search_info info);
-void *search_base(void *n);
-s_search_results search(s_board* board, int depth);
-int alpha_beta(s_board* board, int alpha, int beta, int depth, int null_allowed, s_pv *pv);
+int search_settings_set(s_search_settings settings);
+int store_irreversible(s_irreversible *info, s_board *board);
+int restore_irreversible(s_irreversible *info, s_board *board);
+void *search_root(void *n);
+s_search_results search(s_board *board, int depth, int alpha, int beta);
+int alpha_beta(s_board *board, s_search_info *info, int alpha, int beta, int depth, int null_move, s_pv *pv);
+int pvSearch(s_board *board, s_search_info *info, int alpha, int beta, int depth, int null_move);
 
 // hash_table.c
 void key_init();
@@ -231,55 +273,63 @@ void hashtable_clear(s_hashtable *hashtable);
 void hashtable_free(s_hashtable *hashtable);
 s_hashtable_entry *hashtable_poll(s_hashtable *hashtable, uint64_t key);
 s_hashtable_entry *hashtable_add(s_hashtable *hashtable, int flags, uint64_t key, int depth, int eval, s_move pv);
+int eval_to_tt(int eval, int ply);
+int eval_from_tt(int eval, int ply);
 
 // eval.c
-int is_endgame(s_board* board);
-int is_fifty_move_draw(s_board* board);
-int is_threefold(s_board* board);
-int eval(s_board* board);
+int is_endgame(s_board *board);
+int is_fifty_move_draw(s_board *board);
+int is_threefold(s_board *board);
+int eval(s_board *board);
 
 // movegen.c
-int find_moves_pawn_ep(s_board* board, s_move* move_list);
-int find_moves_pawn_captures(s_board* board, s_move* move_list, uint64_t allowed);
-int find_moves_wP_quiet(s_board* board, s_move* move_list);
-int find_moves_bP_quiet(s_board* board, s_move* move_list);
-int find_moves_knights(s_board* board, s_move* move_list, uint64_t allowed);
-int find_moves_bishops_queens(s_board* board, s_move* move_list, uint64_t allowed);
-int find_moves_rooks_queens(s_board* board, s_move* move_list, uint64_t allowed);
-int find_moves_kings(s_board* board, s_move* move_list, uint64_t allowed);
-int find_moves_kings_castles(s_board* board, s_move* move_list);
-int find_moves_captures(s_board* board, s_move* move_list, int colour);
-int find_moves_quiet(s_board* board, s_move* move_list, int colour);
+int find_moves_pawn_ep(s_board *board, s_move *move_list);
+int find_moves_pawn_captures(s_board *board, s_move *move_list, uint64_t allowed);
+int find_moves_wP_quiet(s_board *board, s_move *move_list);
+int find_moves_bP_quiet(s_board *board, s_move *move_list);
+int find_moves_knights(s_board *board, s_move *move_list, uint64_t allowed);
+int find_moves_bishops(s_board *board, s_move *move_list, uint64_t allowed);
+int find_moves_rooks(s_board *board, s_move *move_list, uint64_t allowed);
+int find_moves_queens(s_board *board, s_move *move_list, uint64_t allowed);
+int find_moves_bishops_queens(s_board *board, s_move *move_list, uint64_t allowed);
+int find_moves_rooks_queens(s_board *board, s_move *move_list, uint64_t allowed);
+int find_moves_kings(s_board *board, s_move *move_list, uint64_t allowed);
+int find_moves_kings_castles(s_board *board, s_move *move_list);
+int find_moves_captures(s_board *board, s_move *move_list, int colour);
+int find_moves_quiet(s_board *board, s_move *move_list, int colour);
 
 // fen.c
 int set_fen(s_board *board, const char *fen);
 
 // perft.c
-void perft(s_board* board, int max_depth, char* fen);
-int perft_split(s_board* board, int depth, char* fen);
-void perft_suite(s_board* board, int max_depth, char* filepath);
-void perft_suite_search(s_board* board, int max_depth, char* filepath);
-int perft_movegen(s_board* board, const char* filepath);
-int perft_movegen_sides(s_board* board, const char* filepath);
+void perft(s_board *board, int max_depth, char *fen);
+int perft_split(s_board *board, int depth, char *fen);
+void perft_suite(s_board *board, int max_depth, char *filepath);
+void perft_suite_search(s_board *board, int max_depth, char *filepath);
+int perft_movegen(s_board *board, const char *filepath);
+int perft_movegen_sides(s_board *board, const char *filepath);
 
 // move.c
+int null_make(s_board *board);
+int null_undo(s_board *board);
 s_move move_add(s_board *board, int from, int to, int type, int piece_type);
-int move_add_pawn(s_board* board, s_move* move_list, int from, int to);
-s_move add_movecapture(s_board* board, int from, int to, int piece_type);
+int move_add_pawn(s_board *board, s_move *move_list, int from, int to);
+s_move add_movecapture(s_board *board, int from, int to, int piece_type);
 s_move add_promotion_move(s_board *board, int from, int to, int piece_type, int promo_piece);
 void move_make(s_board *board, s_move *move);
 void move_undo(s_board *board, s_move *move);
-int moves_sort(s_move* moves, int num);
+int moves_sort(s_move *moves, int num);
 void move_make_ascii(s_board *board, char *move_string);
-int move_to_string(char* string, s_move *move);
-int move_is_legal(s_board* board, s_move* move);
+int move_to_string(char *string, s_move *move);
+uint64_t move_is_legal(s_board *board, s_move *move);
+int next_move(s_board *board, s_move_generator *generator, s_move *move);
 
 // display.c
 void print_move(s_move move);
-void print_moves(s_move* moves, int num_moves);
+void print_moves(s_move *moves, int num_moves);
 void print_u64(uint64_t board);
 void display_board(s_board *board);
-void display_history(s_board* board);
+void display_history(s_board *board);
 
 // uci.c
 void uci_listen();

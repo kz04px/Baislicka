@@ -1,13 +1,6 @@
 #include "defs.h"
 #include <string.h>
 
-/*
-#define wKSC 1
-#define bKSC 2
-#define wQSC 4
-#define bQSC 8
-*/
-
 const uint8_t castling_perms[64] = {
 // A  B  C  D  E  F  G  H
   11,15,15,15,10,15,15,14, // 1
@@ -20,8 +13,128 @@ const uint8_t castling_perms[64] = {
    7,15,15,15, 5,15,15,13  // 8
 };
 
+enum {NEXT_HASH, NEXT_KILLER, NEXT_CAPTURES, NEXT_QUIETS};
+
+int is_same_move(s_move move_1, s_move move_2)
+{
+  if(move_1.to != move_2.to) {return 0;}
+  if(move_1.from != move_2.from) {return 0;}
+  if(move_1.type != move_2.type) {return 0;}
+  return 1;
+}
+
+int is_no_move(s_move move)
+{
+  return is_same_move(move, NO_MOVE);
+}
+
+int next_move(s_board *board, s_move_generator *generator, s_move *move)
+{
+  assert(board);
+  assert(generator);
+  assert(move);
+  
+  while(generator->move_num >= generator->num_moves)
+  {
+    generator->move_num = 0;
+    
+    /*
+    if(generator->stage == NEXT_HASH)
+    {
+      generator->stage++;
+      if(!move_is_legal(board, &generator->hash_move)) {continue;}
+      generator->moves[0] = generator->hash_move;
+      generator->num_moves = 1;
+    }
+    else if(generator->stage == NEXT_KILLER)
+    {
+      generator->stage++;
+      if(!move_is_legal(board, &generator->killer_move)) {continue;}
+      generator->moves[0] = generator->killer_move;
+      generator->num_moves = 1;
+    }
+    else if(generator->stage == NEXT_CAPTURES)
+    {
+      generator->stage++;
+      generator->num_moves = find_moves_captures(board, &generator->moves[0], board->turn);
+      #ifdef SORT_MOVES
+        moves_sort(generator->moves, generator->num_moves);
+      #endif
+    }
+    else if(generator->stage == NEXT_QUIETS)
+    {
+      generator->stage++;
+      generator->num_moves = find_moves_quiet(board, &generator->moves[generator->num_moves], board->turn);
+    }
+    else
+    {
+      return 0;
+    }
+    */
+    if(generator->stage == 0)
+    {
+      generator->stage++;
+      generator->num_moves = find_moves_captures(board, &generator->moves[0], board->turn);
+      #ifdef SORT_MOVES
+        moves_sort(generator->moves, generator->num_moves);
+      #endif
+      generator->num_moves += find_moves_quiet(board, &generator->moves[generator->num_moves], board->turn);
+      
+      int i;
+      for(i = 0; i < generator->num_moves; ++i)
+      {
+        #ifdef HASHTABLE
+        if(is_same_move(generator->moves[i], generator->hash_move))
+        {
+          s_move store = generator->moves[0];
+          generator->moves[0] = generator->moves[i];
+          generator->moves[i] = store;
+        }
+        #endif
+        
+        #ifdef KILLER_MOVES
+        if(is_same_move(generator->moves[i], generator->killer_move))
+        {
+          s_move store = generator->moves[1];
+          generator->moves[1] = generator->moves[i];
+          generator->moves[i] = store;
+        }
+        #endif
+      }
+    }
+    else
+    {
+      return 0;
+    }
+  }
+  
+  /*
+  if(generator->stage == NEXT_CAPTURES)
+  {
+    if(is_same_move(generator->moves[generator->move_num], generator->hash_move))
+    {
+      generator->move_num++;
+      return next_move(board, generator, move);
+    }
+  }
+  else if(generator->stage >= NEXT_QUIETS)
+  {
+    if(is_same_move(generator->moves[generator->move_num], generator->hash_move) ||
+       is_same_move(generator->moves[generator->move_num], generator->killer_move))
+    {
+      generator->move_num++;
+      return next_move(board, generator, move);
+    }
+  }
+  */
+  
+  *move = generator->moves[generator->move_num];
+  generator->move_num++;
+  return 1;
+}
+
 // MVV-LVA (Most Valuable Victim - Least Valuable Aggressor)
-int moves_sort(s_move* moves, int num)
+int moves_sort(s_move *moves, int num)
 {
   assert(moves != NULL);
   assert(num >= 0);
@@ -55,7 +168,31 @@ int moves_sort(s_move* moves, int num)
   return 0;
 }
 
-int move_add_pawn(s_board* board, s_move* moves, int from, int to)
+int null_make(s_board *board)
+{
+  assert(board);
+  
+  board->ep = 0;
+  board->key ^= key_turn;
+  board->num_halfmoves = 0;
+  board->key_history[board->history_size] = board->key;
+  board->history_size++;
+  board->turn = 1-(board->turn);
+  
+  return 0;
+}
+
+int null_undo(s_board *board)
+{
+  assert(board);
+  
+  board->history_size--;
+  board->turn = 1-(board->turn);
+  
+  return 0;
+}
+
+int move_add_pawn(s_board *board, s_move *moves, int from, int to)
 {
   assert(board != NULL);
   assert(moves != NULL);
@@ -108,7 +245,7 @@ s_move add_promotion_move(s_board *board, int from, int to, int piece_type, int 
   return move;
 }
 
-s_move add_movecapture(s_board* board, int from, int to, int piece_type)
+s_move add_movecapture(s_board *board, int from, int to, int piece_type)
 {
   assert(board != NULL);
   assert(from >= 0);
@@ -343,12 +480,18 @@ void move_make(s_board *board, s_move *move)
   assert(board->history_size >= 0);
   board->key_history[board->history_size] = board->key;
   board->history_size++;
+  
+  // Turn
+  board->turn = 1-(board->turn);
 }
 
 void move_undo(s_board *board, s_move *move)
 {
   assert(board != NULL);
   assert(move != NULL);
+  
+  // Turn
+  board->turn = 1-(board->turn);
   
   uint64_t from = (uint64_t)1<<(move->from);
   uint64_t to   = (uint64_t)1<<(move->to);
@@ -590,7 +733,7 @@ void move_make_ascii(s_board *board, char *move_string)
   move_make(board, &move);
 }
 
-int move_to_string(char* string, s_move *move)
+int move_to_string(char *string, s_move *move)
 {
   assert(string != NULL);
   assert(move != NULL);
@@ -613,19 +756,165 @@ int move_to_string(char* string, s_move *move)
   return 0;
 }
 
-int move_is_legal(s_board* board, s_move* move)
+uint64_t move_is_legal(s_board *board, s_move *move)
 {
   assert(board != NULL);
   assert(move != NULL);
+  
   
   /*
   uint64_t from = (uint64_t)1<<move->from;
   uint64_t to = (uint64_t)1<<move->to;
   
-  if(!(board->pieces[move->piece_type] & from)) {return 0;}
-  if(!(board->colour[board->turn] & from)) {return 0;}
+  // Can't move on top of our own pieces
+  if(board->colour[board->turn] & to) {return 0;}
+  // Check for no move
+  if(is_no_move(*move)) {return 0;}
+  // Check the right piece is on the from square
+  if(!(board->pieces[move->piece_type] & board->colour[board->turn] & from)) {return 0;}
+  // Check the right piece is on the to square
+  if(move->taken != EMPTY && move->type != EP && !(board->colour[1-board->turn] & board->pieces[move->taken] & to)) {return 0;}
   
-  return 1;
+  switch(move->piece_type)
+  {
+    case PAWNS:
+      if(move->type == QUIET)
+      {
+        if((board->colour[WHITE]|board->colour[BLACK])&to) {return 0;}
+        
+        if(board->turn == WHITE)
+        {
+          if(to>>8 != from) {return 0;}
+          return 1;
+        }
+        else
+        {
+          if(to<<8 != from) {return 0;}
+          return 1;
+        }
+      }
+      else if(move->type == CAPTURE)
+      {
+        return magic_moves_pawns(board->turn, move->from) & to;
+      }
+      else if(move->type == DOUBLE_PAWN)
+      {
+        if((board->colour[WHITE]|board->colour[BLACK])&to) {return 0;}
+        
+        if(board->turn == WHITE)
+        {
+          if(!(U64_RANK_2&from)) {return 0;}
+          if((board->colour[WHITE]|board->colour[BLACK])&(from<<8)) {return 0;}
+          return 1;
+        }
+        else
+        {
+          if(!(U64_RANK_7&from)) {return 0;}
+          if((board->colour[WHITE]|board->colour[BLACK])&(from>>8)) {return 0;}
+          return 1;
+        }
+      }
+      else if(move->type == PROMOTE)
+      {
+        if(board->turn == WHITE)
+        {
+          if(!(U64_RANK_8&to)) {return 0;}
+          return 1;
+        }
+        else
+        {
+          if(!(U64_RANK_1&to)) {return 0;}
+          return 1;
+        }
+      }
+      else if(move->type == EP)
+      {
+        if((board->colour[WHITE]|board->colour[BLACK])&to) {return 0;}
+        if(!board->ep) {return 0;}
+        return magic_moves_pawns(!board->turn, board->ep) & from;
+      }
+      else
+      {
+        printf("???\n");
+        printf("Type: %i\n", move->type);
+        return 0;
+      }
+      break;
+    case KNIGHTS:
+      return magic_moves_knight(move->from) & to;
+      break;
+    case BISHOPS:
+      return magic_moves_bishop((board->colour[WHITE]|board->colour[BLACK]), move->from) & to;
+      break;
+    case ROOKS:
+      return magic_moves_rook((board->colour[WHITE]|board->colour[BLACK]), move->from) & to;
+      break;
+    case QUEENS:
+      return (magic_moves_rook((board->colour[WHITE]|board->colour[BLACK]), move->from) & to) ||
+             (magic_moves_bishop((board->colour[WHITE]|board->colour[BLACK]), move->from) & to);
+      break;
+    case KINGS:
+      if(move->type == KSC)
+      {
+        if(board->turn == WHITE)
+        {
+          if(!(board->castling & wKSC)) {return 0;}
+          if((board->colour[WHITE]|board->colour[BLACK])&U64_F1) {return 0;}
+          if((board->colour[WHITE]|board->colour[BLACK])&U64_G1) {return 0;}
+          if(square_attacked(board, U64_E1, BLACK)) {return 0;}
+          if(square_attacked(board, U64_F1, BLACK)) {return 0;}
+          if(square_attacked(board, U64_G1, BLACK)) {return 0;}
+          
+          return 1;
+        }
+        else
+        {
+          if(!(board->castling & bKSC)) {return 0;}
+          if((board->colour[WHITE]|board->colour[BLACK])&U64_F8) {return 0;}
+          if((board->colour[WHITE]|board->colour[BLACK])&U64_G8) {return 0;}
+          if(square_attacked(board, U64_E8, WHITE)) {return 0;}
+          if(square_attacked(board, U64_F8, WHITE)) {return 0;}
+          if(square_attacked(board, U64_G8, WHITE)) {return 0;}
+          
+          return 1;
+        }
+      }
+      else if(move->type == QSC)
+      {
+        if(board->turn == WHITE)
+        {
+          if(!(board->castling & wQSC)) {return 0;}
+          if((board->colour[WHITE]|board->colour[BLACK])&U64_B1) {return 0;}
+          if((board->colour[WHITE]|board->colour[BLACK])&U64_C1) {return 0;}
+          if((board->colour[WHITE]|board->colour[BLACK])&U64_D1) {return 0;}
+          if(square_attacked(board, U64_E1, BLACK)) {return 0;}
+          if(square_attacked(board, U64_D1, BLACK)) {return 0;}
+          if(square_attacked(board, U64_E1, BLACK)) {return 0;}
+          
+          return 1;
+        }
+        else
+        {
+          if(!(board->castling & bQSC)) {return 0;}
+          if((board->colour[WHITE]|board->colour[BLACK])&U64_B8) {return 0;}
+          if((board->colour[WHITE]|board->colour[BLACK])&U64_C8) {return 0;}
+          if((board->colour[WHITE]|board->colour[BLACK])&U64_D8) {return 0;}
+          if(square_attacked(board, U64_E8, WHITE)) {return 0;}
+          if(square_attacked(board, U64_D8, WHITE)) {return 0;}
+          if(square_attacked(board, U64_C8, WHITE)) {return 0;}
+          
+          return 1;
+        }
+      }
+      else
+      {
+        return magic_moves_king(move->from) & to;
+      }
+      break;
+  }
+  
+  assert(0);
+  return 0;
   */
   
   s_move move_list[MAX_MOVES];
@@ -668,12 +957,7 @@ int move_is_legal(s_board* board, s_move* move)
   int i;
   for(i = 0; i < num_moves; ++i)
   {
-    if(move_list[i].from == move->from &&
-       move_list[i].to == move->to &&
-       move_list[i].type == move->type &&
-       move_list[i].taken == move->taken &&
-       move_list[i].piece_type == move->piece_type &&
-       move_list[i].promotion == move->promotion)
+    if(is_same_move(move_list[i], *move))
     {
       return 1;
     }

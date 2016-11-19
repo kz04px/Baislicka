@@ -3,21 +3,47 @@
 #define R 2
 
 s_board *board = NULL;
-s_search_info search_info;
-
-clock_t time_start = 0;
-uint64_t nodes = 0;
-uint64_t hashtable_hits = 0;
-int search_depth = 0;
+s_search_settings search_settings;
 
 #ifdef KILLER_MOVES
   uint64_t killer_moves_key[MAX_DEPTH];
   s_move killer_moves[MAX_DEPTH];
 #endif
 
-int quiesce(s_board *board, int alpha, int beta)
+int store_irreversible(s_irreversible *info, s_board *board)
+{
+  assert(board);
+  assert(info);
+  
+  info->key           = board->key;
+  info->num_halfmoves = board->num_halfmoves;
+  info->ep            = board->ep;
+  info->castling      = board->castling;
+  
+  return 0;
+}
+
+int restore_irreversible(s_irreversible *info, s_board *board)
+{
+  assert(board);
+  assert(info);
+  
+  board->key           = info->key;
+  board->num_halfmoves = info->num_halfmoves;
+  board->ep            = info->ep;
+  board->castling      = info->castling;
+  
+  return 0;
+}
+
+int qsearch(s_board *board, s_search_info *info, int alpha, int beta)
 {
   int stand_pat = eval(board);
+  
+  if(info->ply > info->seldepth)
+  {
+    info->seldepth = info->ply;
+  }
   
   if(stand_pat >= beta)
   {
@@ -29,6 +55,15 @@ int quiesce(s_board *board, int alpha, int beta)
     alpha = stand_pat;
   }
   
+  if(info->ply >= MAX_DEPTH)
+  {
+    return stand_pat;
+  }
+  
+  // Set old permissions
+  s_irreversible permissions;
+  store_irreversible(&permissions, board);
+  
   s_move moves[MAX_MOVES];
   int num_moves = find_moves_captures(board, moves, board->turn);
   #ifdef SORT_MOVES
@@ -36,48 +71,30 @@ int quiesce(s_board *board, int alpha, int beta)
   #endif
   int score;
   
-  // Set old permissions
-  #ifdef HASHTABLE
-    uint64_t key_old = board->key;
-  #endif
-  uint8_t num_halfmoves_old = board->num_halfmoves;
-  uint8_t ep_old = board->ep;
-  uint8_t castling_old = board->castling;
-  
   int m;
   for(m = 0; m < num_moves; ++m)
   {
     move_make(board, &moves[m]);
     
-    if(square_attacked(board, board->pieces[KINGS]&board->colour[board->turn], !board->turn))
+    if(square_attacked(board, board->pieces[KINGS]&board->colour[!board->turn], board->turn))
     {
       // Restore old permissions
-      #ifdef HASHTABLE
-        board->key = key_old;
-      #endif
-      board->ep = ep_old;
-      board->num_halfmoves = num_halfmoves_old;
-      board->castling = castling_old;
+      restore_irreversible(&permissions, board);
       
       move_undo(board, &moves[m]);
       continue;
     }
+  
+    info->nodes++;
     
-    nodes++;
+    info->ply++;
     
-    board->turn = 1-(board->turn);
+    score = -qsearch(board, info, -beta, -alpha);
     
-    score = -quiesce(board, -beta, -alpha);
-    
-    board->turn = 1-(board->turn);
+    info->ply--;
     
     // Restore old permissions
-    #ifdef HASHTABLE
-      board->key = key_old;
-    #endif
-    board->ep = ep_old;
-    board->num_halfmoves = num_halfmoves_old;
-    board->castling = castling_old;
+    restore_irreversible(&permissions, board);
     
     move_undo(board, &moves[m]);
  
@@ -94,13 +111,13 @@ int quiesce(s_board *board, int alpha, int beta)
   return alpha;
 }
 
-int search_info_set(s_search_info info)
+int search_settings_set(s_search_settings settings)
 {
-  search_info = info;
+  search_settings = settings;
   return 0;
 }
 
-void *search_base(void *n)
+void *search_root(void *n)
 {
   assert(n != NULL);
   
@@ -110,11 +127,11 @@ void *search_base(void *n)
   
   if(board->turn == WHITE)
   {
-    search_info.time_max = search_info.wtime/search_info.movestogo + search_info.winc;
+    search_settings.time_max = search_settings.wtime/search_settings.movestogo + search_settings.winc;
   }
   else
   {
-    search_info.time_max = search_info.btime/search_info.movestogo + search_info.binc;
+    search_settings.time_max = search_settings.btime/search_settings.movestogo + search_settings.binc;
   }
   
   int target_depth = 1;
@@ -123,23 +140,26 @@ void *search_base(void *n)
   s_move ponder;
   s_search_results results;
   
-  s_move *bestmove = NULL;
+  s_move bestmove;
   s_pv *bestmove_pv = NULL;
-  int *bestmove_eval = NULL;
+  int bestmove_eval;
   
   int i;
   for(i = 1; i <= target_depth && i < MAX_DEPTH; ++i)
   {
-    results = search(board, i);
+    int alpha = -INF;
+    int beta = INF;
+    
+    results = search(board, i, alpha, beta);
     
     if(results.out_of_time == 1) {break;}
     
     assert(results.best_move_num >= 0);
     assert(results.best_move_num < results.num_moves);
     
-    bestmove = &results.moves[results.best_move_num];
+    bestmove = results.moves[results.best_move_num];
     bestmove_pv = &results.pvs[results.best_move_num];
-    bestmove_eval = &results.evals[results.best_move_num];
+    bestmove_eval = results.evals[results.best_move_num];
     
     move_string[0] = '\0';
     int n;
@@ -149,40 +169,22 @@ void *search_base(void *n)
       sprintf(move_string, "%s %s", move_string, temp);
     }
     
-    if(board->turn == WHITE)
+    if(bestmove_eval > INF-MAX_DEPTH)
     {
-      if(*bestmove_eval > INF-MAX_DEPTH)
-      {
-        GUI_Send("info depth %i score mate %i nodes %"PRIdPTR" time %i pv%s\n", i, INF-(*bestmove_eval), nodes, results.time_taken, move_string);
-      }
-      else if(*bestmove_eval < -INF+MAX_DEPTH)
-      {
-        GUI_Send("info depth %i score mate %i nodes %"PRIdPTR" time %i pv%s\n", i, -(*bestmove_eval)-INF, nodes, results.time_taken, move_string);
-      }
-      else
-      {
-        GUI_Send("info depth %i score cp %i nodes %"PRIdPTR" time %i pv%s\n", i, *bestmove_eval, nodes, results.time_taken, move_string);
-      }
+      GUI_Send("info depth %i score mate %i nodes %"PRIdPTR" time %i seldepth %i pv%s\n", i, INF-bestmove_eval, results.nodes, results.time_taken, results.seldepth, move_string);
+    }
+    else if(bestmove_eval < -INF+MAX_DEPTH)
+    {
+      GUI_Send("info depth %i score mate %i nodes %"PRIdPTR" time %i seldepth %i pv%s\n", i, -bestmove_eval-INF, results.nodes, results.time_taken, results.seldepth, move_string);
     }
     else
     {
-      if(*bestmove_eval < -INF+MAX_DEPTH)
-      {
-        GUI_Send("info depth %i score mate %i nodes %"PRIdPTR" time %i pv%s\n", i, -INF-(*bestmove_eval), nodes, results.time_taken, move_string);
-      }
-      else if(*bestmove_eval > INF-MAX_DEPTH)
-      {
-        GUI_Send("info depth %i score mate %i nodes %"PRIdPTR" time %i pv%s\n", i, -(*bestmove_eval)+INF, nodes, results.time_taken, move_string);
-      }
-      else
-      {
-        GUI_Send("info depth %i score cp %i nodes %"PRIdPTR" time %i pv%s\n", i, *bestmove_eval, nodes, results.time_taken, move_string);
-      }
+      GUI_Send("info depth %i score cp %i nodes %"PRIdPTR" time %i seldepth %i pv%s\n", i, bestmove_eval, results.nodes, results.time_taken, results.seldepth, move_string);
     }
     
     if(results.time_taken > 0)
     {
-      GUI_Send("info nps %"PRIdPTR"\n", 1000*nodes/results.time_taken);
+      GUI_Send("info nps %"PRIdPTR"\n", 1000*results.nodes/results.time_taken);
     }
     
     if(bestmove_pv->num_moves > 1)
@@ -190,12 +192,12 @@ void *search_base(void *n)
       ponder = bestmove_pv->moves[1];
     }
     
-    if(*bestmove_eval < -INF+MAX_DEPTH || *bestmove_eval > INF-MAX_DEPTH)
+    if(bestmove_eval < -INF+MAX_DEPTH || bestmove_eval > INF-MAX_DEPTH)
     {
       break;
     }
     
-    if(5*results.time_taken < search_info.time_max)
+    if(5*results.time_taken < search_settings.time_max)
     {
       target_depth++;
     }
@@ -204,49 +206,16 @@ void *search_base(void *n)
   if(i == 1 && results.out_of_time == 1)
   {
     printf("Warning: Didn't complete depth 1 search in time\n");
-    bestmove = &results.moves[0];
+    bestmove = results.moves[0];
   }
   
-  move_to_string(move_string, bestmove);
+  move_to_string(move_string, &bestmove);
   GUI_Send("bestmove %s\n", move_string);
-  
-  /*
-  // Test
-  int m;
-  for(m = 0; m < results.num_moves; ++m)
-  {
-    if(results.evals[m] >= 0)
-    {
-      printf(" %i  ", results.evals[m]);
-    }
-    else
-    {
-      printf("%i  ", results.evals[m]);
-    }
-    print_move(results.moves[m]);
-  }
-  */
-  
-  /*
-  if(results.pv.num_moves == 1)
-  {
-    move_to_string(move_string, &bestmove);
-    GUI_Send("bestmove %s\n", move_string);
-  }
-  else
-  {
-    move_to_string(temp, &results.pv.moves[0]);
-    sprintf(move_string, "bestmove %s", temp);
-    move_to_string(temp, &results.pv.moves[1]);
-    sprintf(move_string, "%s ponder %s\n", move_string, temp);
-    GUI_Send(move_string);
-  }
-  */
   
   return NULL;
 }
 
-s_search_results search(s_board* board, int depth)
+s_search_results search(s_board *board, int depth, int alpha, int beta)
 {
   assert(board != NULL);
   assert(depth > 0);
@@ -255,16 +224,9 @@ s_search_results search(s_board* board, int depth)
   results.out_of_time = 0;
   results.time_taken = 0;
   
-  search_depth = depth;
-  nodes = 0;
-  #ifdef HASHTABLE
-    hashtable_hits = 0;
-  #endif
-  
-  time_start = clock();
   int score;
-  
   int best_score = -INF;
+  s_pv pv_local;
   
   results.num_moves = find_moves_captures(board, results.moves, board->turn);
   #ifdef SORT_MOVES
@@ -272,16 +234,16 @@ s_search_results search(s_board* board, int depth)
   #endif
   results.num_moves += find_moves_quiet(board, &results.moves[results.num_moves], board->turn);
   
-  // Set old permissions
-  #ifdef HASHTABLE
-    uint64_t key_old = board->key;
-  #endif
-  uint8_t num_halfmoves_old = board->num_halfmoves;
-  uint8_t ep_old = board->ep;
-  uint8_t castling = board->castling;
+  s_search_info *info = malloc(1*sizeof(s_search_info));
+  info->ply = 0;
+  info->time_start = clock();
+  info->nodes = 0;
+  info->hashtable_hits = 0;
+  info->seldepth = 0;
   
-  s_pv pv_local;
-  pv_local.num_moves = 0;
+  // Set old permissions
+  s_irreversible permissions;
+  store_irreversible(&permissions, board);
   
   int m;
   for(m = 0; m < results.num_moves; ++m)
@@ -289,21 +251,16 @@ s_search_results search(s_board* board, int depth)
     results.pvs[m].num_moves = 0;
     move_make(board, &results.moves[m]);
     
-    if(square_attacked(board, board->pieces[KINGS]&board->colour[board->turn], !board->turn))
+    if(square_attacked(board, board->pieces[KINGS]&board->colour[!board->turn], board->turn))
     {
       // Restore old permissions
-      #ifdef HASHTABLE
-        board->key = key_old;
-      #endif
-      board->ep = ep_old;
-      board->num_halfmoves = num_halfmoves_old;
-      board->castling = castling;
+      restore_irreversible(&permissions, board);
       
       move_undo(board, &results.moves[m]);
       continue;
     }
     
-    nodes++;
+    info->nodes++;
     
     if(is_threefold(board) || is_fifty_move_draw(board))
     {
@@ -311,14 +268,18 @@ s_search_results search(s_board* board, int depth)
     }
     else
     {
-      time_t time_spent = clock() - time_start;
-      if(time_spent < search_info.time_max)
+      time_t time_spent = clock() - info->time_start;
+      if(time_spent < search_settings.time_max)
       {
-        board->turn = 1-(board->turn);
+        info->ply++;
         
-        score = -alpha_beta(board, -INF, INF, depth-1, 1, &pv_local);
+        #ifdef ALPHA_BETA
+          score = -alpha_beta(board, info, alpha, beta, depth-1, 1, &pv_local);
+        #elif defined(PVS)
+          score = -pvSearch(board, info, alpha, beta, depth-1, 1);
+        #endif
         
-        board->turn = 1-(board->turn);
+        info->ply--;
       }
       else
       {
@@ -328,22 +289,9 @@ s_search_results search(s_board* board, int depth)
     }
     
     // Restore old permissions
-    #ifdef HASHTABLE
-      board->key = key_old;
-    #endif
-    board->ep = ep_old;
-    board->num_halfmoves = num_halfmoves_old;
-    board->castling = castling;
+    restore_irreversible(&permissions, board);
     
     move_undo(board, &results.moves[m]);
-    
-    results.pvs[m].moves[0] = results.moves[m];
-    int i;
-    for(i = 0; i < pv_local.num_moves && i < MAX_DEPTH-1; ++i)
-    {
-      results.pvs[m].moves[i+1] = pv_local.moves[i];
-    }
-    results.pvs[m].num_moves = pv_local.num_moves + 1;
     
     results.evals[m] = score;
     
@@ -351,274 +299,163 @@ s_search_results search(s_board* board, int depth)
     {
       best_score = score;
       results.best_move_num = m;
+      
+      results.pvs[m].moves[0] = results.moves[m];
+      int i;
+      for(i = 0; i < pv_local.num_moves && i < MAX_DEPTH-1; ++i)
+      {
+        results.pvs[m].moves[i+1] = pv_local.moves[i];
+      }
+      results.pvs[m].num_moves = pv_local.num_moves + 1;
     }
   }
   
-  results.nodes = nodes;
-  results.time_taken = clock() - time_start;
+  results.nodes = info->nodes;
+  results.seldepth = info->seldepth;
+  results.time_taken = clock() - info->time_start;
   
   return results;
 }
 
-int alpha_beta(s_board* board, int alpha, int beta, int depth, int null_allowed, s_pv *pv)
+int alpha_beta(s_board *board, s_search_info *info, int alpha, int beta, int depth, int null_move, s_pv *pv)
 {
   assert(board != NULL);
+  assert(info != NULL);
+  assert(beta >= alpha);
   assert(depth >= 0);
-  assert(pv != NULL);
+  assert(pv);
   
-  // Test
+  // Evaluate draws
   if(is_threefold(board) || is_fifty_move_draw(board))
   {
     return CONTEMPT_VALUE;
   }
   
-  int score;
-  s_pv pv_local;
-  pv_local.num_moves = 0;
-  
-  #ifdef HASHTABLE
-    int alpha_original = alpha;
-    
-    s_hashtable_entry *entry = hashtable_poll(hashtable, board->key);
-    
-    if(board->key == entry->key && entry->depth >= depth)
-    {
-      hashtable_hits++;
-      
-      /*
-      // TEST
-      // Update whether the entry found is a threefold repetition or not
-      if(move_is_legal(board, &entry->pv))
-      {
-        // Set old permissions
-        #ifdef HASHTABLE
-          uint64_t key_old = board->key;
-        #endif
-        uint8_t num_halfmoves_old = board->num_halfmoves;
-        uint8_t ep_old = board->ep;
-        uint8_t castling_old = board->castling;
-        
-        move_make(board, &entry->pv);
-        
-        if(is_threefold(board))
-        {
-          entry->eval = -CONTEMPT_VALUE;
-        }
-        
-        // Restore old permissions
-        #ifdef HASHTABLE
-          board->key = key_old;
-        #endif
-        board->ep = ep_old;
-        board->num_halfmoves = num_halfmoves_old;
-        board->castling = castling_old;
-        
-        move_undo(board, &entry->pv);
-      }
-      */
-      
-      if(entry->flags == EXACT)
-      {
-        pv->num_moves = 0;
-        return entry->eval;
-      }
-      else if(entry->flags == LOWERBOUND)
-      {
-        if(entry->eval > alpha)
-        {
-          alpha = entry->eval;
-        }
-      }
-      else if(entry->flags == UPPERBOUND)
-      {
-        if(entry->eval < beta)
-        {
-          beta = entry->eval;
-        }
-      }
-      
-      if(alpha >= beta)
-      {
-        pv->num_moves = 0;
-        return entry->eval;
-      }
-    }
-  #endif
+  // Stop search at maximum depth
+  if(info->ply >= MAX_DEPTH)
+  {
+    return eval(board);
+  }
   
   if(depth == 0)
   {
-    pv->num_moves = 0;
     #ifdef QUIESCENCE_SEARCH
-      return quiesce(board, alpha, beta);
+      return qsearch(board, info, alpha, beta);
     #else
       return eval(board);
     #endif
   }
   
-  #ifdef NULL_MOVE
-    if(!is_endgame(board) && null_allowed && depth > 2 && !square_attacked(board, board->pieces[KINGS]&board->colour[board->turn], !board->turn))
+  s_pv pv_local = {0};
+  s_move_generator gen = {0};
+  gen.stage = 0;
+  gen.hash_move = NO_MOVE;
+  gen.killer_move = NO_MOVE;
+  int score;
+  
+  #ifdef HASHTABLE
+    int alpha_original = alpha;
+    
+    s_hashtable_entry entry = *hashtable_poll(hashtable, board->key);
+    int entry_valid = (board->key == entry.key);
+    int entry_eval = eval_from_tt(entry.eval, info->ply);
+    
+    if(entry_valid)
     {
-      // Store
-      uint8_t ep_old = board->ep;
-      uint8_t num_halfmoves_old = board->num_halfmoves;
+      info->hashtable_hits++;
+      //if(move_is_legal(board, &entry.pv))
+      //{
+        gen.hash_move = entry.pv;
+      //}
       
-      // Make null move
-      board->ep = 0;
-      board->key ^= key_turn;
-      board->num_halfmoves = 0;
-      board->turn = 1-(board->turn);
-      board->key_history[board->history_size] = board->key;
-      board->history_size++;
+      if(entry.depth >= depth)
+      {
+        if(entry_eval >= beta)
+        {
+          if(entry.flags == LOWERBOUND)
+          {
+            return entry_eval;
+          }
+        }
+        else if(entry.flags == UPPERBOUND)
+        {
+          return entry_eval;
+        }
+      }
+    }
+  #endif
+  
+  int in_check = square_attacked(board, board->pieces[KINGS]&board->colour[board->turn], !board->turn);
+  
+  /*
+  if(in_check)
+  {
+    depth++;
+  }
+  */
+  
+  // Set old permissions
+  s_irreversible permissions;
+  store_irreversible(&permissions, board);
+  
+  #ifdef NULL_MOVE
+    if(null_move && !is_endgame(board) && depth > 2 && !in_check)
+    {
+      // Make nullmove
+      null_make(board);
       
-      score = -alpha_beta(board, -beta, -beta+1, depth-1-R, 0, &pv_local);
+      info->ply++;
+      score = -alpha_beta(board, info, -beta, -beta+1, depth-1-R, 0, &pv_local);
+      info->ply--;
       
-      // Undo null move
-      board->ep = ep_old;
-      board->key ^= key_turn;
-      board->num_halfmoves = num_halfmoves_old;
-      board->turn = 1-(board->turn);
-      board->history_size--;
+      // Unmake nullmove
+      null_undo(board);
+      
+      // Restore old permissions
+      restore_irreversible(&permissions, board);
       
       if(score >= beta)
       {
-        pv->num_moves = 0;
         return score;
       }
     }
   #endif
   
-  s_move moves[MAX_MOVES];
-  int num_moves = find_moves_captures(board, &moves[0], board->turn);
-  #ifdef SORT_MOVES
-    moves_sort(moves, num_moves);
-  #endif
-  num_moves += find_moves_quiet(board, &moves[num_moves], board->turn);
-  
-  #ifdef HASHTABLE
-    int best_move_num = 0;
-    if(board->key == entry->key)
-    {
-      /*
-      if(move_is_legal(board, &entry->pv))
-      {
-        s_move store = entry->pv;
-        move_make(board, &store);
-        
-        if(!square_attacked(board, board->pieces[KINGS]&board->colour[board->turn], !board->turn))
-        {
-          nodes++;
-          
-          board->turn = 1-(board->turn);
-          score = -alpha_beta(board, -beta, -alpha, depth-1, 1, &pv_local);
-          board->turn = 1-(board->turn);
-          
-          if(score > alpha)
-          {
-            alpha = score;
-            
-            assert(pv_local.num_moves >= 0);
-            assert(pv_local.num_moves < MAX_DEPTH - 1);
-            pv->moves[0] = store;
-            int i;
-            for(i = 0; i < pv_local.num_moves && i < MAX_DEPTH - 1; ++i)
-            {
-              pv->moves[i+1] = pv_local.moves[i];
-            }
-            pv->num_moves = pv_local.num_moves + 1;
-          }
-          if(alpha >= beta)
-          {
-            move_undo(board, &store);
-            return score;
-          }
-        }
-        
-        move_undo(board, &store);
-      }
-      */
-      
-      int i;
-      for(i = 0; i < num_moves; ++i)
-      {
-        if(moves[i].from == entry->pv.from &&
-           moves[i].to   == entry->pv.to &&
-           moves[i].type == entry->pv.type)
-        {
-          s_move temp = moves[0];
-          moves[0] = moves[i];
-          moves[i] = temp;
-          break;
-        }
-      }
-    }
-  #endif
-  
   #ifdef KILLER_MOVES
-    int i;
-    for(i = 1; i < num_moves; ++i)
-    {
-      if(moves[i].from == killer_moves[search_depth-depth].from &&
-         moves[i].to   == killer_moves[search_depth-depth].to &&
-         moves[i].type == killer_moves[search_depth-depth].type)
-      {
-        s_move temp = moves[1];
-        moves[1] = moves[i];
-        moves[i] = temp;
-        break;
-      }
-    }
+    gen.killer_move = NO_MOVE;
+    //if(killer_moves_key[info->ply] == board->key && move_is_legal(board, &killer_moves[info->ply]))
+    //if(move_is_legal(board, &killer_moves[info->ply]))
+    //{
+      gen.killer_move = killer_moves[info->ply];
+    //}
   #endif
-  
-  /*
-  s_move moves[MAX_MOVES];
-  int num_moves = find_moves_captures(board, &moves[0], board->turn);
-  #ifdef SORT_MOVES
-    moves_sort(moves, num_moves);
-  #endif
-  num_moves += find_moves_quiet(board, &moves[num_moves], board->turn);
-  */
-  
-  // Set old permissions
-  #ifdef HASHTABLE
-    uint64_t key_old = board->key;
-  #endif
-  uint8_t num_halfmoves_old = board->num_halfmoves;
-  uint8_t ep_old = board->ep;
-  uint8_t castling_old = board->castling;
   
   int best_score = -INF;
-  int played = 0;
   
-  int m;
-  for(m = 0; m < num_moves; ++m)
+  s_move move;
+  s_move best_move;
+  
+  while(next_move(board, &gen, &move))
   {
-    move_make(board, &moves[m]);
+    move_make(board, &move);
     
-    if(square_attacked(board, board->pieces[KINGS]&board->colour[board->turn], !board->turn))
+    if(square_attacked(board, board->pieces[KINGS]&board->colour[!board->turn], board->turn))
     {
       // Restore old permissions
-      #ifdef HASHTABLE
-        board->key = key_old;
-      #endif
-      board->ep = ep_old;
-      board->num_halfmoves = num_halfmoves_old;
-      board->castling = castling_old;
+      restore_irreversible(&permissions, board);
       
-      move_undo(board, &moves[m]);
+      move_undo(board, &move);
       continue;
     }
+  
+    info->nodes++;
     
-    nodes++;
-    played = 1;
-    
-    time_t time_spent = clock() - time_start;
-    if(time_spent < search_info.time_max)
+    time_t time_spent = clock() - info->time_start;
+    if(time_spent < search_settings.time_max)
     {
-      board->turn = 1-(board->turn);
-      
-      score = -alpha_beta(board, -beta, -alpha, depth-1, 1, &pv_local);
-      
-      board->turn = 1-(board->turn);
+      info->ply++;
+      score = -alpha_beta(board, info, -beta, -alpha, depth-1, 1, &pv_local);
+      info->ply--;
     }
     else
     {
@@ -626,52 +463,52 @@ int alpha_beta(s_board* board, int alpha, int beta, int depth, int null_allowed,
     }
     
     // Restore old permissions
-    #ifdef HASHTABLE
-      board->key = key_old;
-    #endif
-    board->ep = ep_old;
-    board->num_halfmoves = num_halfmoves_old;
-    board->castling = castling_old;
+    restore_irreversible(&permissions, board);
     
-    move_undo(board, &moves[m]);
+    move_undo(board, &move);
     
     if(score > best_score)
     {
       best_score = score;
       #ifdef HASHTABLE
-        best_move_num = m;
+        best_move = move;
       #endif
-    }
-    if(score > alpha)
-    {
-      alpha = score;
       
-      assert(pv_local.num_moves >= 0);
-      assert(pv_local.num_moves < MAX_DEPTH - 1);
-      pv->moves[0] = moves[m];
+      pv->moves[0] = move;
       int i;
       for(i = 0; i < pv_local.num_moves && i < MAX_DEPTH - 1; ++i)
       {
         pv->moves[i+1] = pv_local.moves[i];
       }
       pv->num_moves = pv_local.num_moves + 1;
-    }
-    if(alpha >= beta)
-    {
-      break;
+      
+      if(score > alpha)
+      {
+        alpha = score;
+      }
+      
+      if(alpha >= beta)
+      {
+        #ifdef KILLER_MOVES
+        if(move.type == QUIET)
+        {
+          killer_moves_key[info->ply] = board->key;
+          killer_moves[info->ply] = move;
+        }
+        #endif
+        
+        break;
+      }
     }
   }
   
   // If we haven't played a move, then there are none
-  if(!played)
+  if(best_score == -INF)
   {
-    assert(pv_local.num_moves == 0);
-    
-    if(square_attacked(board, board->pieces[KINGS]&board->colour[board->turn], !board->turn))
+    if(in_check)
     {
       // Checkmate
-      assert(search_depth - depth > 0);
-      return -INF + (search_depth - depth);
+      return -INF + info->ply;
     }
     else
     {
@@ -680,43 +517,220 @@ int alpha_beta(s_board* board, int alpha, int beta, int depth, int null_allowed,
     }
   }
   
-  #ifdef KILLER_MOVES
-    killer_moves_key[search_depth-depth] = board->key;
-    killer_moves[search_depth-depth] = moves[best_move_num];
-  #endif
-  
   #ifdef HASHTABLE
-    assert(best_move_num >= 0);
-    assert(best_move_num < num_moves);
-    
     int flag = EXACT;
-    if(best_score <= alpha_original)
+    if(best_score < alpha_original)
     {
       flag = UPPERBOUND;
     }
-    else if(best_score >= beta)
-    {
-      flag = LOWERBOUND;
-    }
     
-    // Mate eval test
-    if(best_score > INF-MAX_DEPTH)
-    {
-      flag = LOWERBOUND;
-      hashtable_add(hashtable, flag, board->key, depth, INF-MAX_DEPTH, moves[best_move_num]);
-    }
-    else if(best_score < -INF+MAX_DEPTH)
-    {
-      flag = UPPERBOUND;
-      hashtable_add(hashtable, flag, board->key, depth, -INF+MAX_DEPTH, moves[best_move_num]);
-    }
-    else
-    {
-      hashtable_add(hashtable, flag, board->key, depth, best_score, moves[best_move_num]);
-    }
-    
-    //hashtable_add(hashtable, flag, board->key, depth, best_score, moves[best_move_num]);
+    hashtable_add(hashtable, flag, board->key, depth, eval_to_tt(best_score, info->ply), best_move);
   #endif
   
   return best_score;
+}
+
+int pvSearch(s_board *board, s_search_info *info, int alpha, int beta, int depth, int null_move)
+{
+  info->nodes++;
+  
+  // Evaluate draws
+  if(is_threefold(board) || is_fifty_move_draw(board))
+  {
+    return CONTEMPT_VALUE;
+  }
+  
+  // Stop search at maximum depth
+  if(info->ply >= MAX_DEPTH)
+  {
+    return eval(board);
+  }
+  
+  if(depth == 0)
+  {
+    #ifdef QUIESCENCE_SEARCH
+      return qsearch(board, info, alpha, beta);
+    #else
+      return eval(board);
+    #endif
+  }
+  
+  s_move_generator gen = {0};
+  gen.stage = 0;
+  gen.hash_move = NO_MOVE;
+  gen.killer_move = NO_MOVE;
+  int score = -INF;
+  int bSearchPv = 1;
+  
+  #ifdef HASHTABLE
+    int alpha_original = alpha;
+    
+    s_hashtable_entry entry = *hashtable_poll(hashtable, board->key);
+    int entry_valid = (board->key == entry.key);
+    int entry_eval = eval_from_tt(entry.eval, info->ply);
+    
+    if(entry_valid)
+    {
+      info->hashtable_hits++;
+      gen.hash_move = entry.pv;
+      
+      if(entry.depth >= depth)
+      {
+        if(entry_eval >= beta)
+        {
+          if(entry.flags == LOWERBOUND)
+          {
+            return entry_eval;
+          }
+        }
+        else if(entry.flags == UPPERBOUND)
+        {
+          return entry_eval;
+        }
+      }
+    }
+  #endif
+  
+  int in_check = square_attacked(board, board->pieces[KINGS]&board->colour[board->turn], !board->turn);
+  
+  // Set old permissions
+  s_irreversible permissions;
+  store_irreversible(&permissions, board);
+  
+  #ifdef NULL_MOVE
+    if(null_move && alpha != beta && !is_endgame(board) && depth > 2 && !in_check)
+    {
+      // Make nullmove
+      null_make(board);
+      
+      info->ply++;
+      score = -pvSearch(board, info, -beta, -beta+1, depth-1-R, 0);
+      info->ply--;
+      
+      // Unmake nullmove
+      null_undo(board);
+      
+      // Restore old permissions
+      restore_irreversible(&permissions, board);
+      
+      if(score >= beta)
+      {
+        return score;
+      }
+    }
+  #endif
+  
+  #ifdef KILLER_MOVES
+    gen.killer_move = killer_moves[info->ply];
+  #endif
+  
+  s_move move;
+  s_move best_move;
+  int best_score = -INF;
+  
+  while(next_move(board, &gen, &move))
+  {
+    move_make(board, &move);
+    
+    if(square_attacked(board, board->pieces[KINGS]&board->colour[!board->turn], board->turn))
+    {
+      // Restore old permissions
+      restore_irreversible(&permissions, board);
+      
+      move_undo(board, &move);
+      continue;
+    }
+    
+    info->ply++;
+    if(bSearchPv)
+    {
+      score = -pvSearch(board, info, -beta, -alpha, depth - 1, 1);
+    }
+    else
+    {
+      score = -pvSearch(board, info, -alpha-1, -alpha, depth - 1, 1);
+      if(score > alpha)
+      {
+        score = -pvSearch(board, info, -beta, -alpha, depth - 1, 1);
+      }
+    }
+    info->ply--;
+    
+    // Restore old permissions
+    restore_irreversible(&permissions, board);
+    
+    move_undo(board, &move);
+    
+    if(score > best_score)
+    {
+      best_score = score;
+      #ifdef HASHTABLE
+        best_move = move;
+      #endif
+      
+      if(score > alpha)
+      {
+        alpha = score;
+      }
+      
+      if(alpha >= beta)
+      {
+        #ifdef KILLER_MOVES
+        if(move.type == QUIET)
+        {
+          killer_moves_key[info->ply] = board->key;
+          killer_moves[info->ply] = move;
+        }
+        #endif
+        
+        break;
+      }
+    }
+    
+    /*
+    if(score >= beta)
+    {
+      #ifdef KILLER_MOVES
+      if(moves.type == QUIET)
+      {
+        killer_moves_key[info->ply] = board->key;
+        killer_moves[info->ply] = moves;
+      }
+      #endif
+      
+      return beta; // fail-hard beta-cutoff
+    }
+    if(score > alpha)
+    {
+      alpha = score; // alpha acts like max in MiniMax
+      bSearchPv = 0;
+    }
+    */
+  }
+  
+  if(best_score == -INF)
+  {
+    if(in_check)
+    {
+      // Checkmate
+      return -INF + info->ply;
+    }
+    else
+    {
+      // Stalemate
+      return 0;
+    }
+  }
+  
+  #ifdef HASHTABLE
+    int flag = EXACT;
+    if(alpha < alpha_original)
+    {
+      flag = UPPERBOUND;
+    }
+    
+    hashtable_add(hashtable, flag, board->key, depth, eval_to_tt(alpha, info->ply), best_move);
+  #endif
+  
+  return alpha; // fail-hard
 }

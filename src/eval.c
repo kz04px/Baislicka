@@ -92,10 +92,11 @@ const int knight_pair_value = 15;
 
 const int doubled_pawn_value  = -10;
 const int isolated_pawn_value = -20;
+const int passed_pawn_value = 10;
 
 const int open_file_value = 25;
 
-int is_endgame(s_board* board)
+int is_endgame(s_board *board)
 {
   assert(board != NULL);
   
@@ -125,7 +126,7 @@ int is_endgame(s_board* board)
   return 0;
 }
 
-int is_fifty_move_draw(s_board* board)
+int is_fifty_move_draw(s_board *board)
 {
   assert(board != NULL);
   
@@ -137,7 +138,7 @@ int is_fifty_move_draw(s_board* board)
   return 0;
 }
 
-int is_threefold(s_board* board)
+int is_threefold(s_board *board)
 {
   assert(board != NULL);
   
@@ -169,7 +170,7 @@ int is_threefold(s_board* board)
   return 0;
 }
 
-int insufficient_material(s_board* board)
+int insufficient_material(s_board *board)
 {
   assert(board != NULL);
   
@@ -186,11 +187,7 @@ int insufficient_material(s_board* board)
   return 1;
 }
 
-const uint64_t files[8] = {U64_FILE_A, U64_FILE_B, U64_FILE_C, U64_FILE_D, U64_FILE_E, U64_FILE_F, U64_FILE_G, U64_FILE_H};
-const uint64_t adj_files[8] = {U64_FILE_B, U64_FILE_A|U64_FILE_C, U64_FILE_B|U64_FILE_D, U64_FILE_C|U64_FILE_E,
-                               U64_FILE_D|U64_FILE_F, U64_FILE_E|U64_FILE_G, U64_FILE_F|U64_FILE_H, U64_FILE_G};
-
-int eval(s_board* board)
+int eval(s_board *board)
 {
   int endgame = is_endgame(board);
   
@@ -202,6 +199,16 @@ int eval(s_board* board)
   */
   
   int score = 0;
+  
+  // Side to move
+  if(board->turn == WHITE)
+  {
+    score += 10;
+  }
+  else
+  {
+    score -= 10;
+  }
   
   // Piece pairs
   if((board->pieces[BISHOPS] & board->colour[WHITE]) & ((board->pieces[BISHOPS] & board->colour[WHITE])-1)) {score += bishop_pair_value;}
@@ -218,22 +225,22 @@ int eval(s_board* board)
       uint64_t file;
       
       // Check if doubled
-      file = files[i] & board->colour[colour] & board->pieces[PAWNS];
+      file = get_file(i) & board->colour[colour] & board->pieces[PAWNS];
       if(file ^ (file & ~(file-1)))
       {
         score += doubled_pawn_value * ((colour == WHITE) ? 1 : -1);
       }
       
       // Check if isolated
-      if(!(adj_files[i] & board->colour[colour] & board->pieces[PAWNS]))
+      if(!(get_adj_files(i) & board->colour[colour] & board->pieces[PAWNS]))
       {
         score += isolated_pawn_value * ((colour == WHITE) ? 1 : -1);
       }
       
       // Rooks & Queens on open files
-      file = files[i] & board->pieces[PAWNS];
+      file = get_file(i) & board->pieces[PAWNS];
       
-      if(!file && (files[i] & ((board->pieces[ROOKS] | board->pieces[QUEENS]) & board->colour[colour])))
+      if(!file && (get_file(i) & ((board->pieces[ROOKS] | board->pieces[QUEENS]) & board->colour[colour])))
       {
         score += open_file_value * ((colour == WHITE) ? 1 : -1);
       }
@@ -246,7 +253,7 @@ int eval(s_board* board)
   int piece_type;
   for(piece_type = 0; piece_type < 5; ++piece_type)
   {
-    // WHITE
+    // White
     copy = board->pieces[piece_type] & board->colour[WHITE];
     while(copy)
     {
@@ -258,7 +265,7 @@ int eval(s_board* board)
       copy &= copy-1;
     }
     
-    // BLACK
+    // Black
     copy = board->pieces[piece_type] & board->colour[BLACK];
     while(copy)
     {
@@ -271,10 +278,11 @@ int eval(s_board* board)
     }
   }
   
-  // Kings
+  // White King
   sq = __builtin_ctzll(board->pieces[KINGS]&board->colour[WHITE]);
   score += king_location_bonus[endgame][sq];
   
+  // Black King
   sq = __builtin_ctzll(board->pieces[KINGS]&board->colour[BLACK]);
   score -= king_location_bonus[endgame][sq^56];
   

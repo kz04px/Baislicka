@@ -1,6 +1,6 @@
 #include "defs.h"
 
-int find_moves_pawn_ep(s_board* board, s_move* move_list)
+int find_moves_pawn_ep(s_board *board, s_move *move_list)
 {
   assert(board != NULL);
   assert(move_list != NULL);
@@ -26,7 +26,7 @@ int find_moves_pawn_ep(s_board* board, s_move* move_list)
   return num_moves;
 }
 
-int find_moves_pawn_captures(s_board* board, s_move* move_list, uint64_t allowed)
+int find_moves_pawn_captures(s_board *board, s_move *move_list, uint64_t allowed)
 {
   assert(board != NULL);
   assert(move_list != NULL);
@@ -55,7 +55,7 @@ int find_moves_pawn_captures(s_board* board, s_move* move_list, uint64_t allowed
   return num_moves;
 }
 
-int find_moves_wP_quiet(s_board* board, s_move* move_list)
+int find_moves_wP_quiet(s_board *board, s_move *move_list)
 {
   assert(board != NULL);
   assert(move_list != NULL);
@@ -84,7 +84,7 @@ int find_moves_wP_quiet(s_board* board, s_move* move_list)
   return num_moves;
 }
 
-int find_moves_bP_quiet(s_board* board, s_move* move_list)
+int find_moves_bP_quiet(s_board *board, s_move *move_list)
 {
   assert(board != NULL);
   assert(move_list != NULL);
@@ -113,7 +113,7 @@ int find_moves_bP_quiet(s_board* board, s_move* move_list)
   return num_moves;
 }
 
-int find_moves_kings_castles(s_board* board, s_move* move_list)
+int find_moves_kings_castles(s_board *board, s_move *move_list)
 {
   assert(board != NULL);
   assert(move_list != NULL);
@@ -173,7 +173,7 @@ int find_moves_kings_castles(s_board* board, s_move* move_list)
   return num_moves;
 }
 
-int find_moves_kings(s_board* board, s_move* move_list, uint64_t allowed)
+int find_moves_kings(s_board *board, s_move *move_list, uint64_t allowed)
 {
   assert(board != NULL);
   assert(move_list != NULL);
@@ -195,7 +195,7 @@ int find_moves_kings(s_board* board, s_move* move_list, uint64_t allowed)
   return num_moves;
 }
 
-int find_moves_knights(s_board* board, s_move* move_list, uint64_t allowed)
+int find_moves_knights(s_board *board, s_move *move_list, uint64_t allowed)
 {
   assert(board != NULL);
   assert(move_list != NULL);
@@ -225,7 +225,7 @@ int find_moves_knights(s_board* board, s_move* move_list, uint64_t allowed)
   return num_moves;
 }
 
-int find_moves_bishops(s_board* board, s_move* move_list, uint64_t allowed)
+int find_moves_bishops(s_board *board, s_move *move_list, uint64_t allowed)
 {
   assert(board != NULL);
   assert(move_list != NULL);
@@ -256,7 +256,7 @@ int find_moves_bishops(s_board* board, s_move* move_list, uint64_t allowed)
   return num_moves;
 }
 
-int find_moves_rooks(s_board* board, s_move* move_list, uint64_t allowed)
+int find_moves_rooks(s_board *board, s_move *move_list, uint64_t allowed)
 {
   assert(board != NULL);
   assert(move_list != NULL);
@@ -287,7 +287,7 @@ int find_moves_rooks(s_board* board, s_move* move_list, uint64_t allowed)
   return num_moves;
 }
 
-int find_moves_queens(s_board* board, s_move* move_list, uint64_t allowed)
+int find_moves_queens(s_board *board, s_move *move_list, uint64_t allowed)
 {
   assert(board != NULL);
   assert(move_list != NULL);
@@ -335,7 +335,7 @@ int find_moves_queens(s_board* board, s_move* move_list, uint64_t allowed)
   return num_moves;
 }
 
-int find_moves_bishops_queens(s_board* board, s_move* move_list, uint64_t allowed)
+int find_moves_bishops_queens(s_board *board, s_move *move_list, uint64_t allowed)
 {
   assert(board != NULL);
   assert(move_list != NULL);
@@ -383,7 +383,7 @@ int find_moves_bishops_queens(s_board* board, s_move* move_list, uint64_t allowe
   return num_moves;
 }
 
-int find_moves_rooks_queens(s_board* board, s_move* move_list, uint64_t allowed)
+int find_moves_rooks_queens(s_board *board, s_move *move_list, uint64_t allowed)
 {
   assert(board != NULL);
   assert(move_list != NULL);
@@ -431,16 +431,15 @@ int find_moves_rooks_queens(s_board* board, s_move* move_list, uint64_t allowed)
   return num_moves;
 }
 
-int find_moves_captures(s_board* board, s_move* move_list, int colour)
+int find_moves_captures(s_board *board, s_move *move_list, int colour)
 {
   assert(board != NULL);
   assert(move_list != NULL);
   assert(colour == WHITE || colour == BLACK);
   
-  uint64_t allowed = board->colour[!board->turn];
+  uint64_t allowed = board->colour[1-board->turn];
   
   int num_moves = 0;
-  
   
   #ifdef GENERATE_SORTED
     // MVV-LVA (Most Valuable Victim - Least Valuable Aggressor)
@@ -488,10 +487,18 @@ int find_moves_captures(s_board* board, s_move* move_list, int colour)
     num_moves += find_moves_kings(board, &move_list[num_moves], allowed);
   #endif
   
+  #ifndef NDEBUG
+    int i;
+    for(i = 0; i < num_moves; ++i)
+    {
+      assert(move_is_legal(board, &move_list[i]));
+    }
+  #endif
+  
   return num_moves;
 }
 
-int find_moves_quiet(s_board* board, s_move* move_list, int colour)
+int find_moves_quiet(s_board *board, s_move *move_list, int colour)
 {
   assert(board != NULL);
   assert(move_list != NULL);
@@ -516,6 +523,14 @@ int find_moves_quiet(s_board* board, s_move* move_list, int colour)
   
   num_moves += find_moves_kings(board, &move_list[num_moves], allowed);
   num_moves += find_moves_kings_castles(board, &move_list[num_moves]);
+  
+  #ifndef NDEBUG
+    int i;
+    for(i = 0; i < num_moves; ++i)
+    {
+      assert(move_is_legal(board, &move_list[i]));
+    }
+  #endif
   
   return num_moves;
 }

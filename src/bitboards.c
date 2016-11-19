@@ -7,6 +7,10 @@ uint64_t bishop_mask[64];
 uint64_t rook_mask[64];
 uint64_t king_mask[64];
 
+const uint64_t files[8] = {U64_FILE_A, U64_FILE_B, U64_FILE_C, U64_FILE_D, U64_FILE_E, U64_FILE_F, U64_FILE_G, U64_FILE_H};
+const uint64_t adj_files[8] = {U64_FILE_B, U64_FILE_A|U64_FILE_C, U64_FILE_B|U64_FILE_D, U64_FILE_C|U64_FILE_E,
+                               U64_FILE_D|U64_FILE_F, U64_FILE_E|U64_FILE_G, U64_FILE_F|U64_FILE_H, U64_FILE_G};
+
 const uint64_t bishop_magic[64] = {
   0x404040404040ULL, 0xa060401007fcULL, 0x401020200000ULL, 0x806004000000ULL,
   0x440200000000ULL, 0x80100800000ULL, 0x104104004000ULL, 0x20020820080ULL,
@@ -82,6 +86,8 @@ const uint64_t *rook_offsets[64] = {
   magic_moves+45811, magic_moves+62898, magic_moves+45796, magic_moves+66994,
   magic_moves+67204, magic_moves+32448, magic_moves+62946, magic_moves+17005
 };
+
+uint64_t passed_pawn_blockers[2][64] = {0};
 
 uint64_t permute(uint64_t set, uint64_t subset)
 {
@@ -288,6 +294,21 @@ uint64_t magic_moves_king(int sq)
   return king_mask[sq];
 }
 
+uint64_t is_passed_pawn(int side, int sq, uint64_t blockers)
+{
+  return !(passed_pawn_blockers[side][sq] & blockers);
+}
+
+uint64_t get_file(int file)
+{
+  return files[file];
+}
+
+uint64_t get_adj_files(int file)
+{
+  return adj_files[file];
+}
+
 int u64_file(uint64_t pos)
 {
   assert(pos);
@@ -331,10 +352,25 @@ void bitboards_init()
   int sq;
   for(sq = 0; sq < 64; ++sq)
   {
+    int f = SQ_TO_FILE(sq);
+    int r = SQ_TO_RANK(sq);
+    
     // Pawns
     from = (uint64_t)1<<sq;
     pawn_mask[WHITE][sq] = ((from << 7) &(~U64_FILE_H)) | ((from << 9) &(~U64_FILE_A));
     pawn_mask[BLACK][sq] = ((from >> 7) &(~U64_FILE_A)) | ((from >> 9) &(~U64_FILE_H));
+    
+    // Calculate passed pawn blockers
+    if(r == 0 || r == 7)
+    {
+      passed_pawn_blockers[WHITE][sq] = 0;
+      passed_pawn_blockers[BLACK][sq] = 0;
+    }
+    else
+    {
+      passed_pawn_blockers[WHITE][sq] = (~U64_RANK_8)&((get_file(f) | get_adj_files(f))<<(r*8+8));
+      passed_pawn_blockers[BLACK][sq] = (~U64_RANK_1)&((get_file(f) | get_adj_files(f))>>((7-r)*8+8));
+    }
     
     // Knights
     from = (uint64_t)1<<sq;
@@ -378,7 +414,7 @@ void bitboards_init()
   }
 }
 
-uint64_t pinned_pieces_white(s_board* board, int sq)
+uint64_t pinned_pieces_white(s_board *board, int sq)
 {
   assert(board != NULL);
   assert(0 <= sq);
@@ -421,7 +457,7 @@ uint64_t pinned_pieces_white(s_board* board, int sq)
   return pinned;
 }
 
-uint64_t pinned_pieces_black(s_board* board, int sq)
+uint64_t pinned_pieces_black(s_board *board, int sq)
 {
   assert(board != NULL);
   assert(0 <= sq);
@@ -464,7 +500,7 @@ uint64_t pinned_pieces_black(s_board* board, int sq)
   return pinned;
 }
 
-int error_check(s_board* board)
+int error_check(s_board *board)
 {
   assert(board != NULL);
   
