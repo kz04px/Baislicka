@@ -36,6 +36,87 @@ int restore_irreversible(s_irreversible *info, s_board *board)
   return 0;
 }
 
+int see(int sq, int side, int captured, uint64_t colours[2], uint64_t pieces[6])
+{
+  int value = 0;
+  int smallest_attacker = EMPTY;
+  
+  uint64_t attackers = 0;
+  
+  // Pawns
+  if((attackers = magic_moves_pawns(1-side, sq) & pieces[PAWNS] & colours[side]))
+  {
+    smallest_attacker = PAWNS;
+  }
+  // Knights
+  else if((attackers = colours[side] & pieces[KNIGHTS] & magic_moves_knight(sq)))
+  {
+    smallest_attacker = KNIGHTS;
+  }
+  // Bishops
+  else if((attackers = colours[side] & pieces[BISHOPS] & magic_moves_bishop(colours[WHITE]|colours[BLACK], sq)))
+  {
+    smallest_attacker = BISHOPS;
+  }
+  // Rooks
+  else if((attackers = colours[side] & pieces[ROOKS] & magic_moves_rook(colours[WHITE]|colours[BLACK], sq)))
+  {
+    smallest_attacker = ROOKS;
+  }
+  // Queens
+  else if((attackers = colours[side] & pieces[QUEENS] & (magic_moves_bishop(colours[WHITE]|colours[BLACK], sq) | magic_moves_rook(colours[WHITE]|colours[BLACK], sq))))
+  {
+    smallest_attacker = QUEENS;
+  }
+  // Kings
+  else if((attackers = colours[side] & pieces[KINGS] & magic_moves_king(sq)))
+  {
+    smallest_attacker = KINGS;
+  }
+  else
+  {
+    // skip if the square isn't attacked anymore by this side
+    return value;
+  }
+  
+  int from_sq = __builtin_ctzll(attackers);
+  uint64_t from_bb = (uint64_t)1<<from_sq;
+  
+  // Make move
+  pieces[smallest_attacker] ^= from_bb;
+  colours[side] ^= from_bb;
+  
+  value = piece_value(captured) - see(sq, 1-side, smallest_attacker, colours, pieces);
+  
+  if(value < 0)
+  {
+    value = 0;
+  }
+  
+  // Undo move
+  pieces[smallest_attacker] ^= from_bb;
+  colours[side] ^= from_bb;
+  
+  return value;
+}
+
+int see_capture(s_board *board, s_move move)
+{
+  uint64_t from_bb = (uint64_t)1<<move.from;
+  
+  // Make move
+  board->pieces[move.piece_type] ^= from_bb;
+  board->colour[board->turn] ^= from_bb;
+  
+  int value = piece_value(move.taken) - see(move.to, 1-board->turn, move.piece_type, board->colour, board->pieces);
+  
+  // Undo move
+  board->pieces[move.piece_type] ^= from_bb;
+  board->colour[board->turn] ^= from_bb;
+  
+  return value;
+}
+
 int qsearch(s_board *board, s_search_info *info, int alpha, int beta)
 {
   int stand_pat = eval(board);
@@ -67,13 +148,20 @@ int qsearch(s_board *board, s_search_info *info, int alpha, int beta)
   s_move moves[MAX_MOVES];
   int num_moves = find_moves_captures(board, moves, board->turn);
   #ifdef SORT_MOVES
-    moves_sort(moves, num_moves);
+    moves_sort_see(board, moves, num_moves);
   #endif
   int score;
   
   int m;
   for(m = 0; m < num_moves; ++m)
   {
+    // TEST - SEE
+    int val = see_capture(board, moves[m]);
+    if(val < -50)
+    {
+      break;
+    }
+    
     move_make(board, &moves[m]);
     
     if(square_attacked(board, board->pieces[KINGS]&board->colour[!board->turn], board->turn))
@@ -84,7 +172,7 @@ int qsearch(s_board *board, s_search_info *info, int alpha, int beta)
       move_undo(board, &moves[m]);
       continue;
     }
-  
+    
     info->nodes++;
     
     info->ply++;
@@ -100,6 +188,10 @@ int qsearch(s_board *board, s_search_info *info, int alpha, int beta)
  
     if(score >= beta)
     {
+      #ifndef NDEBUG
+        info->num_cutoffs[m]++;
+      #endif
+      
       return beta;
     }
     if(score > alpha)
@@ -197,7 +289,7 @@ void *search_root(void *n)
       break;
     }
     
-    if(5*results.time_taken < search_settings.time_max)
+    if(4*results.time_taken < search_settings.time_max)
     {
       target_depth++;
     }
@@ -226,7 +318,7 @@ s_search_results search(s_board *board, int depth, int alpha, int beta)
   
   int score;
   int best_score = -INF;
-  s_pv pv_local;
+  s_pv pv_local = {0};
   
   results.num_moves = find_moves_captures(board, results.moves, board->turn);
   #ifdef SORT_MOVES
@@ -240,6 +332,13 @@ s_search_results search(s_board *board, int depth, int alpha, int beta)
   info->nodes = 0;
   info->hashtable_hits = 0;
   info->seldepth = 0;
+  #ifndef NDEBUG
+    int i;
+    for(i = 0; i < MAX_MOVES; ++i)
+    {
+      info->num_cutoffs[i] = 0;
+    }
+  #endif
   
   // Set old permissions
   s_irreversible permissions;
@@ -268,7 +367,7 @@ s_search_results search(s_board *board, int depth, int alpha, int beta)
     }
     else
     {
-      time_t time_spent = clock() - info->time_start;
+      clock_t time_spent = (clock() - info->time_start) * 1000 / CLOCKS_PER_SEC;
       if(time_spent < search_settings.time_max)
       {
         info->ply++;
@@ -310,9 +409,20 @@ s_search_results search(s_board *board, int depth, int alpha, int beta)
     }
   }
   
+  #ifndef NDEBUG
+    int total_cutoffs = 0;
+    for(i = 0; i < MAX_MOVES; ++i)
+    {
+      total_cutoffs += info->num_cutoffs[i];
+    }
+    for(i = 0; i < 8; ++i)
+    {
+      printf("%i) %i %.2f%%\n", i, info->num_cutoffs[i], 100.0*info->num_cutoffs[i]/total_cutoffs);
+    }
+  #endif
   results.nodes = info->nodes;
   results.seldepth = info->seldepth;
-  results.time_taken = clock() - info->time_start;
+  results.time_taken = (clock() - info->time_start) * 1000 / CLOCKS_PER_SEC;
   
   return results;
 }
@@ -337,7 +447,7 @@ int alpha_beta(s_board *board, s_search_info *info, int alpha, int beta, int dep
     return eval(board);
   }
   
-  if(depth == 0)
+  if(depth <= 0)
   {
     #ifdef QUIESCENCE_SEARCH
       return qsearch(board, info, alpha, beta);
@@ -347,11 +457,13 @@ int alpha_beta(s_board *board, s_search_info *info, int alpha, int beta, int dep
   }
   
   s_pv pv_local = {0};
+  pv_local.num_moves = 0;
   s_move_generator gen = {0};
   gen.stage = 0;
   gen.hash_move = NO_MOVE;
   gen.killer_move = NO_MOVE;
   int score;
+  pv->num_moves = 0;
   
   #ifdef HASHTABLE
     int alpha_original = alpha;
@@ -388,11 +500,11 @@ int alpha_beta(s_board *board, s_search_info *info, int alpha, int beta, int dep
   int in_check = square_attacked(board, board->pieces[KINGS]&board->colour[board->turn], !board->turn);
   
   /*
+  */
   if(in_check)
   {
     depth++;
   }
-  */
   
   // Set old permissions
   s_irreversible permissions;
@@ -447,14 +559,27 @@ int alpha_beta(s_board *board, s_search_info *info, int alpha, int beta, int dep
       move_undo(board, &move);
       continue;
     }
-  
+    
     info->nodes++;
     
-    time_t time_spent = clock() - info->time_start;
+    clock_t time_spent = (clock() - info->time_start) * 1000 / CLOCKS_PER_SEC;
     if(time_spent < search_settings.time_max)
     {
       info->ply++;
-      score = -alpha_beta(board, info, -beta, -alpha, depth-1, 1, &pv_local);
+      
+      #ifdef LMR
+        if(gen.move_num < 4 || depth < 3 || in_check || move.type == CAPTURE || move.type == PROMOTE)
+        {
+          score = -alpha_beta(board, info, -beta, -alpha, depth-1, 1, &pv_local);
+        }
+        else
+        {
+          score = -alpha_beta(board, info, -beta, -alpha, depth-2, 1, &pv_local);
+        }
+      #else
+        score = -alpha_beta(board, info, -beta, -alpha, depth-1, 1, &pv_local);
+      #endif
+      
       info->ply--;
     }
     else
@@ -497,6 +622,9 @@ int alpha_beta(s_board *board, s_search_info *info, int alpha, int beta, int dep
         }
         #endif
         
+        #ifndef NDEBUG
+          info->num_cutoffs[gen.move_num-1]++;
+        #endif
         break;
       }
     }
@@ -686,26 +814,6 @@ int pvSearch(s_board *board, s_search_info *info, int alpha, int beta, int depth
         break;
       }
     }
-    
-    /*
-    if(score >= beta)
-    {
-      #ifdef KILLER_MOVES
-      if(moves.type == QUIET)
-      {
-        killer_moves_key[info->ply] = board->key;
-        killer_moves[info->ply] = moves;
-      }
-      #endif
-      
-      return beta; // fail-hard beta-cutoff
-    }
-    if(score > alpha)
-    {
-      alpha = score; // alpha acts like max in MiniMax
-      bSearchPv = 0;
-    }
-    */
   }
   
   if(best_score == -INF)

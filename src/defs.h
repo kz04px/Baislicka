@@ -6,6 +6,7 @@
 #include <inttypes.h>
 #include <time.h>
 #include <assert.h>
+#include <limits.h>
 
 #define ENGINE_NAME "Baislicka"
 #define ENGINE_VERSION "2.0"
@@ -90,11 +91,13 @@
 #define HASHTABLE
 #define NULL_MOVE
 #define SORT_MOVES
+//#define SORT_QUIET_MOVES
 //#define GENERATE_SORTED
 #define KILLER_MOVES
 #define ALPHA_BETA
 //#define PVS
 //#define ASPIRATION_WINDOW
+#define LMR
 
 enum {WHITE, BLACK, BOTH};
 enum {PAWNS, KNIGHTS, BISHOPS, ROOKS, QUEENS, KINGS, EMPTY};
@@ -195,6 +198,9 @@ typedef struct
   clock_t time_start;
   uint64_t nodes;
   uint64_t hashtable_hits;
+  #ifndef NDEBUG
+    int num_cutoffs[MAX_MOVES];
+  #endif
 } s_search_info;
 
 typedef struct
@@ -221,6 +227,7 @@ typedef struct
   s_move hash_move;
   s_move killer_move;
   s_move moves[MAX_MOVES];
+  int scores[MAX_MOVES];
 } s_move_generator;
 
 s_hashtable *hashtable;
@@ -238,6 +245,7 @@ uint64_t qsc_rook[2];
 
 // attack.c
 int square_attacked(s_board *board, uint64_t pos, int side);
+int get_smallest_attacker(s_board *board, int sq, int side);
 
 // bitboards.c
 void bitboards_init();
@@ -264,6 +272,8 @@ void *search_root(void *n);
 s_search_results search(s_board *board, int depth, int alpha, int beta);
 int alpha_beta(s_board *board, s_search_info *info, int alpha, int beta, int depth, int null_move, s_pv *pv);
 int pvSearch(s_board *board, s_search_info *info, int alpha, int beta, int depth, int null_move);
+int see(int sq, int side, int captured, uint64_t colours[2], uint64_t pieces[6]);
+int see_capture(s_board *board, s_move move);
 
 // hash_table.c
 void key_init();
@@ -277,10 +287,12 @@ int eval_to_tt(int eval, int ply);
 int eval_from_tt(int eval, int ply);
 
 // eval.c
+int piece_value(int piece);
 int is_endgame(s_board *board);
 int is_fifty_move_draw(s_board *board);
 int is_threefold(s_board *board);
 int eval(s_board *board);
+int pst_value(int piece, int sq);
 
 // movegen.c
 int find_moves_pawn_ep(s_board *board, s_move *move_list);
@@ -319,6 +331,8 @@ s_move add_promotion_move(s_board *board, int from, int to, int piece_type, int 
 void move_make(s_board *board, s_move *move);
 void move_undo(s_board *board, s_move *move);
 int moves_sort(s_move *moves, int num);
+int moves_sort_see(s_board *board, s_move *moves, int num_moves);
+int moves_sort_quiet(s_move *moves, int num);
 void move_make_ascii(s_board *board, char *move_string);
 int move_to_string(char *string, s_move *move);
 uint64_t move_is_legal(s_board *board, s_move *move);

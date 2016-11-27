@@ -1,5 +1,32 @@
 #include "defs.h"
 
+int get_smallest_attacker(s_board *board, int sq, int side)
+{
+  assert(board != NULL);
+  assert(side == WHITE || side == BLACK);
+  
+  // Pawns
+  if(magic_moves_pawns(1-side, sq) & board->pieces[PAWNS] & board->colour[side]) {return PAWNS;}
+  
+  // Knights
+  if((board->colour[side] & board->pieces[KNIGHTS]) & magic_moves_knight(sq)) {return KNIGHTS;}
+  
+  // Bishops
+  if(magic_moves_bishop((board->colour[WHITE]|board->colour[BLACK]), sq) & (board->colour[side] & board->pieces[BISHOPS])) {return BISHOPS;}
+  
+  // Rooks
+  if(magic_moves_rook((board->colour[WHITE]|board->colour[BLACK]), sq) & (board->colour[side] & board->pieces[ROOKS])) {return ROOKS;}
+  
+  // Queens
+  if(magic_moves_bishop((board->colour[WHITE]|board->colour[BLACK]), sq) & (board->colour[side] & board->pieces[QUEENS])) {return QUEENS;}
+  if(magic_moves_rook((board->colour[WHITE]|board->colour[BLACK]), sq) & (board->colour[side] & board->pieces[QUEENS])) {return QUEENS;}
+  
+  // King
+  if(magic_moves_king(sq) & board->pieces[KINGS] & board->colour[side]) {return KINGS;}
+  
+  return EMPTY;
+}
+
 int square_attacked(s_board *board, uint64_t pos, int side)
 {
   assert(board != NULL);

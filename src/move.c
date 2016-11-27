@@ -71,36 +71,131 @@ int next_move(s_board *board, s_move_generator *generator, s_move *move)
       return 0;
     }
     */
+    
     if(generator->stage == 0)
     {
+      int i;
+      
       generator->stage++;
+      
+      // Captures
       generator->num_moves = find_moves_captures(board, &generator->moves[0], board->turn);
-      #ifdef SORT_MOVES
-        moves_sort(generator->moves, generator->num_moves);
-      #endif
+      
+      for(i = 0; i < generator->num_moves; ++i)
+      {
+        // MVV-LVA (Most Valuable Victim - Least Valuable Aggressor)
+        //generator->scores[i] = 400 + 10*generator->moves[i].taken - generator->moves[i].piece_type;
+        
+        // SEE (Static Exchange Evaluation)
+        generator->scores[i] = 50000 + see_capture(board, generator->moves[i]);
+        
+        assert(generator->scores[i] >= 0);
+      }
+      
+      // Quiets
       generator->num_moves += find_moves_quiet(board, &generator->moves[generator->num_moves], board->turn);
       
-      int i;
+      /*
+      for(; i < generator->num_moves; ++i)
+      {
+        //if(is_same_move(generator->moves[i], generator->killer_move))
+        //{
+        //  generator->scores[i] = 19000;
+        //  continue;
+        //}
+        
+        generator->scores[i] = 0;
+        
+        if(generator->moves[i].piece_type == KINGS) {continue;}
+        
+        int to   = pst_value(generator->moves[i].piece_type, generator->moves[i].to);
+        int from = pst_value(generator->moves[i].piece_type, generator->moves[i].from);
+        
+        generator->scores[i] += 100 + (to - from);
+        
+        assert(generator->scores[i] >= 0);
+      }
+      */
+      
+      /*
+      int pos = 3;
+      
+      if(num_captures < pos)
+      {
+        pos = num_captures;
+      }
+      */
+      
+      /*
+      int pos = num_captures;
+      
+      for(i = num_captures; i < generator->num_moves; ++i)
+      {
+        if(is_same_move(generator->moves[i], generator->killer_move))
+        {
+          s_move store = generator->moves[i];
+          int n;
+          for(n = i; n > pos; --n)
+          {
+            generator->moves[n] = generator->moves[n-1];
+          }
+          generator->moves[pos] = store;
+          break;
+        }
+      }
+      
+      for(i = 0; i < generator->num_moves; ++i)
+      {
+        if(is_same_move(generator->moves[i], generator->hash_move))
+        {
+          s_move store = generator->moves[i];
+          int n;
+          for(n = i; n > 0; --n)
+          {
+            generator->moves[n] = generator->moves[n-1];
+          }
+          generator->moves[0] = store;
+          break;
+        }
+      }
+      */
+      
+      
+      // Hash & killer moves
       for(i = 0; i < generator->num_moves; ++i)
       {
         #ifdef HASHTABLE
         if(is_same_move(generator->moves[i], generator->hash_move))
         {
-          s_move store = generator->moves[0];
-          generator->moves[0] = generator->moves[i];
-          generator->moves[i] = store;
+          generator->scores[i] = 100000;
+          //break;
+          
+          //int store2 = generator->scores[0];
+          //generator->scores[0] = generator->scores[i];
+          //generator->scores[i] = store2;
+          
+          //s_move store = generator->moves[0];
+          //generator->moves[0] = generator->moves[i];
+          //generator->moves[i] = store;
         }
         #endif
         
         #ifdef KILLER_MOVES
         if(is_same_move(generator->moves[i], generator->killer_move))
         {
-          s_move store = generator->moves[1];
-          generator->moves[1] = generator->moves[i];
-          generator->moves[i] = store;
+          generator->scores[i] = 50000;
+          
+          //int store2 = generator->scores[1];
+          //generator->scores[1] = generator->scores[i];
+          //generator->scores[i] = store2;
+          
+          //s_move store = generator->moves[1];
+          //generator->moves[1] = generator->moves[i];
+          //generator->moves[i] = store;
         }
         #endif
       }
+      
     }
     else
     {
@@ -128,9 +223,83 @@ int next_move(s_board *board, s_move_generator *generator, s_move *move)
   }
   */
   
+  /*
+  if(show)
+  {
+    printf("Swap'd: %i\n", show-1);
+    int n;
+    for(n = 0; n < generator->num_moves; ++n)
+    {
+      printf("%i) ", generator->scores[n]);
+      print_move(generator->moves[n]);
+    }
+    getchar();
+  }
+  */
+  
+  /*
+  */
+  // New method
+  int best_move = -1;
+  int best_score = -99999;
+  
+  int i;
+  for(i = 0; i < generator->num_moves; ++i)
+  {
+    if(generator->scores[i] > best_score)
+    {
+      best_move = i;
+      best_score = generator->scores[i];
+    }
+  }
+  
+  *move = generator->moves[best_move];
+  generator->scores[best_move] = -1;
+  generator->move_num++;
+  
+  /*
   *move = generator->moves[generator->move_num];
   generator->move_num++;
+  */
   return 1;
+}
+
+// SEE (Static Exchange Evaluation)
+int moves_sort_see(s_board *board, s_move *moves, int num_moves)
+{
+  assert(moves != NULL);
+  assert(num_moves >= 0);
+  assert(num_moves < MAX_MOVES);
+  
+  if(num_moves < 2) {return 0;}
+  
+  int scores[MAX_MOVES] = {0};
+  
+  int a;
+  for(a = 0; a < num_moves; ++a)
+  {
+    scores[a] = see_capture(board, moves[a]);
+  }
+    
+  for(a = 0; a < num_moves-1; ++a)
+  {
+    int b;
+    for(b = a+1; b < num_moves; ++b)
+    {
+      if(scores[a] < scores[b])
+      {
+        s_move store = moves[a];
+        moves[a] = moves[b];
+        moves[b] = store;
+        
+        int store2 = scores[a];
+        scores[a] = scores[b];
+        scores[b] = store2;
+      }
+    }
+  }
+  
+  return 0;
 }
 
 // MVV-LVA (Most Valuable Victim - Least Valuable Aggressor)
@@ -145,10 +314,10 @@ int moves_sort(s_move *moves, int num)
   int sq = 0;
   
   int p_taken;
-  for(p_taken = 5; p_taken >= 0; --p_taken)
+  for(p_taken = 4; p_taken >= 0; --p_taken)
   {
     int p_taking;
-    for(p_taking = 0; p_taking < 7; ++p_taking)
+    for(p_taking = 0; p_taking < 6; ++p_taking)
     {
       int i;
       for(i = sq; i < num; ++i)
@@ -163,6 +332,56 @@ int moves_sort(s_move *moves, int num)
         }
       }
     }
+  }
+  
+  return 0;
+}
+
+int moves_sort_quiet(s_move *moves, int num)
+{
+  assert(moves != NULL);
+  assert(num >= 0);
+  assert(num < MAX_MOVES);
+  
+  if(num < 2) {return 0;}
+  
+  int i;
+  int scores[MAX_MOVES] = {0};
+  
+  // Score each move
+  for(i = 0; i < num; ++i)
+  {
+    if(moves[i].piece_type == KINGS) {scores[i] = -100;}
+    
+    int to   = pst_value(moves[i].piece_type, moves[i].to);
+    int from = pst_value(moves[i].piece_type, moves[i].from);
+    
+    scores[i] = to - from;
+  }
+  
+  // Sort
+  for(i = 0; i < num-1; ++i)
+  {
+    int best = i;
+    
+    int n;
+    for(n = i+1; n < num; ++n)
+    {
+      if(scores[n] > scores[best])
+      {
+        best = n;
+      }
+    }
+    
+    // Swap moves
+    s_move store = moves[best];
+    moves[best] = moves[i];
+    moves[i] = store;
+    
+    // Swap scores
+    int store_2 = scores[best];
+    scores[best] = scores[i];
+    scores[i] = store_2;
   }
   
   return 0;

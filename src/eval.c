@@ -1,6 +1,6 @@
 #include "defs.h"
 
-const int piece_values[5] = {100, 320, 330, 500, 900};
+const int piece_values[6] = {100, 320, 330, 500, 900, 20000};
 
 const int king_location_bonus[2][64] = {
 {
@@ -95,6 +95,21 @@ const int isolated_pawn_value = -20;
 const int passed_pawn_value = 10;
 
 const int open_file_value = 25;
+
+int piece_value(int piece)
+{
+  return piece_values[piece];
+}
+
+int pst_value(int piece, int sq)
+{
+  assert(sq >= 0);
+  assert(sq < 64);
+  assert(piece >= 0);
+  assert(piece < 5);
+  
+  return piece_location_bonus[piece][sq];
+}
 
 int is_endgame(s_board *board)
 {

@@ -123,18 +123,60 @@ int main()
   {
     GUI_Send("xboard protocol not implemented\n");
   }
-  else if(strncmp(message, "test", 4) == 0)
+  else if(strncmp(message, "perft", 5) == 0)
   {
     s_board *board = (s_board*) malloc(1*sizeof(s_board));
     if(board == NULL) {return -1;}
     
-    //perft_suite(board, 5, "perftsuite.epd");
-    perft(board, 7, START_FEN);
+    //perft_suite(board, 6, "perftsuite.epd");
+    //perft(board, 7, START_FEN);
     //perft_split(board, 6, START_FEN);
-    //perft_suite_search(board, 8, "perftsuite_2.epd");
+    perft_suite_search(board, 9, "perftsuite_2.epd");
     //perft_movegen(board, "perftsuite.epd");
     //perft_movegen_sides(board, "perftsuite.epd");
     
+    getchar();
+  }
+  else if(strncmp(message, "test1", 5) == 0)
+  {
+    s_board *board = (s_board*) malloc(1*sizeof(s_board));
+    if(board == NULL) {return -1;}
+    
+    //set_fen(board, "7k/2p5/3p4/8/4N3/3R4/8/7K w - -");
+    //set_fen(board, "5b1k/2p5/3p4/8/4N3/3R4/8/3Q3K w - -");
+    //set_fen(board, "5b1k/2p5/3p4/8/4N3/Q2R4/8/7K w - -");
+    //set_fen(board, "7k/2p5/6b1/3p4/4N3/8/6Q1/4R2K b - -");
+    set_fen(board, "5b1k/2p5/3p4/8/4N3/3R4/8/3Q3K w - -");
+    
+    s_move moves[MAX_MOVES];
+    int num_moves = find_moves_captures(board, &moves[0], board->turn);
+    
+    // Set old permissions
+    s_irreversible permissions;
+    store_irreversible(&permissions, board);
+    
+    int m;
+    for(m = 0; m < num_moves; ++m)
+    {
+      print_move(moves[m]);
+      
+      move_make(board, &moves[m]);
+      
+      printf("SEE: %i\n", see(moves[m].to, board->turn, moves[m].piece_type, board->colour, board->pieces));
+      
+      // Restore old permissions
+      restore_irreversible(&permissions, board);
+      move_undo(board, &moves[m]);
+      
+      printf("SEE capture: %i\n", see_capture(board, moves[m]));
+    }
+    
+    getchar();
+  }
+  else if(strncmp(message, "test2", 5) == 0)
+  {
+    s_board *board = (s_board*) malloc(1*sizeof(s_board));
+    if(board == NULL) {return -1;}
     
     set_fen(board, START_FEN);
     
@@ -146,7 +188,7 @@ int main()
     printf("Search started\n");
     
     int i;
-    for(i = 1; i <= 9; ++i)
+    for(i = 1; i <= 12; ++i)
     {
       printf("Depth: %i\n", i);
       //display_board(board);

@@ -17,12 +17,11 @@ Perft Results - Release build -O3
 D   Time      NPS     Moves       Captures  EP     Castles Checks
 1   0.000s    -       20          0         0      0       0
 2   0.000s    -       400         0         0      0       0
-3   0.000s    -       8902        34        0      0       12
-4   0.010s    19.7m   197281      1576      0      0       469
-5   0.247s    19.7m   4865609     82719     258    0       27351
-6   6.035s    19.7m   119060324   2812008   5248   0       809099
-7   170.921s  18.7m   3195901860  108329926 319617 883453  33103848
-
+3   0.001s    -       8902        0         0      0       0
+4   0.018s    11.0m   197281      0         0      0       0
+5   0.217s    22.4m   4865609     0         0      0       0
+6   4.955s    24.0m   119060324   0         0      0       0
+7   128.797s  24.8m   3195901860  0         0      0       0
 
 
 ----------------------------
@@ -30,10 +29,10 @@ Perft suite
 Location: perftsuite.epd
 ----------------------------
 Depth: 5
-Time: 20.974s
+Time: 15.772s
 ----------------------------
 Depth: 6
-Time: 772.967s
+Time: 509.309s
 ----------------------------
 
 
@@ -43,14 +42,14 @@ Location: perftsuite_2.epd
 Tests: 3
 ----------------------------
 Depth: 7
-Nodes: 27535075
-kNPS:  2518
-Time:  10.934s
+Nodes: 1837824
+kNPS:  1501
+Time:  1.224s
 ----------------------------
 Depth: 8
-Nodes: 323148494
-kNPS:  3021
-Time:  106.952s
+Nodes: 5203032
+kNPS:  1617
+Time:  3.217s
 ----------------------------
 
 
@@ -73,63 +72,90 @@ Depth: 2
 
 Depth: 3
   Search time: 1ms
-  Nodes: 1675
-  Branching: 3.950
+  Nodes: 1381
+  Branching: 3.257
   Hash entries: 420 (0.01%)
-  kNPS: 1675
+  kNPS: 1381
   Eval: 40
   pv:  b1c3 b8c6 g1f3
 
 Depth: 4
-  Search time: 4ms
-  Nodes: 11876
-  Branching: 7.090
-  Hash entries: 1264 (0.03%)
-  kNPS: 2969
+  Search time: 3ms
+  Nodes: 3345
+  Branching: 2.422
+  Hash entries: 885 (0.02%)
+  kNPS: 1115
   Eval: 10
   pv:  b1c3 b8c6 g1f3 g8f6
 
 Depth: 5
-  Search time: 12ms
-  Nodes: 34204
-  Branching: 2.880
-  Hash entries: 5695 (0.14%)
-  kNPS: 2850
-  Eval: 30
-  pv:  b1c3 b8c6 g1f3 g8f6 d2d4
+  Search time: 8ms
+  Nodes: 15799
+  Branching: 4.723
+  Hash entries: 2824 (0.07%)
+  kNPS: 1974
+  Eval: 20
+  pv:  b1c3 d7d5 g1f3 g8f6
 
 Depth: 6
-  Search time: 64ms
-  Nodes: 245999
-  Branching: 7.192
-  Hash entries: 22637 (0.54%)
-  kNPS: 3843
-  Eval: 10
-  pv:  b1c3 b8c6 g1f3 g8f6 d2d4 d7d5
+  Search time: 28ms
+  Nodes: 50700
+  Branching: 3.209
+  Hash entries: 9686 (0.23%)
+  kNPS: 1810
+  Eval: 30
+  pv:  b1c3 b8c6 d2d4 g8f6 g1f3
 
 Depth: 7
-  Search time: 196ms
-  Nodes: 676212
-  Branching: 2.749
-  Hash entries: 81013 (1.93%)
-  kNPS: 3450
+  Search time: 35ms
+  Nodes: 91659
+  Branching: 1.808
+  Hash entries: 19724 (0.47%)
+  kNPS: 2618
   Eval: 25
-  pv:  e2e4 b8c6 g1f3 g8f6 e4e5 f6e4 b1c3
+  pv:  d2d4 b8c6 d4d5 c6e5 g1f3 d7d6
 
 Depth: 8
-  Search time: 1680ms
-  Nodes: 6835318
-  Branching: 10.108
-  Hash entries: 481844 (11.49%)
-  kNPS: 4068
+  Search time: 112ms
+  Nodes: 301683
+  Branching: 3.291
+  Hash entries: 53722 (1.28%)
+  kNPS: 2693
   Eval: 10
-  pv:  b1c3 d7d5 g1f3 g8f6 d2d4 b8c6 c1e3 c8f5
+  pv:  b1c3 b8c6 d2d4 d7d5 g1f3 g8f6 c1e3
 
 Depth: 9
-  Search time: 6238ms
-  Nodes: 22169783
-  Branching: 3.243
-  Hash entries: 1713439 (40.85%)
-  kNPS: 3553
+  Search time: 305ms
+  Nodes: 843755
+  Branching: 2.797
+  Hash entries: 151188 (3.60%)
+  kNPS: 2766
   Eval: 20
-  pv:  e2e4 b8c6 g1f3 e7e5 b1c3 g8f6 f1b5 f8b4 e1g1
+  pv:  e2e4 b8c6 g1f3 g8f6 b1c3 d7d5 e4e5 f6e4 c3e4
+
+Depth: 10
+  Search time: 809ms
+  Nodes: 2365816
+  Branching: 2.804
+  Hash entries: 381782 (9.10%)
+  kNPS: 2924
+  Eval: 15
+  pv:  e2e4 b8c6 g1f3 d7d5 b1c3 d5d4 c3d5 g8f6
+
+Depth: 11
+  Search time: 1851ms
+  Nodes: 5261926
+  Branching: 2.224
+  Hash entries: 855359 (20.39%)
+  kNPS: 2842
+  Eval: 10
+  pv:  b1c3 d7d5 g1f3 g8f6 d2d4 b8c6 c1f4 c8f5 e2e3 e7e6 f1d3
+
+Depth: 12
+  Search time: 6581ms
+  Nodes: 18631187
+  Branching: 3.541
+  Hash entries: 2075598 (49.49%)
+  kNPS: 2831
+  Eval: 10
+  pv:  b1c3 d7d5 g1f3 d5d4 c3b5 b8c6 e2e3 e7e5 e3d4

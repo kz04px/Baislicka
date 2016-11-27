@@ -43,6 +43,7 @@ void perft_search(s_board *board, int d)
     {
       moves_total++;
       
+      /*
       if(square_attacked(board, board->pieces[KINGS]&board->colour[board->turn], !board->turn))
       {
         moves_check++;
@@ -74,6 +75,7 @@ void perft_search(s_board *board, int d)
         default:
           break;
       }
+      */
     }
     else
     {
@@ -107,7 +109,7 @@ int perft_split(s_board *board, int depth, char *fen)
   printf("Board:\n");
   display_board(board);
   
-  time_t start;
+  clock_t start;
   start = clock();
   
   s_move moves[MAX_MOVES];
@@ -171,7 +173,7 @@ void perft_suite(s_board *board, int max_depth, char *filepath)
     return;
   }
   
-  time_t start;
+  clock_t start;
   double time_taken;
   
   printf("Starting test suite\n");
@@ -256,7 +258,7 @@ void perft(s_board *board, int max_depth, char *fen)
   assert(max_depth > 0);
   assert(fen != NULL);
   
-  time_t start;
+  clock_t start;
   double time_taken;
   
   printf("D   Time      NPS     Moves       Captures  EP     Castles Checks\n");
@@ -378,7 +380,7 @@ int perft_movegen_sides(s_board *board, const char *filepath)
   assert(board != NULL);
   assert(filepath != NULL);
   
-  time_t start;
+  clock_t start;
   double time_taken;
   double time_total = 0;
   double time_white = 0;
@@ -455,7 +457,7 @@ int perft_movegen(s_board *board, const char *filepath)
   assert(board != NULL);
   assert(filepath != NULL);
   
-  time_t start;
+  clock_t start;
   double time_taken;
   double time_total;
   double time_pawn = 0;
@@ -591,7 +593,7 @@ void perft_suite_search(s_board *board, int max_depth, char *filepath)
     return;
   }
   
-  time_t start;
+  clock_t start;
   double time_taken;
   
   printf("Starting test suite\n");

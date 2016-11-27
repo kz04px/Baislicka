@@ -9,6 +9,8 @@ Description:
   Transposition table
   Null move pruning
   Killer move heuristic
+  Static Exchange Evaluation
+  Late Move Reductions
 
 Platforms:
   Windows
