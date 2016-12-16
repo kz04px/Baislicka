@@ -15,7 +15,7 @@
 #define SETBIT(x, n) ((x) = (x) | ((uint64_t)1<<(n)))
 #define GETBIT(x, n) (((x)>>(n))&1)
 #define MAX_MOVES 256
-#define MAX_DEPTH 32
+#define MAX_DEPTH 64
 #define SQ_TO_FILE(x) (x%8)
 #define SQ_TO_RANK(x) (x/8)
 #define SQ_TO_FILE_CHAR(x) (SQ_TO_FILE(x)+'a')
@@ -96,7 +96,7 @@
 #define KILLER_MOVES
 #define ALPHA_BETA
 //#define PVS
-//#define ASPIRATION_WINDOW
+#define ASPIRATION_WINDOW
 #define LMR
 
 enum {WHITE, BLACK, BOTH};
@@ -246,6 +246,8 @@ uint64_t qsc_rook[2];
 // attack.c
 int square_attacked(s_board *board, uint64_t pos, int side);
 int get_smallest_attacker(s_board *board, int sq, int side);
+int eval_attackers(s_board *board, uint64_t pos, int side);
+int count_attackers(s_board *board, uint64_t pos, int side);
 
 // bitboards.c
 void bitboards_init();

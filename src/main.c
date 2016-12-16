@@ -191,15 +191,29 @@ int main()
     for(i = 1; i <= 12; ++i)
     {
       printf("Depth: %i\n", i);
-      //display_board(board);
-      s_search_results results = search(board, i, -INF, INF);
       
-      //int m;
-      //for(m = 0; m < results.num_moves; ++m)
-      //{
-      //  printf("%i  ", results.evals[m]);
-      //  print_move(results.moves[m]);
-      //}
+      s_search_results results;
+      
+      #ifdef ASPIRATION_WINDOW
+        if(i < 3)
+        {
+          results = search(board, i, -INF, INF);
+        }
+        else
+        {
+          results = search(board, i, -50, 50);
+          
+          int val = results.evals[results.best_move_num];
+          if(results.out_of_time == 1) {break;}
+          
+          if(val <= -50 || val >= 50)
+          {
+            results = search(board, i, -INF, INF);
+          }
+        }
+      #else
+        results = search(board, i, -INF, INF);
+      #endif
       
       printf("  Search time: %ims\n", results.time_taken);
       printf("  Nodes: %"PRIdPTR"\n", results.nodes);
@@ -238,50 +252,7 @@ int main()
         printf("  Out of time :<\n");
       }
       printf("\n");
-      
-      //display_board(board);
-      //print_u64(board->colour[WHITE]);
-      //printf("\n");
-      //print_u64(board->colour[BLACK]);
-      //printf("\n");
-      //getchar();
     }
-    
-    
-    /*
-    set_fen(board, START_FEN);
-    
-    while(1)
-    {
-      printf("Board:\n");
-      display_board(board);
-      //printf("White:\n");
-      //print_u64(board->colour[WHITE]);
-      //printf("Black:\n");
-      //print_u64(board->colour[BLACK]);
-      
-      printf("is 3fold: %i\n", is_threefold(board));
-      
-      s_move moves[MAX_MOVES];
-      int num_moves = find_moves_captures(board, &moves[0], board->turn);
-      #ifdef SORT_MOVES
-        moves_sort(moves, num_moves);
-      #endif
-      num_moves += find_moves_quiet(board, &moves[num_moves], board->turn);
-      
-      int i;
-      for(i = 0; i < num_moves; ++i)
-      {
-        printf("%i: ", i);
-        print_move(moves[i]);
-      }
-      
-      int move_number;
-      scanf("%d", &move_number);
-      
-      move_make(board, &moves[move_number]);
-    }
-    */
     
     getchar();
   }

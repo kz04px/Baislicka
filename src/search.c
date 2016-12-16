@@ -235,14 +235,33 @@ void *search_root(void *n)
   s_move bestmove;
   s_pv *bestmove_pv = NULL;
   int bestmove_eval;
+  int total_time = 0;
   
   int i;
   for(i = 1; i <= target_depth && i < MAX_DEPTH; ++i)
   {
-    int alpha = -INF;
-    int beta = INF;
-    
-    results = search(board, i, alpha, beta);
+    #ifdef ASPIRATION_WINDOW
+      if(i < 3)
+      {
+        results = search(board, i, -INF, INF);
+      }
+      else
+      {
+        results = search(board, i, -50, 50);
+        total_time += results.time_taken;
+        
+        int val = results.evals[results.best_move_num];
+        if(results.out_of_time == 1) {break;}
+        
+        if(val <= -50 || val >= 50)
+        {
+          results = search(board, i, -INF, INF);
+          total_time += results.time_taken;
+        }
+      }
+    #else
+      results = search(board, i, -INF, INF);
+    #endif
     
     if(results.out_of_time == 1) {break;}
     
@@ -263,20 +282,20 @@ void *search_root(void *n)
     
     if(bestmove_eval > INF-MAX_DEPTH)
     {
-      GUI_Send("info depth %i score mate %i nodes %"PRIdPTR" time %i seldepth %i pv%s\n", i, INF-bestmove_eval, results.nodes, results.time_taken, results.seldepth, move_string);
+      GUI_Send("info depth %i score mate %i nodes %"PRIdPTR" time %i seldepth %i pv%s\n", i, INF-bestmove_eval, results.nodes, total_time, results.seldepth, move_string);
     }
     else if(bestmove_eval < -INF+MAX_DEPTH)
     {
-      GUI_Send("info depth %i score mate %i nodes %"PRIdPTR" time %i seldepth %i pv%s\n", i, -bestmove_eval-INF, results.nodes, results.time_taken, results.seldepth, move_string);
+      GUI_Send("info depth %i score mate %i nodes %"PRIdPTR" time %i seldepth %i pv%s\n", i, -bestmove_eval-INF, results.nodes, total_time, results.seldepth, move_string);
     }
     else
     {
-      GUI_Send("info depth %i score cp %i nodes %"PRIdPTR" time %i seldepth %i pv%s\n", i, bestmove_eval, results.nodes, results.time_taken, results.seldepth, move_string);
+      GUI_Send("info depth %i score cp %i nodes %"PRIdPTR" time %i seldepth %i pv%s\n", i, bestmove_eval, results.nodes, total_time, results.seldepth, move_string);
     }
     
-    if(results.time_taken > 0)
+    if(total_time > 0)
     {
-      GUI_Send("info nps %"PRIdPTR"\n", 1000*results.nodes/results.time_taken);
+      GUI_Send("info nps %"PRIdPTR"\n", 1000*results.nodes/total_time);
     }
     
     if(bestmove_pv->num_moves > 1)
@@ -289,7 +308,8 @@ void *search_root(void *n)
       break;
     }
     
-    if(4*results.time_taken < search_settings.time_max)
+    if(4*total_time < search_settings.time_max)
+    //if(4*results.time_taken < search_settings.time_max)
     {
       target_depth++;
     }
@@ -466,6 +486,7 @@ int alpha_beta(s_board *board, s_search_info *info, int alpha, int beta, int dep
   pv->num_moves = 0;
   
   #ifdef HASHTABLE
+    int flag = -1;
     int alpha_original = alpha;
     
     s_hashtable_entry entry = *hashtable_poll(hashtable, board->key);
@@ -475,13 +496,26 @@ int alpha_beta(s_board *board, s_search_info *info, int alpha, int beta, int dep
     if(entry_valid)
     {
       info->hashtable_hits++;
-      //if(move_is_legal(board, &entry.pv))
-      //{
-        gen.hash_move = entry.pv;
-      //}
+      gen.hash_move = entry.pv;
       
       if(entry.depth >= depth)
       {
+        if(entry.flags == LOWERBOUND)
+        {
+          if(entry_eval >= beta)
+          {
+            return entry_eval;
+          }
+        }
+        else if(entry.flags == UPPERBOUND)
+        {
+          if(entry_eval <= alpha)
+          {
+            return entry_eval;
+          }
+        }
+        
+        /*
         if(entry_eval >= beta)
         {
           if(entry.flags == LOWERBOUND)
@@ -493,14 +527,13 @@ int alpha_beta(s_board *board, s_search_info *info, int alpha, int beta, int dep
         {
           return entry_eval;
         }
+        */
       }
     }
   #endif
   
   int in_check = square_attacked(board, board->pieces[KINGS]&board->colour[board->turn], !board->turn);
   
-  /*
-  */
   if(in_check)
   {
     depth++;
@@ -534,12 +567,7 @@ int alpha_beta(s_board *board, s_search_info *info, int alpha, int beta, int dep
   #endif
   
   #ifdef KILLER_MOVES
-    gen.killer_move = NO_MOVE;
-    //if(killer_moves_key[info->ply] == board->key && move_is_legal(board, &killer_moves[info->ply]))
-    //if(move_is_legal(board, &killer_moves[info->ply]))
-    //{
-      gen.killer_move = killer_moves[info->ply];
-    //}
+    gen.killer_move = killer_moves[info->ply];
   #endif
   
   int best_score = -INF;
@@ -622,6 +650,10 @@ int alpha_beta(s_board *board, s_search_info *info, int alpha, int beta, int dep
         }
         #endif
         
+        #ifdef HASHTABLE
+          flag = LOWERBOUND;
+        #endif
+        
         #ifndef NDEBUG
           info->num_cutoffs[gen.move_num-1]++;
         #endif
@@ -646,11 +678,25 @@ int alpha_beta(s_board *board, s_search_info *info, int alpha, int beta, int dep
   }
   
   #ifdef HASHTABLE
+    if(flag == -1)
+    {
+      if(alpha == alpha_original)
+      {
+        flag = UPPERBOUND;
+      }
+      else
+      {
+        flag = EXACT;
+      }
+    }
+    
+    /*
     int flag = EXACT;
     if(best_score < alpha_original)
     {
       flag = UPPERBOUND;
     }
+    */
     
     hashtable_add(hashtable, flag, board->key, depth, eval_to_tt(best_score, info->ply), best_move);
   #endif
@@ -721,6 +767,11 @@ int pvSearch(s_board *board, s_search_info *info, int alpha, int beta, int depth
   
   int in_check = square_attacked(board, board->pieces[KINGS]&board->colour[board->turn], !board->turn);
   
+  if(in_check)
+  {
+    depth++;
+  }
+  
   // Set old permissions
   s_irreversible permissions;
   store_irreversible(&permissions, board);
@@ -776,7 +827,18 @@ int pvSearch(s_board *board, s_search_info *info, int alpha, int beta, int depth
     }
     else
     {
-      score = -pvSearch(board, info, -alpha-1, -alpha, depth - 1, 1);
+      if(gen.move_num < 4 || depth < 3 || in_check || move.type == CAPTURE || move.type == PROMOTE)
+      {
+        score = -pvSearch(board, info, -alpha-1, -alpha, depth - 1, 1);
+      }
+      else
+      {
+        score = -pvSearch(board, info, -alpha-1, -alpha, depth - 2, 1);
+      }
+      
+      
+      //score = -pvSearch(board, info, -alpha-1, -alpha, depth - 1, 1);
+      
       if(score > alpha)
       {
         score = -pvSearch(board, info, -beta, -alpha, depth - 1, 1);

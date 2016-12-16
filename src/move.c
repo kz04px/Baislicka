@@ -160,7 +160,6 @@ int next_move(s_board *board, s_move_generator *generator, s_move *move)
       }
       */
       
-      
       // Hash & killer moves
       for(i = 0; i < generator->num_moves; ++i)
       {
