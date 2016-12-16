@@ -11,6 +11,7 @@ Description:
   Killer move heuristic
   Static Exchange Evaluation
   Late Move Reductions
+  Aspiration Windows
 
 Platforms:
   Windows
