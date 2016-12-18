@@ -142,6 +142,7 @@ void uci_listen()
             
         if(settings->movestogo == 1)
         {
+          // Maintain a small period of buffer time for the search to end
           settings->wtime -= 50;
           settings->btime -= 50;
         }

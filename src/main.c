@@ -128,10 +128,10 @@ int main()
     s_board *board = (s_board*) malloc(1*sizeof(s_board));
     if(board == NULL) {return -1;}
     
-    //perft_suite(board, 6, "perftsuite.epd");
+    perft_suite(board, 5, "perftsuite.epd");
     //perft(board, 7, START_FEN);
     //perft_split(board, 6, START_FEN);
-    perft_suite_search(board, 9, "perftsuite_2.epd");
+    //perft_suite_search(board, 9, "perftsuite_2.epd");
     //perft_movegen(board, "perftsuite.epd");
     //perft_movegen_sides(board, "perftsuite.epd");
     
@@ -184,6 +184,7 @@ int main()
     settings.time_max = 10000000;
     search_settings_set(settings);
     uint64_t nodes_last = 0;
+    int total_time = 0;
     
     printf("Search started\n");
     
@@ -198,24 +199,27 @@ int main()
         if(i < 3)
         {
           results = search(board, i, -INF, INF);
+          total_time += results.time_taken;
         }
         else
         {
           results = search(board, i, -50, 50);
+          total_time += results.time_taken;
           
           int val = results.evals[results.best_move_num];
-          if(results.out_of_time == 1) {break;}
           
           if(val <= -50 || val >= 50)
           {
             results = search(board, i, -INF, INF);
+            total_time += results.time_taken;
           }
         }
       #else
         results = search(board, i, -INF, INF);
+        total_time += results.time_taken;
       #endif
       
-      printf("  Search time: %ims\n", results.time_taken);
+      printf("  Search time: %ims\n", total_time);
       printf("  Nodes: %"PRIdPTR"\n", results.nodes);
       if(i == 1)
       {
@@ -229,9 +233,9 @@ int main()
       #ifdef HASHTABLE
         printf("  Hash entries: %i (%.2f%%)\n", hashtable->num_entries, 100.0*(float)hashtable->num_entries/hashtable->max_entries);
       #endif
-      if(results.time_taken > 0)
+      if(total_time > 0)
       {
-        printf("  kNPS: %"PRIdPTR"\n", results.nodes/results.time_taken);
+        printf("  kNPS: %"PRIdPTR"\n", results.nodes/total_time);
       }
       
       printf("  Eval: %i\n", results.evals[results.best_move_num]);

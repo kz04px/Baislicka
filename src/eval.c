@@ -96,8 +96,98 @@ const int passed_pawn_value = 10;
 
 const int open_file_value = 25;
 
+const int king_safety_table[100] = {
+   0,   0,   0,   1,   1,   2,   3,   4,   5,   6,
+   8,  10,  13,  16,  20,  25,  30,  36,  42,  48,
+  55,  62,  70,  80,  90, 100, 110, 120, 130, 140,
+ 150, 160, 170, 180, 190, 200, 210, 220, 230, 240,
+ 250, 260, 270, 280, 290, 300, 310, 320, 330, 340,
+ 350, 360, 370, 380, 390, 400, 410, 420, 430, 440,
+ 450, 460, 470, 480, 490, 500, 510, 520, 530, 540,
+ 550, 560, 570, 580, 590, 600, 610, 620, 630, 640,
+ 650, 650, 650, 650, 650, 650, 650, 650, 650, 650,
+ 650, 650, 650, 650, 650, 650, 650, 650, 650, 650
+};
+
+int king_safety(s_board *board, int sq, int side)
+{
+  assert(board != NULL);
+  assert(sq >= 0);
+  assert(sq < 64);
+  assert(side == WHITE || side == BLACK);
+  
+  int eval = 0;
+  uint64_t surrounding = magic_moves_king(sq);
+  
+  // Positive: Nearby friendly pieces
+  eval += 5*__builtin_popcountll(surrounding&board->colour[side]);
+  
+  // Negative: Opponent attacking nearby squares
+  /*
+  int count = 0;
+  while(surrounding)
+  {
+    uint64_t pos = surrounding & ~(surrounding-1);
+    
+    count += count_attackers(board, pos, 1-side);
+    
+    surrounding ^= pos;
+  }
+  eval -= king_safety_table[count];
+  */
+  
+  return eval;
+}
+
+int piece_mobility(s_board *board, int side)
+{
+  assert(board);
+  assert(side == WHITE || side == BLACK);
+  
+  uint64_t moves = 0;
+  uint64_t copy = 0;
+  uint64_t allowed = ~board->colour[side];
+  int from = 0;
+  
+  // Knights
+  copy = board->pieces[KNIGHTS] & board->colour[side];
+  while(copy)
+  {
+    from = __builtin_ctzll(copy);
+    moves |= magic_moves_knight(from) & allowed;
+    
+    copy &= copy-1;
+  }
+  
+  // Bishops & Queens
+  copy = (board->pieces[BISHOPS] | board->pieces[QUEENS]) & board->colour[side];
+  while(copy)
+  {
+    from = __builtin_ctzll(copy);
+    moves |= magic_moves_bishop((board->colour[WHITE]|board->colour[BLACK]), from) & allowed;
+    
+    copy &= copy-1;
+  }
+  
+  // Rooks & Queens
+  copy = (board->pieces[ROOKS] | board->pieces[QUEENS]) & board->colour[side];
+  while(copy)
+  {
+    from = __builtin_ctzll(copy);
+    moves |= magic_moves_rook((board->colour[WHITE]|board->colour[BLACK]), from) & allowed;
+    
+    copy &= copy-1;
+  }
+  
+  int count = __builtin_popcountll(moves);
+  
+  return 4*count;
+}
+
 int piece_value(int piece)
 {
+  assert(PAWNS <= piece);
+  assert(piece < KINGS);
   return piece_values[piece];
 }
 
@@ -296,10 +386,23 @@ int eval(s_board *board)
   // White King
   sq = __builtin_ctzll(board->pieces[KINGS]&board->colour[WHITE]);
   score += king_location_bonus[endgame][sq];
+  #ifdef KING_SAFETY
+    score += king_safety(board, sq, WHITE);
+  #endif
   
   // Black King
   sq = __builtin_ctzll(board->pieces[KINGS]&board->colour[BLACK]);
   score -= king_location_bonus[endgame][sq^56];
+  #ifdef KING_SAFETY
+    score -= king_safety(board, sq, BLACK);
+  #endif
+  
+  // Piece mobility
+  #ifdef PIECE_MOBILITY
+    score += piece_mobility(board, WHITE);
+    score -= piece_mobility(board, BLACK);
+  #endif
+  
   
   if(board->turn == WHITE)
   {

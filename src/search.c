@@ -244,6 +244,7 @@ void *search_root(void *n)
       if(i < 3)
       {
         results = search(board, i, -INF, INF);
+        total_time += results.time_taken;
       }
       else
       {
@@ -261,6 +262,7 @@ void *search_root(void *n)
       }
     #else
       results = search(board, i, -INF, INF);
+      total_time += results.time_taken;
     #endif
     
     if(results.out_of_time == 1) {break;}
