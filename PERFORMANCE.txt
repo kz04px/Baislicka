@@ -36,126 +36,110 @@ Time: 509.309s
 ----------------------------
 
 
-----------------------------
-Perft search suite
-Location: perftsuite_2.epd
-Tests: 3
-----------------------------
-Depth: 7
-Nodes: 1837824
-kNPS:  1501
-Time:  1.224s
-----------------------------
-Depth: 8
-Nodes: 5203032
-kNPS:  1617
-Time:  3.217s
-----------------------------
-
-
 Search started
 Depth: 1
   Search time: 0ms
   Nodes: 20
   Branching: -
   Hash entries: 0 (0.00%)
-  Eval: 40
-  pv:  b1c3
+  Eval: 53
+  pv:  e2e4
 
 Depth: 2
-  Search time: 0ms
-  Nodes: 424
-  Branching: 21.200
+  Search time: 1ms
+  Nodes: 427
+  Branching: 21.350
   Hash entries: 20 (0.00%)
+  kNPS: 427
   Eval: 10
-  pv:  b1c3 b8c6
+  pv:  g1f3 b8c6
 
 Depth: 3
-  Search time: 1ms
-  Nodes: 1381
-  Branching: 3.257
+  Search time: 3ms
+  Nodes: 965
+  Branching: 2.260
   Hash entries: 420 (0.01%)
-  kNPS: 1381
-  Eval: 40
-  pv:  b1c3 b8c6 g1f3
+  kNPS: 965
+  Eval: 52
+  pv:  g1f3 b8c6 b1c3
 
 Depth: 4
-  Search time: 3ms
-  Nodes: 3345
-  Branching: 2.422
-  Hash entries: 885 (0.02%)
-  kNPS: 1115
+  Search time: 6ms
+  Nodes: 2744
+  Branching: 2.844
+  Hash entries: 1027 (0.02%)
+  kNPS: 914
   Eval: 10
   pv:  b1c3 b8c6 g1f3 g8f6
 
 Depth: 5
-  Search time: 8ms
-  Nodes: 15799
-  Branching: 4.723
-  Hash entries: 2824 (0.07%)
-  kNPS: 1974
-  Eval: 20
-  pv:  b1c3 d7d5 g1f3 g8f6
+  Search time: 18ms
+  Nodes: 12568
+  Branching: 4.580
+  Hash entries: 3058 (0.07%)
+  kNPS: 1047
+  Eval: 14
+  pv:  b1c3 d7d5 e2e4 g8f6
 
 Depth: 6
-  Search time: 28ms
-  Nodes: 50700
-  Branching: 3.209
-  Hash entries: 9686 (0.23%)
-  kNPS: 1810
-  Eval: 30
-  pv:  b1c3 b8c6 d2d4 g8f6 g1f3
+  Search time: 48ms
+  Nodes: 41495
+  Branching: 3.302
+  Hash entries: 9608 (0.23%)
+  kNPS: 1383
+  Eval: 41
+  pv:  b1c3 g8f6 d2d4 b8c6 g1f3
 
 Depth: 7
-  Search time: 35ms
-  Nodes: 91659
-  Branching: 1.808
-  Hash entries: 19724 (0.47%)
-  kNPS: 2618
-  Eval: 25
-  pv:  d2d4 b8c6 d4d5 c6e5 g1f3 d7d6
+  Search time: 86ms
+  Nodes: 81208
+  Branching: 1.957
+  Hash entries: 21256 (0.51%)
+  kNPS: 2137
+  Eval: 10
+  pv:  b1c3 g8f6 d2d4 d7d5 g1f3 b8c6
 
 Depth: 8
-  Search time: 112ms
-  Nodes: 301683
-  Branching: 3.291
-  Hash entries: 53722 (1.28%)
-  kNPS: 2693
-  Eval: 10
-  pv:  b1c3 b8c6 d2d4 d7d5 g1f3 g8f6 c1e3
+  Search time: 186ms
+  Nodes: 247804
+  Branching: 3.051
+  Hash entries: 53486 (1.28%)
+  kNPS: 2478
+  Eval: 16
+  pv:  e2e4 e7e5 b1c3 g8f6 g1e2 d7d5 d2d4
 
 Depth: 9
-  Search time: 305ms
-  Nodes: 843755
-  Branching: 2.797
-  Hash entries: 151188 (3.60%)
-  kNPS: 2766
-  Eval: 20
-  pv:  e2e4 b8c6 g1f3 g8f6 b1c3 d7d5 e4e5 f6e4 c3e4
+  Search time: 444ms
+  Nodes: 626002
+  Branching: 2.526
+  Hash entries: 138531 (3.30%)
+  kNPS: 2426
+  Eval: 18
+  pv:  b1c3 g8f6 d2d4 d7d5 c1f4 c8f5 c3b5 c7c6 b5c3
 
 Depth: 10
-  Search time: 809ms
-  Nodes: 2365816
-  Branching: 2.804
-  Hash entries: 381782 (9.10%)
-  kNPS: 2924
-  Eval: 15
-  pv:  e2e4 b8c6 g1f3 d7d5 b1c3 d5d4 c3d5 g8f6
+  Search time: 1109ms
+  Nodes: 1647488
+  Branching: 2.632
+  Hash entries: 356187 (8.49%)
+  kNPS: 2477
+  Eval: 18
+  pv:  b1c3 g8f6 d2d4 d7d5 c1f4 c8f5 c3b5 c7c6 b5c3
 
 Depth: 11
-  Search time: 1851ms
-  Nodes: 5261926
-  Branching: 2.224
-  Hash entries: 855359 (20.39%)
-  kNPS: 2842
-  Eval: 10
-  pv:  b1c3 d7d5 g1f3 g8f6 d2d4 b8c6 c1f4 c8f5 e2e3 e7e6 f1d3
+  Search time: 2769ms
+  Nodes: 4042010
+  Branching: 2.453
+  Hash entries: 820147 (19.55%)
+  kNPS: 2434
+  Eval: 17
+  pv:  b1c3 b8c6 d2d4 d7d5 g1f3 g8f6 d1d3 d8d6 e2e4 c8e6
 
 Depth: 12
-  Search time: 6581ms
-  Nodes: 18631187
-  Branching: 3.541
-  Hash entries: 2075598 (49.49%)
-  kNPS: 2831
-  Eval: 10
-  pv:  b1c3 d7d5 g1f3 d5d4 c3b5 b8c6 e2e3 e7e5 e3d4
+  Search time: 8192ms
+  Nodes: 13149496
+  Branching: 3.253
+  Hash entries: 1967210 (46.90%)
+  kNPS: 2424
+  Eval: 28
+  pv:  d2d4 g8f6 b1c3 d7d5 c1f4 c8g4 d1d3 b8c6 g1f3

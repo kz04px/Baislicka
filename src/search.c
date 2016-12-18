@@ -295,9 +295,9 @@ void *search_root(void *n)
       GUI_Send("info depth %i score cp %i nodes %"PRIdPTR" time %i seldepth %i pv%s\n", i, bestmove_eval, results.nodes, total_time, results.seldepth, move_string);
     }
     
-    if(total_time > 0)
+    if(results.time_taken > 0)
     {
-      GUI_Send("info nps %"PRIdPTR"\n", 1000*results.nodes/total_time);
+      GUI_Send("info nps %"PRIdPTR"\n", 1000*results.nodes/results.time_taken);
     }
     
     if(bestmove_pv->num_moves > 1)

@@ -233,9 +233,9 @@ int main()
       #ifdef HASHTABLE
         printf("  Hash entries: %i (%.2f%%)\n", hashtable->num_entries, 100.0*(float)hashtable->num_entries/hashtable->max_entries);
       #endif
-      if(total_time > 0)
+      if(results.time_taken > 0)
       {
-        printf("  kNPS: %"PRIdPTR"\n", results.nodes/total_time);
+        printf("  kNPS: %"PRIdPTR"\n", results.nodes/results.time_taken);
       }
       
       printf("  Eval: %i\n", results.evals[results.best_move_num]);
