@@ -187,7 +187,7 @@ int piece_mobility(s_board *board, int side)
 int piece_value(int piece)
 {
   assert(PAWNS <= piece);
-  assert(piece < KINGS);
+  assert(piece <= KINGS);
   return piece_values[piece];
 }
 

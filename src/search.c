@@ -131,6 +131,15 @@ int qsearch(s_board *board, s_search_info *info, int alpha, int beta)
     return beta;
   }
   
+  #ifdef DELTA_PRUNING
+    const int safety = 900; // The value of a queen
+    
+    if(stand_pat < alpha - safety)
+    {
+      return alpha;
+    }
+  #endif
+  
   if(stand_pat > alpha)
   {
     alpha = stand_pat;
@@ -155,7 +164,6 @@ int qsearch(s_board *board, s_search_info *info, int alpha, int beta)
   int m;
   for(m = 0; m < num_moves; ++m)
   {
-    // TEST - SEE
     int val = see_capture(board, moves[m]);
     if(val < -50)
     {
@@ -344,7 +352,7 @@ s_search_results search(s_board *board, int depth, int alpha, int beta)
   
   results.num_moves = find_moves_captures(board, results.moves, board->turn);
   #ifdef SORT_MOVES
-    moves_sort(results.moves, results.num_moves);
+    moves_sort_see(board, results.moves, results.num_moves);
   #endif
   results.num_moves += find_moves_quiet(board, &results.moves[results.num_moves], board->turn);
   
@@ -397,7 +405,7 @@ s_search_results search(s_board *board, int depth, int alpha, int beta)
         #ifdef ALPHA_BETA
           score = -alpha_beta(board, info, alpha, beta, depth-1, 1, &pv_local);
         #elif defined(PVS)
-          score = -pvSearch(board, info, alpha, beta, depth-1, 1);
+          score = -pvSearch(board, info, alpha, beta, depth-1, 1, &pv_local);
         #endif
         
         info->ply--;
@@ -645,11 +653,11 @@ int alpha_beta(s_board *board, s_search_info *info, int alpha, int beta, int dep
       if(alpha >= beta)
       {
         #ifdef KILLER_MOVES
-        if(move.type == QUIET)
-        {
-          killer_moves_key[info->ply] = board->key;
-          killer_moves[info->ply] = move;
-        }
+          if(move.type == QUIET)
+          {
+            killer_moves_key[info->ply] = board->key;
+            killer_moves[info->ply] = move;
+          }
         #endif
         
         #ifdef HASHTABLE
@@ -706,9 +714,13 @@ int alpha_beta(s_board *board, s_search_info *info, int alpha, int beta, int dep
   return best_score;
 }
 
-int pvSearch(s_board *board, s_search_info *info, int alpha, int beta, int depth, int null_move)
+int pvSearch(s_board *board, s_search_info *info, int alpha, int beta, int depth, int null_move, s_pv *pv)
 {
-  info->nodes++;
+  assert(board != NULL);
+  assert(info != NULL);
+  assert(beta >= alpha);
+  assert(depth >= 0);
+  assert(pv);
   
   // Evaluate draws
   if(is_threefold(board) || is_fifty_move_draw(board))
@@ -731,14 +743,25 @@ int pvSearch(s_board *board, s_search_info *info, int alpha, int beta, int depth
     #endif
   }
   
+  // Check time
+  clock_t time_spent = (clock() - info->time_start) * 1000 / CLOCKS_PER_SEC;
+  if(time_spent >= search_settings.time_max)
+  {
+    return 0;
+  }
+  
+  s_pv pv_local = {0};
+  pv_local.num_moves = 0;
   s_move_generator gen = {0};
   gen.stage = 0;
   gen.hash_move = NO_MOVE;
   gen.killer_move = NO_MOVE;
   int score = -INF;
   int bSearchPv = 1;
+  pv->num_moves = 0;
   
   #ifdef HASHTABLE
+    int flag = -1;
     int alpha_original = alpha;
     
     s_hashtable_entry entry = *hashtable_poll(hashtable, board->key);
@@ -752,16 +775,19 @@ int pvSearch(s_board *board, s_search_info *info, int alpha, int beta, int depth
       
       if(entry.depth >= depth)
       {
-        if(entry_eval >= beta)
+        if(entry.flags == LOWERBOUND)
         {
-          if(entry.flags == LOWERBOUND)
+          if(entry_eval >= beta)
           {
             return entry_eval;
           }
         }
         else if(entry.flags == UPPERBOUND)
         {
-          return entry_eval;
+          if(entry_eval <= alpha)
+          {
+            return entry_eval;
+          }
         }
       }
     }
@@ -785,7 +811,7 @@ int pvSearch(s_board *board, s_search_info *info, int alpha, int beta, int depth
       null_make(board);
       
       info->ply++;
-      score = -pvSearch(board, info, -beta, -beta+1, depth-1-R, 0);
+      score = -pvSearch(board, info, -beta, -beta+1, depth-1-R, 0, &pv_local);
       info->ply--;
       
       // Unmake nullmove
@@ -793,6 +819,9 @@ int pvSearch(s_board *board, s_search_info *info, int alpha, int beta, int depth
       
       // Restore old permissions
       restore_irreversible(&permissions, board);
+      
+      // Test
+      pv_local.num_moves = 0;
       
       if(score >= beta)
       {
@@ -822,28 +851,31 @@ int pvSearch(s_board *board, s_search_info *info, int alpha, int beta, int depth
       continue;
     }
     
+    info->nodes++;
     info->ply++;
+    
     if(bSearchPv)
     {
-      score = -pvSearch(board, info, -beta, -alpha, depth - 1, 1);
+      score = -pvSearch(board, info, -beta, -alpha, depth - 1, 1, &pv_local);
     }
     else
     {
-      if(gen.move_num < 4 || depth < 3 || in_check || move.type == CAPTURE || move.type == PROMOTE)
-      {
-        score = -pvSearch(board, info, -alpha-1, -alpha, depth - 1, 1);
-      }
-      else
-      {
-        score = -pvSearch(board, info, -alpha-1, -alpha, depth - 2, 1);
-      }
+      #ifdef LMR
+        if(gen.move_num < 4 || depth < 3 || in_check || move.type == CAPTURE || move.type == PROMOTE)
+        {
+          score = -pvSearch(board, info, -alpha-1, -alpha, depth-1, 1, &pv_local);
+        }
+        else
+        {
+          score = -pvSearch(board, info, -alpha-1, -alpha, depth-2, 1, &pv_local);
+        }
+      #else
+        score = -pvSearch(board, info, -alpha-1, -alpha, depth-1, 1, &pv_local);
+      #endif
       
-      
-      //score = -pvSearch(board, info, -alpha-1, -alpha, depth - 1, 1);
-      
-      if(score > alpha)
+      if(alpha < score && score < beta)
       {
-        score = -pvSearch(board, info, -beta, -alpha, depth - 1, 1);
+        score = -pvSearch(board, info, -beta, -alpha, depth - 1, 1, &pv_local);
       }
     }
     info->ply--;
@@ -856,9 +888,19 @@ int pvSearch(s_board *board, s_search_info *info, int alpha, int beta, int depth
     if(score > best_score)
     {
       best_score = score;
+      bSearchPv = 0;
+      
       #ifdef HASHTABLE
         best_move = move;
       #endif
+      
+      pv->moves[0] = move;
+      int i;
+      for(i = 0; i < pv_local.num_moves && i < MAX_DEPTH - 1; ++i)
+      {
+        pv->moves[i+1] = pv_local.moves[i];
+      }
+      pv->num_moves = pv_local.num_moves + 1;
       
       if(score > alpha)
       {
@@ -868,18 +910,26 @@ int pvSearch(s_board *board, s_search_info *info, int alpha, int beta, int depth
       if(alpha >= beta)
       {
         #ifdef KILLER_MOVES
-        if(move.type == QUIET)
-        {
-          killer_moves_key[info->ply] = board->key;
-          killer_moves[info->ply] = move;
-        }
+          if(move.type == QUIET)
+          {
+            killer_moves_key[info->ply] = board->key;
+            killer_moves[info->ply] = move;
+          }
         #endif
         
+        #ifdef HASHTABLE
+          flag = LOWERBOUND;
+        #endif
+        
+        #ifndef NDEBUG
+          info->num_cutoffs[gen.move_num-1]++;
+        #endif
         break;
       }
     }
   }
   
+  // If we haven't played a move, then there are none
   if(best_score == -INF)
   {
     if(in_check)
@@ -895,14 +945,20 @@ int pvSearch(s_board *board, s_search_info *info, int alpha, int beta, int depth
   }
   
   #ifdef HASHTABLE
-    int flag = EXACT;
-    if(alpha < alpha_original)
+    if(flag == -1)
     {
-      flag = UPPERBOUND;
+      if(best_score == alpha_original)
+      {
+        flag = UPPERBOUND;
+      }
+      else
+      {
+        flag = EXACT;
+      }
     }
     
-    hashtable_add(hashtable, flag, board->key, depth, eval_to_tt(alpha, info->ply), best_move);
+    hashtable_add(hashtable, flag, board->key, depth, eval_to_tt(best_score, info->ply), best_move);
   #endif
   
-  return alpha; // fail-hard
+  return best_score; // fail-hard
 }

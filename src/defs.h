@@ -92,7 +92,6 @@
 #define NULL_MOVE
 #define SORT_MOVES
 //#define SORT_QUIET_MOVES
-//#define GENERATE_SORTED
 #define KILLER_MOVES
 #define ALPHA_BETA
 //#define PVS
@@ -100,6 +99,7 @@
 #define LMR
 #define KING_SAFETY
 #define PIECE_MOBILITY
+//#define DELTA_PRUNING
 
 enum {WHITE, BLACK, BOTH};
 enum {PAWNS, KNIGHTS, BISHOPS, ROOKS, QUEENS, KINGS, EMPTY};
@@ -275,7 +275,7 @@ int restore_irreversible(s_irreversible *info, s_board *board);
 void *search_root(void *n);
 s_search_results search(s_board *board, int depth, int alpha, int beta);
 int alpha_beta(s_board *board, s_search_info *info, int alpha, int beta, int depth, int null_move, s_pv *pv);
-int pvSearch(s_board *board, s_search_info *info, int alpha, int beta, int depth, int null_move);
+int pvSearch(s_board *board, s_search_info *info, int alpha, int beta, int depth, int null_move, s_pv *pv_local);
 int see(int sq, int side, int captured, uint64_t colours[2], uint64_t pieces[6]);
 int see_capture(s_board *board, s_move move);
 

@@ -34,72 +34,7 @@ int main()
   
   qsc_rook[WHITE] = U64_D1 | U64_A1;
   qsc_rook[BLACK] = U64_D8 | U64_A8;
-  
-  #if defined(SORT_MOVES) && defined(GENERATE_SORTED)
-    printf("Warning: Move sorting and sorted move generation both enabled\n");
-    printf("         Recommended to disable one or both\n");
-  #endif
-  
-  #ifndef NDEBUG
-    printf("Search debug info:\n");
-    printf("Max search depth: %i\n", MAX_DEPTH);
     
-    #ifdef ALPHA_BETA
-      printf("Enabled  - Alphabeta search\n");
-    #elif defined(PVS)
-      printf("Enabled  - Principal Variation Search\n");
-    #endif
-    
-    #ifdef QUIESCENCE_SEARCH
-      printf("Enabled  - Quiescence search\n");
-    #else
-      printf("Disabled - Quiescence search\n");
-    #endif
-    
-    #ifdef HASHTABLE
-      printf("Enabled  - Transposition table\n");
-    #else
-      printf("Disabled - Transposition table\n");
-    #endif
-    
-    printf("Enabled  - Principal variation\n");
-    
-    #ifdef NULL_MOVE
-      printf("Enabled  - Null move pruning\n");
-    #else
-      printf("Disabled - Null move pruning\n");
-    #endif
-    
-    #ifdef KILLER_MOVES
-      printf("Enabled  - Killer move heuristic\n");
-    #else
-      printf("Disabled - Killer move heuristic\n");
-    #endif
-    
-    #ifdef SORT_MOVES
-      printf("Enabled  - MVV-LVA move sorting\n");
-    #else
-      printf("Disabled - MVV-LVA move sorting\n");
-    #endif
-    
-    #ifdef GENERATE_SORTED
-      printf("Enabled  - Sorted move generation\n");
-    #else
-      printf("Disabled - Sorted move generation\n");
-    #endif
-    
-    printf("\n");
-    
-    printf("Other info:\n");
-    printf("sizeof(s_board): %"PRIdPTR"B\n", sizeof(s_board));
-    printf("sizeof(s_move):  %"PRIdPTR"B\n", sizeof(s_move));
-    #ifdef HASHTABLE
-      printf("sizeof(s_hashtable_entry):  %"PRIdPTR"B\n", sizeof(s_hashtable_entry));
-      printf("Hashtable entries per MB:  %"PRIdPTR"\n", 1024*1024/sizeof(s_hashtable_entry));
-    #endif
-    printf("\n");
-  #endif
-  
   // kill buffering
   setbuf(stdout, NULL);
   setbuf(stdin, NULL);
@@ -258,6 +193,84 @@ int main()
       printf("\n");
     }
     
+    getchar();
+  }
+  else if(strncmp(message, "about", 5) == 0)
+  {
+    printf("Name:    %s\n", ENGINE_NAME);
+    printf("Version: %s\n", ENGINE_VERSION);
+    printf("Author:  %s\n", ENGINE_AUTHOR);
+    printf("\n");
+    
+    printf("Date: %s\n", __DATE__);
+    printf("Time: %s\n", __TIME__);
+    printf("\n");
+    
+    printf("Max search depth: %i\n", MAX_DEPTH);
+    printf("Default hash size: %iMB\n", HASHTABLE_SIZE_DEFAULT);
+    printf("sizeof(s_board): %"PRIdPTR"B\n", sizeof(s_board));
+    printf("sizeof(s_move):  %"PRIdPTR"B\n", sizeof(s_move));
+    #ifdef HASHTABLE
+      printf("sizeof(s_hashtable_entry):  %"PRIdPTR"B\n", sizeof(s_hashtable_entry));
+      printf("Hashtable entries per MB:  %"PRIdPTR"\n", 1024*1024/sizeof(s_hashtable_entry));
+    #endif
+    printf("\n");
+    
+    #ifdef ALPHA_BETA
+      printf("Enabled  - Alphabeta search\n");
+    #elif defined(PVS)
+      printf("Enabled  - Principal Variation Search\n");
+    #endif
+    
+    #ifdef QUIESCENCE_SEARCH
+      printf("Enabled  - Quiescence search\n");
+    #else
+      printf("Disabled - Quiescence search\n");
+    #endif
+    
+    #ifdef HASHTABLE
+      printf("Enabled  - Transposition table\n");
+    #else
+      printf("Disabled - Transposition table\n");
+    #endif
+    
+    #ifdef NULL_MOVE
+      printf("Enabled  - Null move pruning\n");
+    #else
+      printf("Disabled - Null move pruning\n");
+    #endif
+    
+    #ifdef KILLER_MOVES
+      printf("Enabled  - Killer move heuristic\n");
+    #else
+      printf("Disabled - Killer move heuristic\n");
+    #endif
+    
+    #ifdef SORT_MOVES
+      printf("Enabled  - Move sorting\n");
+    #else
+      printf("Disabled - Move sorting\n");
+    #endif
+    
+    #ifdef ASPIRATION_WINDOW
+      printf("Enabled  - Aspiration windows\n");
+    #else
+      printf("Disabled - Aspiration windows\n");
+    #endif
+    
+    #ifdef LMR
+      printf("Enabled  - Late Move Reductions\n");
+    #else
+      printf("Disabled - Late Move Reductions\n");
+    #endif
+    
+    #ifdef DELTA_PRUNING
+      printf("Enabled  - Delta Pruning\n");
+    #else
+      printf("Disabled - Delta Pruning\n");
+    #endif
+    
+    printf("\n");
     getchar();
   }
   else

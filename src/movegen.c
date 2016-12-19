@@ -441,51 +441,12 @@ int find_moves_captures(s_board *board, s_move *move_list, int colour)
   
   int num_moves = 0;
   
-  #ifdef GENERATE_SORTED
-    // MVV-LVA (Most Valuable Victim - Least Valuable Aggressor)
-    num_moves += find_moves_pawn_captures(board, &move_list[num_moves], allowed&board->pieces[QUEENS]);
-    num_moves += find_moves_knights(board, &move_list[num_moves], allowed&board->pieces[QUEENS]);
-    num_moves += find_moves_bishops(board, &move_list[num_moves], allowed&board->pieces[QUEENS]);
-    num_moves += find_moves_rooks(board, &move_list[num_moves], allowed&board->pieces[QUEENS]);
-    num_moves += find_moves_queens(board, &move_list[num_moves], allowed&board->pieces[QUEENS]);
-    num_moves += find_moves_kings(board, &move_list[num_moves], allowed&board->pieces[QUEENS]);
-    
-    num_moves += find_moves_pawn_captures(board, &move_list[num_moves], allowed&board->pieces[ROOKS]);
-    num_moves += find_moves_knights(board, &move_list[num_moves], allowed&board->pieces[ROOKS]);
-    num_moves += find_moves_bishops(board, &move_list[num_moves], allowed&board->pieces[ROOKS]);
-    num_moves += find_moves_rooks(board, &move_list[num_moves], allowed&board->pieces[ROOKS]);
-    num_moves += find_moves_queens(board, &move_list[num_moves], allowed&board->pieces[ROOKS]);
-    num_moves += find_moves_kings(board, &move_list[num_moves], allowed&board->pieces[ROOKS]);
-    
-    num_moves += find_moves_pawn_captures(board, &move_list[num_moves], allowed&board->pieces[BISHOPS]);
-    num_moves += find_moves_knights(board, &move_list[num_moves], allowed&board->pieces[BISHOPS]);
-    num_moves += find_moves_bishops(board, &move_list[num_moves], allowed&board->pieces[BISHOPS]);
-    num_moves += find_moves_rooks(board, &move_list[num_moves], allowed&board->pieces[BISHOPS]);
-    num_moves += find_moves_queens(board, &move_list[num_moves], allowed&board->pieces[BISHOPS]);
-    num_moves += find_moves_kings(board, &move_list[num_moves], allowed&board->pieces[BISHOPS]);
-    
-    num_moves += find_moves_pawn_captures(board, &move_list[num_moves], allowed&board->pieces[KNIGHTS]);
-    num_moves += find_moves_knights(board, &move_list[num_moves], allowed&board->pieces[KNIGHTS]);
-    num_moves += find_moves_bishops(board, &move_list[num_moves], allowed&board->pieces[KNIGHTS]);
-    num_moves += find_moves_rooks(board, &move_list[num_moves], allowed&board->pieces[KNIGHTS]);
-    num_moves += find_moves_queens(board, &move_list[num_moves], allowed&board->pieces[KNIGHTS]);
-    num_moves += find_moves_kings(board, &move_list[num_moves], allowed&board->pieces[KNIGHTS]);
-    
-    num_moves += find_moves_pawn_captures(board, &move_list[num_moves], allowed&board->pieces[PAWNS]);
-    num_moves += find_moves_pawn_ep(board, &move_list[num_moves]);
-    num_moves += find_moves_knights(board, &move_list[num_moves], allowed&board->pieces[PAWNS]);
-    num_moves += find_moves_bishops(board, &move_list[num_moves], allowed&board->pieces[PAWNS]);
-    num_moves += find_moves_rooks(board, &move_list[num_moves], allowed&board->pieces[PAWNS]);
-    num_moves += find_moves_queens(board, &move_list[num_moves], allowed&board->pieces[PAWNS]);
-    num_moves += find_moves_kings(board, &move_list[num_moves], allowed&board->pieces[PAWNS]);
-  #else
-    num_moves += find_moves_bishops_queens(board, &move_list[num_moves], allowed);
-    num_moves += find_moves_rooks_queens(board, &move_list[num_moves], allowed);
-    num_moves += find_moves_knights(board, &move_list[num_moves], allowed);
-    num_moves += find_moves_pawn_captures(board, &move_list[num_moves], allowed);
-    num_moves += find_moves_pawn_ep(board, &move_list[num_moves]);
-    num_moves += find_moves_kings(board, &move_list[num_moves], allowed);
-  #endif
+  num_moves += find_moves_bishops_queens(board, &move_list[num_moves], allowed);
+  num_moves += find_moves_rooks_queens(board, &move_list[num_moves], allowed);
+  num_moves += find_moves_knights(board, &move_list[num_moves], allowed);
+  num_moves += find_moves_pawn_captures(board, &move_list[num_moves], allowed);
+  num_moves += find_moves_pawn_ep(board, &move_list[num_moves]);
+  num_moves += find_moves_kings(board, &move_list[num_moves], allowed);
   
   #ifndef NDEBUG
     int i;
