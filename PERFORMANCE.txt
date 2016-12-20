@@ -42,104 +42,103 @@ Depth: 1
   Nodes: 20
   Branching: -
   Hash entries: 0 (0.00%)
-  Eval: 53
-  pv:  e2e4
+  Eval: 66
+  pv:  g1f3
 
 Depth: 2
-  Search time: 1ms
-  Nodes: 427
-  Branching: 21.350
+  Search time: 0ms
+  Nodes: 424
+  Branching: 21.200
   Hash entries: 20 (0.00%)
-  kNPS: 427
   Eval: 10
-  pv:  g1f3 b8c6
+  pv:  g1f3 g8f6
 
 Depth: 3
-  Search time: 3ms
-  Nodes: 965
-  Branching: 2.260
-  Hash entries: 420 (0.01%)
-  kNPS: 965
-  Eval: 52
-  pv:  g1f3 b8c6 b1c3
+  Search time: 2ms
+  Nodes: 1342
+  Branching: 3.165
+  Hash entries: 401 (0.01%)
+  kNPS: 671
+  Eval: 40
+  pv:  g1f3 g8f6 d2d4
 
 Depth: 4
-  Search time: 6ms
-  Nodes: 2744
-  Branching: 2.844
-  Hash entries: 1027 (0.02%)
-  kNPS: 914
+  Search time: 5ms
+  Nodes: 2810
+  Branching: 2.094
+  Hash entries: 833 (0.02%)
+  kNPS: 936
   Eval: 10
-  pv:  b1c3 b8c6 g1f3 g8f6
+  pv:  g1f3 g8f6 d2d4 d7d5
 
 Depth: 5
-  Search time: 18ms
-  Nodes: 12568
-  Branching: 4.580
-  Hash entries: 3058 (0.07%)
-  kNPS: 1047
-  Eval: 14
-  pv:  b1c3 d7d5 e2e4 g8f6
+  Search time: 15ms
+  Nodes: 16854
+  Branching: 5.998
+  Hash entries: 2926 (0.07%)
+  kNPS: 1685
+  Eval: 10
+  pv:  g1f3 d7d5 d2d4 g8f6
 
 Depth: 6
-  Search time: 48ms
-  Nodes: 41495
-  Branching: 3.302
-  Hash entries: 9608 (0.23%)
-  kNPS: 1383
-  Eval: 41
-  pv:  b1c3 g8f6 d2d4 b8c6 g1f3
+  Search time: 45ms
+  Nodes: 49560
+  Branching: 2.941
+  Hash entries: 11668 (0.28%)
+  kNPS: 1652
+  Eval: 32
+  pv:  b1c3 d7d5 d2d4 g8f6 g1f3
 
 Depth: 7
-  Search time: 86ms
-  Nodes: 81208
-  Branching: 1.957
-  Hash entries: 21256 (0.51%)
-  kNPS: 2137
+  Search time: 97ms
+  Nodes: 118982
+  Branching: 2.401
+  Hash entries: 27715 (0.66%)
+  kNPS: 2288
   Eval: 10
-  pv:  b1c3 g8f6 d2d4 d7d5 g1f3 b8c6
+  pv:  b1c3 d7d5 d2d4 b8c6 g1f3 g8f6
 
 Depth: 8
-  Search time: 186ms
-  Nodes: 247804
-  Branching: 3.051
-  Hash entries: 53486 (1.28%)
-  kNPS: 2478
-  Eval: 16
-  pv:  e2e4 e7e5 b1c3 g8f6 g1e2 d7d5 d2d4
+  Search time: 263ms
+  Nodes: 408004
+  Branching: 3.429
+  Hash entries: 80315 (1.91%)
+  kNPS: 2457
+  Eval: 19
+  pv:  d2d4 d7d5 b1c3 g8f6 g1f3 b8c6 c1g5
 
 Depth: 9
-  Search time: 444ms
-  Nodes: 626002
-  Branching: 2.526
-  Hash entries: 138531 (3.30%)
-  kNPS: 2426
-  Eval: 18
-  pv:  b1c3 g8f6 d2d4 d7d5 c1f4 c8f5 c3b5 c7c6 b5c3
+  Search time: 618ms
+  Nodes: 889069
+  Branching: 2.179
+  Hash entries: 193395 (4.61%)
+  kNPS: 2504
+  Eval: 14
+  pv:  d2d4 d7d5 b1c3 g8f6 g1f3 b8c6 f3e5 f6e4 c3e4
 
 Depth: 10
-  Search time: 1109ms
-  Nodes: 1647488
-  Branching: 2.632
-  Hash entries: 356187 (8.49%)
-  kNPS: 2477
-  Eval: 18
-  pv:  b1c3 g8f6 d2d4 d7d5 c1f4 c8f5 c3b5 c7c6 b5c3
+  Search time: 1597ms
+  Nodes: 2421252
+  Branching: 2.723
+  Hash entries: 495220 (11.81%)
+  kNPS: 2473
+  Eval: 26
+  pv:  e2e4 d7d6 g1f3 g8f6 b1c3 d6d5 e4e5 f6e4
 
 Depth: 11
-  Search time: 2769ms
-  Nodes: 4042010
-  Branching: 2.453
-  Hash entries: 820147 (19.55%)
-  kNPS: 2434
-  Eval: 17
-  pv:  b1c3 b8c6 d2d4 d7d5 g1f3 g8f6 d1d3 d8d6 e2e4 c8e6
+  Search time: 4139ms
+  Nodes: 6254287
+  Branching: 2.583
+  Hash entries: 1157395 (27.59%)
+  kNPS: 2460
+  Eval: 14
+  pv:  b1c3 d7d5 d2d4 g8f6 g1f3 b8c6 f3e5 c8g4 c1f4 c6e5
 
 Depth: 12
-  Search time: 8192ms
-  Nodes: 13149496
-  Branching: 3.253
-  Hash entries: 1967210 (46.90%)
-  kNPS: 2424
-  Eval: 28
-  pv:  d2d4 g8f6 b1c3 d7d5 c1f4 c8g4 d1d3 b8c6 g1f3
+  Search time: 15281ms
+  Nodes: 26825517
+  Branching: 4.289
+  Hash entries: 2929196 (69.84%)
+  kNPS: 2407
+  Eval: 19
+  pv:  e2e4 d7d5 e4e5 d5d4 f1b5 b8c6 g1f3 c8f5 e1g1 d8d5

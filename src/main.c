@@ -270,6 +270,12 @@ int main()
       printf("Disabled - Delta Pruning\n");
     #endif
     
+    #ifdef TAPERED_EVAL
+      printf("Enabled  - Tapered eval\n");
+    #else
+      printf("Disabled - Tapered eval\n");
+    #endif
+    
     printf("\n");
     getchar();
   }

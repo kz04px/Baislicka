@@ -35,3 +35,6 @@ Thanks:
     
   - Volker Annuss' work on fixed shift magics
     http://www.talkchess.com/forum/viewtopic.php?topic_view=threads&p=670709&t=60065
+
+  - Adam Hair's piece square tables
+    http://www.talkchess.com/forum/viewtopic.php?topic_view=threads&p=551989&t=50840
