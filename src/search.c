@@ -477,6 +477,13 @@ int alpha_beta(s_board *board, s_search_info *info, int alpha, int beta, int dep
     return eval(board);
   }
   
+  int in_check = square_attacked(board, board->pieces[KINGS]&board->colour[board->turn], !board->turn);
+  
+  if(in_check)
+  {
+    depth++;
+  }
+  
   if(depth <= 0)
   {
     #ifdef QUIESCENCE_SEARCH
@@ -541,13 +548,6 @@ int alpha_beta(s_board *board, s_search_info *info, int alpha, int beta, int dep
       }
     }
   #endif
-  
-  int in_check = square_attacked(board, board->pieces[KINGS]&board->colour[board->turn], !board->turn);
-  
-  if(in_check)
-  {
-    depth++;
-  }
   
   // Set old permissions
   s_irreversible permissions;
@@ -736,6 +736,13 @@ int pvSearch(s_board *board, s_search_info *info, int alpha, int beta, int depth
     return eval(board);
   }
   
+  int in_check = square_attacked(board, board->pieces[KINGS]&board->colour[board->turn], !board->turn);
+  
+  if(in_check)
+  {
+    depth++;
+  }
+  
   if(depth == 0)
   {
     #ifdef QUIESCENCE_SEARCH
@@ -794,13 +801,6 @@ int pvSearch(s_board *board, s_search_info *info, int alpha, int beta, int depth
       }
     }
   #endif
-  
-  int in_check = square_attacked(board, board->pieces[KINGS]&board->colour[board->turn], !board->turn);
-  
-  if(in_check)
-  {
-    depth++;
-  }
   
   // Set old permissions
   s_irreversible permissions;
