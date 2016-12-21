@@ -113,6 +113,67 @@ int find_moves_bP_quiet(s_board *board, s_move *move_list)
   return num_moves;
 }
 
+int can_castle(s_board *board, int turn, int side)
+{
+  if(turn == WHITE)
+  {
+    if(side == KSC)
+    {
+      if((board->castling & wKSC) &&
+         !((board->colour[WHITE]|board->colour[BLACK])&U64_F1) &&
+         !((board->colour[WHITE]|board->colour[BLACK])&U64_G1) &&
+         square_attacked(board, U64_E1, BLACK) == 0 &&
+         square_attacked(board, U64_F1, BLACK) == 0 &&
+         square_attacked(board, U64_G1, BLACK) == 0)
+      {
+        return 1;
+      }
+    }
+    else
+    {
+      if((board->castling & wQSC) &&
+         !((board->colour[WHITE]|board->colour[BLACK])&U64_B1) &&
+         !((board->colour[WHITE]|board->colour[BLACK])&U64_C1) &&
+         !((board->colour[WHITE]|board->colour[BLACK])&U64_D1) &&
+         square_attacked(board, U64_E1, BLACK) == 0 &&
+         square_attacked(board, U64_D1, BLACK) == 0 &&
+         square_attacked(board, U64_C1, BLACK) == 0)
+      {
+        return 1;
+      }
+    }
+  }
+  else
+  {
+    if(side == KSC)
+    {
+      if((board->castling & bKSC) &&
+         !((board->colour[WHITE]|board->colour[BLACK])&U64_F8) &&
+         !((board->colour[WHITE]|board->colour[BLACK])&U64_G8) &&
+         square_attacked(board, U64_E8, WHITE) == 0 &&
+         square_attacked(board, U64_F8, WHITE) == 0 &&
+         square_attacked(board, U64_G8, WHITE) == 0)
+      {
+        return 1;
+      }
+    }
+    else
+    {
+      if((board->castling & bQSC) &&
+         !((board->colour[WHITE]|board->colour[BLACK])&U64_B8) &&
+         !((board->colour[WHITE]|board->colour[BLACK])&U64_C8) &&
+         !((board->colour[WHITE]|board->colour[BLACK])&U64_D8) &&
+         square_attacked(board, U64_E8, WHITE) == 0 &&
+         square_attacked(board, U64_D8, WHITE) == 0 &&
+         square_attacked(board, U64_C8, WHITE) == 0)
+      {
+        return 1;
+      }
+    }
+  }
+  return 0;
+}
+
 int find_moves_kings_castles(s_board *board, s_move *move_list)
 {
   assert(board != NULL);
@@ -123,23 +184,12 @@ int find_moves_kings_castles(s_board *board, s_move *move_list)
   // castling
   if(board->turn == WHITE)
   {
-    if((board->castling & wKSC) &&
-       !((board->colour[WHITE]|board->colour[BLACK])&U64_F1) &&
-       !((board->colour[WHITE]|board->colour[BLACK])&U64_G1) &&
-       square_attacked(board, U64_E1, BLACK) == 0 &&
-       square_attacked(board, U64_F1, BLACK) == 0 &&
-       square_attacked(board, U64_G1, BLACK) == 0)
+    if(can_castle(board, WHITE, KSC))
     {
       move_list[num_moves] = move_add(board, E1, G1, KSC, KINGS);
       num_moves++;
     }
-    if((board->castling & wQSC) &&
-       !((board->colour[WHITE]|board->colour[BLACK])&U64_B1) &&
-       !((board->colour[WHITE]|board->colour[BLACK])&U64_C1) &&
-       !((board->colour[WHITE]|board->colour[BLACK])&U64_D1) &&
-       square_attacked(board, U64_E1, BLACK) == 0 &&
-       square_attacked(board, U64_D1, BLACK) == 0 &&
-       square_attacked(board, U64_C1, BLACK) == 0)
+    if(can_castle(board, WHITE, QSC))
     {
       move_list[num_moves] = move_add(board, E1, C1, QSC, KINGS);
       num_moves++;
@@ -147,23 +197,12 @@ int find_moves_kings_castles(s_board *board, s_move *move_list)
   }
   else
   {
-    if((board->castling & bKSC) &&
-       !((board->colour[WHITE]|board->colour[BLACK])&U64_F8) &&
-       !((board->colour[WHITE]|board->colour[BLACK])&U64_G8) &&
-       square_attacked(board, U64_E8, WHITE) == 0 &&
-       square_attacked(board, U64_F8, WHITE) == 0 &&
-       square_attacked(board, U64_G8, WHITE) == 0)
+    if(can_castle(board, BLACK, KSC))
     {
       move_list[num_moves] = move_add(board, E8, G8, KSC, KINGS);
       num_moves++;
     }
-    if((board->castling & bQSC) &&
-       !((board->colour[WHITE]|board->colour[BLACK])&U64_B8) &&
-       !((board->colour[WHITE]|board->colour[BLACK])&U64_C8) &&
-       !((board->colour[WHITE]|board->colour[BLACK])&U64_D8) &&
-       square_attacked(board, U64_E8, WHITE) == 0 &&
-       square_attacked(board, U64_D8, WHITE) == 0 &&
-       square_attacked(board, U64_C8, WHITE) == 0)
+    if(can_castle(board, BLACK, QSC))
     {
       move_list[num_moves] = move_add(board, E8, C8, QSC, KINGS);
       num_moves++;
@@ -452,7 +491,7 @@ int find_moves_captures(s_board *board, s_move *move_list, int colour)
     int i;
     for(i = 0; i < num_moves; ++i)
     {
-      assert(move_is_legal(board, &move_list[i]));
+      assert(is_move_legal(board, &move_list[i]));
     }
   #endif
   
@@ -489,7 +528,7 @@ int find_moves_quiet(s_board *board, s_move *move_list, int colour)
     int i;
     for(i = 0; i < num_moves; ++i)
     {
-      assert(move_is_legal(board, &move_list[i]));
+      assert(is_move_legal(board, &move_list[i]));
     }
   #endif
   

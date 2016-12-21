@@ -34,7 +34,7 @@ int main()
   
   qsc_rook[WHITE] = U64_D1 | U64_A1;
   qsc_rook[BLACK] = U64_D8 | U64_A8;
-    
+  
   // kill buffering
   setbuf(stdout, NULL);
   setbuf(stdin, NULL);
@@ -77,34 +77,14 @@ int main()
     s_board *board = (s_board*) malloc(1*sizeof(s_board));
     if(board == NULL) {return -1;}
     
-    //set_fen(board, "7k/2p5/3p4/8/4N3/3R4/8/7K w - -");
-    //set_fen(board, "5b1k/2p5/3p4/8/4N3/3R4/8/3Q3K w - -");
-    //set_fen(board, "5b1k/2p5/3p4/8/4N3/Q2R4/8/7K w - -");
-    //set_fen(board, "7k/2p5/6b1/3p4/4N3/8/6Q1/4R2K b - -");
-    set_fen(board, "5b1k/2p5/3p4/8/4N3/3R4/8/3Q3K w - -");
+    set_fen(board, START_FEN);
     
-    s_move moves[MAX_MOVES];
-    int num_moves = find_moves_captures(board, &moves[0], board->turn);
+    #define TEST_PASS(x) ((x) ? "Passed" : "Failed")
     
-    // Set old permissions
-    s_irreversible permissions;
-    store_irreversible(&permissions, board);
-    
-    int m;
-    for(m = 0; m < num_moves; ++m)
-    {
-      print_move(moves[m]);
-      
-      move_make(board, &moves[m]);
-      
-      printf("SEE: %i\n", see(moves[m].to, board->turn, moves[m].piece_type, board->colour, board->pieces));
-      
-      // Restore old permissions
-      restore_irreversible(&permissions, board);
-      move_undo(board, &moves[m]);
-      
-      printf("SEE capture: %i\n", see_capture(board, moves[m]));
-    }
+    printf("Tests:\n");
+    printf(" 1) No move legality: %s\n", TEST_PASS(!is_move_legal(board, &NO_MOVE)));
+    printf(" 2) Eval mirroring:   %s\n", "Not implemented");
+    printf("\n");
     
     getchar();
   }

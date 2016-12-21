@@ -339,12 +339,6 @@ int u64_rank(uint64_t pos)
 
 void bitboards_init()
 {
-  #ifndef NDEBUG
-    printf("Bitboard debug info:\n");
-    printf("Magic table: %"PRIdPTR"KB\n", sizeof(magic_moves)/1024);
-    printf("\n");
-  #endif
-  
   uint64_t perm;
   uint64_t *index = NULL;
   uint64_t from;

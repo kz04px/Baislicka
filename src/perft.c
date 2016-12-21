@@ -49,7 +49,7 @@ void perft_search(s_board *board, int d)
         moves_check++;
       }
       
-      switch(moves[m].type)
+      switch(move.type)
       {
         case QUIET:
           moves_quiet++;
@@ -112,11 +112,15 @@ int perft_split(s_board *board, int depth, char *fen)
   clock_t start;
   start = clock();
   
+  int move_num = 0;
+  
   s_move moves[MAX_MOVES];
   int num_moves = find_moves_captures(board, &moves[0], board->turn);
   num_moves += find_moves_quiet(board, &moves[num_moves], board->turn);
   
-  printf("Num moves: %i\n\n", num_moves);
+  // Set old permissions
+  s_irreversible permissions;
+  store_irreversible(&permissions, board);
   
   int m;
   for(m = 0; m < num_moves; ++m)
@@ -125,9 +129,14 @@ int perft_split(s_board *board, int depth, char *fen)
     
     if(square_attacked(board, board->pieces[KINGS]&board->colour[!board->turn], board->turn))
     {
+      // Restore old permissions
+      restore_irreversible(&permissions, board);
+      
       move_undo(board, &moves[m]);
       continue;
     }
+    
+    move_num++;
     
     // Reset position and stats
     moves_total = 0;
@@ -148,12 +157,16 @@ int perft_split(s_board *board, int depth, char *fen)
     printf("%I64u - ", moves_total);
     print_move(moves[m]);
     
+    // Restore old permissions
+    restore_irreversible(&permissions, board);
+    
     move_undo(board, &moves[m]);
     
     combined_total += moves_total;
   }
   
   double time_taken = ((double)clock()-start)/CLOCKS_PER_SEC;
+  printf("Moves: %i\n", move_num);
   printf("Time: %.3fs\n", time_taken);
   printf("Total: %i\n", combined_total);
   return 0;

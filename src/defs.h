@@ -316,6 +316,7 @@ int find_moves_kings(s_board *board, s_move *move_list, uint64_t allowed);
 int find_moves_kings_castles(s_board *board, s_move *move_list);
 int find_moves_captures(s_board *board, s_move *move_list, int colour);
 int find_moves_quiet(s_board *board, s_move *move_list, int colour);
+int can_castle(s_board *board, int turn, int side);
 
 // fen.c
 int set_fen(s_board *board, const char *fen);
@@ -342,7 +343,7 @@ int moves_sort_see(s_board *board, s_move *moves, int num_moves);
 int moves_sort_quiet(s_move *moves, int num);
 void move_make_ascii(s_board *board, char *move_string);
 int move_to_string(char *string, s_move *move);
-uint64_t move_is_legal(s_board *board, s_move *move);
+int is_move_legal(s_board *board, s_move *move);
 int next_move(s_board *board, s_move_generator *generator, s_move *move);
 
 // display.c

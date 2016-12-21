@@ -584,6 +584,7 @@ int alpha_beta(s_board *board, s_search_info *info, int alpha, int beta, int dep
   
   s_move move;
   s_move best_move;
+  int move_num = 0;
   
   while(next_move(board, &gen, &move))
   {
@@ -599,6 +600,7 @@ int alpha_beta(s_board *board, s_search_info *info, int alpha, int beta, int dep
     }
     
     info->nodes++;
+    move_num++;
     
     clock_t time_spent = (clock() - info->time_start) * 1000 / CLOCKS_PER_SEC;
     if(time_spent < search_settings.time_max)
@@ -606,7 +608,7 @@ int alpha_beta(s_board *board, s_search_info *info, int alpha, int beta, int dep
       info->ply++;
       
       #ifdef LMR
-        if(gen.move_num < 4 || depth < 3 || in_check || move.type == CAPTURE || move.type == PROMOTE)
+        if(move_num < 4 || depth < 3 || in_check || move.type == CAPTURE || move.type == PROMOTE)
         {
           score = -alpha_beta(board, info, -beta, -alpha, depth-1, 1, &pv_local);
         }
@@ -665,7 +667,7 @@ int alpha_beta(s_board *board, s_search_info *info, int alpha, int beta, int dep
         #endif
         
         #ifndef NDEBUG
-          info->num_cutoffs[gen.move_num-1]++;
+          info->num_cutoffs[move_num-1]++;
         #endif
         break;
       }
