@@ -172,7 +172,7 @@ int perft_split(s_board *board, int depth, char *fen)
   return 0;
 }
 
-void perft_suite(s_board *board, int max_depth, char *filepath)
+int perft_suite(s_board *board, int max_depth, char *filepath, int output)
 {
   assert(board != NULL);
   assert(max_depth > 0);
@@ -181,16 +181,22 @@ void perft_suite(s_board *board, int max_depth, char *filepath)
   FILE *file = fopen(filepath, "r");
   if(!file)
   {
-    printf("Failed to find %s\n", filepath);
-    printf("Aborting test suite\n");
-    return;
+    if(output)
+    {
+      printf("Failed to find %s\n", filepath);
+      printf("Aborting test suite\n");
+    }
+    return -1;
   }
   
   clock_t start;
   double time_taken;
   
-  printf("Starting test suite\n");
-  printf("\n");
+  if(output)
+  {
+    printf("Starting test suite\n");
+    printf("\n");
+  }
   
   int num_tests = 0;
   int num_passed = 0;
@@ -205,14 +211,20 @@ void perft_suite(s_board *board, int max_depth, char *filepath)
     int r = set_fen(board, line);
     if(r != 0)
     {
-      printf("Invalid fen (%s)\n", line);
-      printf("Error code: %i\n", r);
-      printf("Skipping test\n");
+      if(output)
+      {
+        printf("Invalid fen (%s)\n", line);
+        printf("Error code: %i\n", r);
+        printf("Skipping test\n");
+      }
       continue;
     }
     num_tests++;
     
-    printf("Test %i: ", num_tests);
+    if(output)
+    {
+      printf("Test %i: ", num_tests);
+    }
     
     int pass = 1;
     
@@ -232,12 +244,15 @@ void perft_suite(s_board *board, int max_depth, char *filepath)
       
       if(moves_total != result)
       {
-        if(pass)
+        if(output)
         {
-          printf("failed\n");
+          if(pass)
+          {
+            printf("failed\n");
+          }
+          
+          printf(" %i: %I64u %I64u\n", depth, moves_total, result);
         }
-        
-        printf(" %i: %I64u %I64u\n", depth, moves_total, result);
         
         pass = 0;
       }
@@ -245,7 +260,10 @@ void perft_suite(s_board *board, int max_depth, char *filepath)
     
     if(pass)
     {
-      printf("passed\n");
+      if(output)
+      {
+        printf("passed\n");
+      }
       num_passed++;
     }
     else
@@ -255,14 +273,19 @@ void perft_suite(s_board *board, int max_depth, char *filepath)
   }
   time_taken = ((double)clock()-start)/CLOCKS_PER_SEC;
   
-  printf("\n");
-  printf("Results:\n");
-  printf("Location: %s\n", filepath);
-  printf("Depth: %i\n", max_depth);
-  printf("Time: %.3fs\n", time_taken);
-  printf("Tests:  %i\n", num_tests);
-  printf("Passed: %i (%.1f%%)\n", num_passed, 100*(float)num_passed/num_tests);
-  printf("Failed: %i (%.1f%%)\n", num_failed, 100*(float)num_failed/num_tests);
+  if(output)
+  {
+    printf("\n");
+    printf("Results:\n");
+    printf("Location: %s\n", filepath);
+    printf("Depth: %i\n", max_depth);
+    printf("Time: %.3fs\n", time_taken);
+    printf("Tests:  %i\n", num_tests);
+    printf("Passed: %i (%.1f%%)\n", num_passed, 100*(float)num_passed/num_tests);
+    printf("Failed: %i (%.1f%%)\n", num_failed, 100*(float)num_failed/num_tests);
+  }
+  
+  return !(num_passed == num_tests);
 }
 
 void perft(s_board *board, int max_depth, char *fen)

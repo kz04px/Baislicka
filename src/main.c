@@ -63,7 +63,7 @@ int main()
     s_board *board = (s_board*) malloc(1*sizeof(s_board));
     if(board == NULL) {return -1;}
     
-    perft_suite(board, 5, "perftsuite.epd");
+    perft_suite(board, 5, "perftsuite.epd", 1);
     //perft(board, 7, START_FEN);
     //perft_split(board, 6, START_FEN);
     //perft_suite_search(board, 9, "perftsuite_2.epd");
@@ -74,18 +74,7 @@ int main()
   }
   else if(strncmp(message, "test1", 5) == 0)
   {
-    s_board *board = (s_board*) malloc(1*sizeof(s_board));
-    if(board == NULL) {return -1;}
-    
-    set_fen(board, START_FEN);
-    
-    #define TEST_PASS(x) ((x) ? "Passed" : "Failed")
-    
-    printf("Tests:\n");
-    printf(" 1) No move legality: %s\n", TEST_PASS(!is_move_legal(board, &NO_MOVE)));
-    printf(" 2) Eval mirroring:   %s\n", "Not implemented");
-    printf("\n");
-    
+    test_all();
     getchar();
   }
   else if(strncmp(message, "test2", 5) == 0)
@@ -173,6 +162,7 @@ int main()
       printf("\n");
     }
     
+    free(board);
     getchar();
   }
   else if(strncmp(message, "about", 5) == 0)
@@ -254,6 +244,18 @@ int main()
       printf("Enabled  - Tapered eval\n");
     #else
       printf("Disabled - Tapered eval\n");
+    #endif
+    
+    #ifdef PASSED_PAWN_EVAL
+      printf("Enabled  - Passed pawn eval\n");
+    #else
+      printf("Disabled - Passed pawn eval\n");
+    #endif
+    
+    #ifdef BACKWARD_PAWN_EVAL
+      printf("Enabled  - Backward pawn eval\n");
+    #else
+      printf("Disabled - Backward pawn eval\n");
     #endif
     
     printf("\n");

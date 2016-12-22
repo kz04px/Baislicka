@@ -299,6 +299,18 @@ uint64_t is_passed_pawn(int side, int sq, uint64_t blockers)
   return !(passed_pawn_blockers[side][sq] & blockers);
 }
 
+uint64_t is_backward_pawn_white(int sq, uint64_t friendly, uint64_t enemy)
+{
+  if(!(magic_moves_pawns(WHITE, sq+8) & enemy)) {return 0;}
+  return !(passed_pawn_blockers[BLACK][sq-8] & friendly);
+}
+
+uint64_t is_backward_pawn_black(int sq, uint64_t friendly, uint64_t enemy)
+{
+  if(!(magic_moves_pawns(BLACK, sq-8) & enemy)) {return 0;}
+  return !(passed_pawn_blockers[WHITE][sq+8] & friendly);
+}
+
 uint64_t get_file(int file)
 {
   return files[file];

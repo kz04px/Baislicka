@@ -1,7 +1,5 @@
 #include "defs.h"
 
-const int piece_values[6] = {100, 320, 330, 500, 900, 20000};
-
 const int piece_location_bonus[2][6][64] = {{
 {
 // Pawns - early/mid
@@ -138,15 +136,6 @@ const int piece_location_bonus[2][6][64] = {{
 }
 }};
 
-const int bishop_pair_value = 25;
-const int knight_pair_value = 15;
-
-const int doubled_pawn_value  = -10;
-const int isolated_pawn_value = -20;
-const int passed_pawn_value = 10;
-
-const int open_file_value = 25;
-
 const int king_safety_table[100] = {
    0,   0,   0,   1,   1,   2,   3,   4,   5,   6,
    8,  10,  13,  16,  20,  25,  30,  36,  42,  48,
@@ -159,6 +148,16 @@ const int king_safety_table[100] = {
  650, 650, 650, 650, 650, 650, 650, 650, 650, 650,
  650, 650, 650, 650, 650, 650, 650, 650, 650, 650
 };
+
+const int piece_values[6] = {100, 320, 330, 500, 900, 20000};
+const int bishop_pair_value = 25;
+const int knight_pair_value = 15;
+
+const int doubled_pawn_value  = -10;
+const int isolated_pawn_value = -20;
+const int backward_pawn_value = -10;
+
+const int open_file_value = 25;
 
 int king_safety(s_board *board, int sq, int side)
 {
@@ -422,6 +421,24 @@ int eval(s_board *board)
     {
       sq = __builtin_ctzll(copy);
       
+      if(piece_type == PAWNS)
+      {
+        #ifdef PASSED_PAWN_EVAL
+          if(is_passed_pawn(WHITE, sq, board->pieces[PAWNS]|board->colour[BLACK]))
+          {
+            opening_score += piece_location_bonus[0][piece_type][sq];
+            endgame_score += piece_location_bonus[1][piece_type][sq];
+          }
+        #endif
+        
+        #ifdef BACKWARD_PAWN_EVAL
+          if(is_backward_pawn_white(sq, board->pieces[PAWNS]&board->colour[WHITE], board->pieces[PAWNS]&board->colour[BLACK]))
+          {
+            score += backward_pawn_value;
+          }
+        #endif
+      }
+      
       score += piece_values[piece_type];
       #ifdef TAPERED_EVAL
         opening_score += piece_location_bonus[0][piece_type][sq];
@@ -438,6 +455,24 @@ int eval(s_board *board)
     while(copy)
     {
       sq = __builtin_ctzll(copy);
+      
+      if(piece_type == PAWNS)
+      {
+        #ifdef PASSED_PAWN_EVAL
+          if(is_passed_pawn(BLACK, sq, board->pieces[PAWNS]|board->colour[WHITE]))
+          {
+            opening_score -= piece_location_bonus[0][piece_type][sq^56];
+            endgame_score -= piece_location_bonus[1][piece_type][sq^56];
+          }
+        #endif
+        
+        #ifdef BACKWARD_PAWN_EVAL
+          if(is_backward_pawn_black(sq, board->pieces[PAWNS]&board->colour[BLACK], board->pieces[PAWNS]&board->colour[WHITE]))
+          {
+            score -= backward_pawn_value;
+          }
+        #endif
+      }
       
       score -= piece_values[piece_type];
       #ifdef TAPERED_EVAL

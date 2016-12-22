@@ -55,6 +55,24 @@
 #define U64_G1 (U64_FILE_G & U64_RANK_1)
 #define U64_H1 (U64_FILE_H & U64_RANK_1)
 
+#define U64_A2 (U64_FILE_A & U64_RANK_2)
+#define U64_B2 (U64_FILE_B & U64_RANK_2)
+#define U64_C2 (U64_FILE_C & U64_RANK_2)
+#define U64_D2 (U64_FILE_D & U64_RANK_2)
+#define U64_E2 (U64_FILE_E & U64_RANK_2)
+#define U64_F2 (U64_FILE_F & U64_RANK_2)
+#define U64_G2 (U64_FILE_G & U64_RANK_2)
+#define U64_H2 (U64_FILE_H & U64_RANK_2)
+
+#define U64_A3 (U64_FILE_A & U64_RANK_3)
+#define U64_B3 (U64_FILE_B & U64_RANK_3)
+#define U64_C3 (U64_FILE_C & U64_RANK_3)
+#define U64_D3 (U64_FILE_D & U64_RANK_3)
+#define U64_E3 (U64_FILE_E & U64_RANK_3)
+#define U64_F3 (U64_FILE_F & U64_RANK_3)
+#define U64_G3 (U64_FILE_G & U64_RANK_3)
+#define U64_H3 (U64_FILE_H & U64_RANK_3)
+
 #define U64_A4 (U64_FILE_A & U64_RANK_4)
 #define U64_B4 (U64_FILE_B & U64_RANK_4)
 #define U64_C4 (U64_FILE_C & U64_RANK_4)
@@ -72,6 +90,24 @@
 #define U64_F5 (U64_FILE_F & U64_RANK_5)
 #define U64_G5 (U64_FILE_G & U64_RANK_5)
 #define U64_H5 (U64_FILE_H & U64_RANK_5)
+
+#define U64_A6 (U64_FILE_A & U64_RANK_6)
+#define U64_B6 (U64_FILE_B & U64_RANK_6)
+#define U64_C6 (U64_FILE_C & U64_RANK_6)
+#define U64_D6 (U64_FILE_D & U64_RANK_6)
+#define U64_E6 (U64_FILE_E & U64_RANK_6)
+#define U64_F6 (U64_FILE_F & U64_RANK_6)
+#define U64_G6 (U64_FILE_G & U64_RANK_6)
+#define U64_H6 (U64_FILE_H & U64_RANK_6)
+
+#define U64_A7 (U64_FILE_A & U64_RANK_7)
+#define U64_B7 (U64_FILE_B & U64_RANK_7)
+#define U64_C7 (U64_FILE_C & U64_RANK_7)
+#define U64_D7 (U64_FILE_D & U64_RANK_7)
+#define U64_E7 (U64_FILE_E & U64_RANK_7)
+#define U64_F7 (U64_FILE_F & U64_RANK_7)
+#define U64_G7 (U64_FILE_G & U64_RANK_7)
+#define U64_H7 (U64_FILE_H & U64_RANK_7)
 
 #define U64_A8 (U64_FILE_A & U64_RANK_8)
 #define U64_B8 (U64_FILE_B & U64_RANK_8)
@@ -101,6 +137,8 @@
 #define PIECE_MOBILITY
 //#define DELTA_PRUNING
 #define TAPERED_EVAL
+//#define PASSED_PAWN_EVAL
+//#define BACKWARD_PAWN_EVAL
 
 enum {WHITE, BLACK, BOTH};
 enum {PAWNS, KNIGHTS, BISHOPS, ROOKS, QUEENS, KINGS, EMPTY};
@@ -268,6 +306,8 @@ int error_check(s_board *board);
 uint64_t get_file(int file);
 uint64_t get_adj_files(int file);
 uint64_t is_passed_pawn(int side, int sq, uint64_t blockers);
+uint64_t is_backward_pawn_white(int sq, uint64_t friendly, uint64_t enemy);
+uint64_t is_backward_pawn_black(int sq, uint64_t friendly, uint64_t enemy);
 
 // search.c
 int search_settings_set(s_search_settings settings);
@@ -324,7 +364,7 @@ int set_fen(s_board *board, const char *fen);
 // perft.c
 void perft(s_board *board, int max_depth, char *fen);
 int perft_split(s_board *board, int depth, char *fen);
-void perft_suite(s_board *board, int max_depth, char *filepath);
+int perft_suite(s_board *board, int max_depth, char *filepath, int output);
 void perft_suite_search(s_board *board, int max_depth, char *filepath);
 int perft_movegen(s_board *board, const char *filepath);
 int perft_movegen_sides(s_board *board, const char *filepath);
@@ -355,5 +395,8 @@ void display_history(s_board *board);
 
 // uci.c
 void uci_listen();
+
+// test.c
+int test_all();
 
 #endif // DEFS_H_INCLUDED

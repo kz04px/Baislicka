@@ -244,6 +244,7 @@ void *search_root(void *n)
   s_pv *bestmove_pv = NULL;
   int bestmove_eval;
   int total_time = 0;
+  uint64_t total_nodes = 0;
   
   int i;
   for(i = 1; i <= target_depth && i < MAX_DEPTH; ++i)
@@ -253,11 +254,13 @@ void *search_root(void *n)
       {
         results = search(board, i, -INF, INF);
         total_time += results.time_taken;
+        total_nodes += results.nodes;
       }
       else
       {
         results = search(board, i, -50, 50);
         total_time += results.time_taken;
+        total_nodes += results.nodes;
         
         int val = results.evals[results.best_move_num];
         if(results.out_of_time == 1) {break;}
@@ -266,11 +269,13 @@ void *search_root(void *n)
         {
           results = search(board, i, -INF, INF);
           total_time += results.time_taken;
+          total_nodes += results.nodes;
         }
       }
     #else
       results = search(board, i, -INF, INF);
       total_time += results.time_taken;
+      total_nodes += results.nodes;
     #endif
     
     if(results.out_of_time == 1) {break;}
@@ -292,20 +297,20 @@ void *search_root(void *n)
     
     if(bestmove_eval > INF-MAX_DEPTH)
     {
-      GUI_Send("info depth %i score mate %i nodes %"PRIdPTR" time %i seldepth %i pv%s\n", i, INF-bestmove_eval, results.nodes, total_time, results.seldepth, move_string);
+      GUI_Send("info depth %i score mate %i nodes %"PRIdPTR" time %i seldepth %i pv%s\n", i, INF-bestmove_eval, total_nodes, total_time, results.seldepth, move_string);
     }
     else if(bestmove_eval < -INF+MAX_DEPTH)
     {
-      GUI_Send("info depth %i score mate %i nodes %"PRIdPTR" time %i seldepth %i pv%s\n", i, -bestmove_eval-INF, results.nodes, total_time, results.seldepth, move_string);
+      GUI_Send("info depth %i score mate %i nodes %"PRIdPTR" time %i seldepth %i pv%s\n", i, -bestmove_eval-INF, total_nodes, total_time, results.seldepth, move_string);
     }
     else
     {
-      GUI_Send("info depth %i score cp %i nodes %"PRIdPTR" time %i seldepth %i pv%s\n", i, bestmove_eval, results.nodes, total_time, results.seldepth, move_string);
+      GUI_Send("info depth %i score cp %i nodes %"PRIdPTR" time %i seldepth %i pv%s\n", i, bestmove_eval, total_nodes, total_time, results.seldepth, move_string);
     }
     
-    if(results.time_taken > 0)
+    if(total_time > 0)
     {
-      GUI_Send("info nps %"PRIdPTR"\n", 1000*results.nodes/results.time_taken);
+      GUI_Send("info nps %"PRIdPTR"\n", 1000*total_nodes/total_time);
     }
     
     if(bestmove_pv->num_moves > 1)
