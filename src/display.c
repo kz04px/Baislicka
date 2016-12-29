@@ -2,9 +2,9 @@
 
 void print_move(s_move move)
 {
-  printf("%c%c %c%c ", SQ_TO_FILE_CHAR(move.from), SQ_TO_RANK_CHAR(move.from), SQ_TO_FILE_CHAR(move.to), SQ_TO_RANK_CHAR(move.to));
+  printf("%c%c %c%c ", SQ_TO_FILE_CHAR(move_get_from(move)), SQ_TO_RANK_CHAR(move_get_from(move)), SQ_TO_FILE_CHAR(move_get_to(move)), SQ_TO_RANK_CHAR(move_get_to(move)));
   
-  switch(move.piece_type)
+  switch(move_get_piece(move))
   {
     case PAWNS:
       printf("(P) ");
@@ -29,7 +29,7 @@ void print_move(s_move move)
       break;
   }
   
-  switch(move.taken)
+  switch(move_get_captured(move))
   {
     case PAWNS:
       printf("[p] ");
@@ -54,29 +54,30 @@ void print_move(s_move move)
       break;
   }
   
-  switch(move.promotion)
+  switch(is_promo_move(move))
   {
-    case KNIGHTS:
+    case KNIGHT_PROMO:
+    case KNIGHT_PROMO_CAPTURE:
       printf("[N] ");
       break;
-    case BISHOPS:
+    case BISHOP_PROMO:
+    case BISHOP_PROMO_CAPTURE:
       printf("[B] ");
       break;
-    case ROOKS:
+    case ROOK_PROMO:
+    case ROOK_PROMO_CAPTURE:
       printf("[R] ");
       break;
-    case QUEENS:
+    case QUEEN_PROMO:
+    case QUEEN_PROMO_CAPTURE:
       printf("[Q] ");
-      break;
-    case EMPTY:
-      printf("[-] ");
       break;
     default:
       printf("[?] ");
       break;
   }
   
-  switch(move.type)
+  switch(move_get_type(move))
   {
     case QUIET:
       printf("normal");
@@ -90,7 +91,14 @@ void print_move(s_move move)
     case EP:
       printf("ep");
       break;
-    case PROMOTE:
+    case KNIGHT_PROMO:
+    case BISHOP_PROMO:
+    case ROOK_PROMO:
+    case QUEEN_PROMO:
+    case KNIGHT_PROMO_CAPTURE:
+    case BISHOP_PROMO_CAPTURE:
+    case ROOK_PROMO_CAPTURE:
+    case QUEEN_PROMO_CAPTURE:
       printf("promote");
       break;
     case KSC:
@@ -100,7 +108,7 @@ void print_move(s_move move)
       printf("QSC");
       break;
     default:
-      printf("??? (%i)", move.type);
+      printf("??? (%i)", move_get_type(move));
       break;
   }
   
@@ -215,7 +223,9 @@ void display_board(s_board *board)
   if(board->turn == WHITE) {printf("Turn: w\n");}
   else {printf("Turn: b\n");}
   
-  printf("Key: %"PRIdPTR"\n", board->key);
+  #ifdef HASHTABLE
+    printf("Key: %"PRIdPTR"\n", board->key);
+  #endif
   printf("50 move rule: %i\n", board->num_halfmoves);
   printf("history size: %i\n", board->history_size);
   printf("is 3fold:   %i\n", is_threefold(board));

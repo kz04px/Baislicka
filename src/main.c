@@ -258,6 +258,30 @@ int main()
       printf("Disabled - Backward pawn eval\n");
     #endif
     
+    #ifdef KING_SAFETY
+      printf("Enabled  - King safety eval\n");
+    #else
+      printf("Disabled - King safety eval\n");
+    #endif
+    
+    #ifdef KILLER_MOVES_2
+      printf("Enabled  - Second killer move\n");
+    #else
+      printf("Disabled - Second killer move\n");
+    #endif
+    
+    #ifdef PIECE_MOBILITY
+      printf("Enabled  - Piece mobility\n");
+    #else
+      printf("Disabled - Piece mobility\n");
+    #endif
+    
+    #ifdef QUIET_SORTING
+      printf("Enabled  - Quiet move sorting\n");
+    #else
+      printf("Disabled - Quiet move sorting\n");
+    #endif
+    
     printf("\n");
     getchar();
   }

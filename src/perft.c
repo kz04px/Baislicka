@@ -18,8 +18,7 @@ void perft_search(s_board *board, int d)
   assert(board->turn == WHITE || board->turn == BLACK);
   
   s_move moves[MAX_MOVES];
-  int num_moves = find_moves_captures(board, &moves[0], board->turn);
-  num_moves += find_moves_quiet(board, &moves[num_moves], board->turn);
+  int num_moves = find_moves_all(board, &moves[0], board->turn);
   
   // Set old permissions
   s_irreversible permissions;
@@ -49,7 +48,7 @@ void perft_search(s_board *board, int d)
         moves_check++;
       }
       
-      switch(move.type)
+      switch(move_get_type(move))
       {
         case QUIET:
           moves_quiet++;
@@ -115,8 +114,7 @@ int perft_split(s_board *board, int depth, char *fen)
   int move_num = 0;
   
   s_move moves[MAX_MOVES];
-  int num_moves = find_moves_captures(board, &moves[0], board->turn);
-  num_moves += find_moves_quiet(board, &moves[num_moves], board->turn);
+  int num_moves = find_moves_all(board, &moves[0], board->turn);
   
   // Set old permissions
   s_irreversible permissions;

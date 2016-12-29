@@ -226,7 +226,7 @@ int find_moves_kings(s_board *board, s_move *move_list, uint64_t allowed)
   while(moves)
   {
     to = __builtin_ctzll(moves);
-    move_list[num_moves] = add_movecapture(board, from, to, KINGS);
+    move_list[num_moves] = move_add(board, from, to, QUIET, KINGS);
     num_moves++;
     moves &= moves-1;
   }
@@ -254,7 +254,7 @@ int find_moves_knights(s_board *board, s_move *move_list, uint64_t allowed)
     while(moves)
     {
       to = __builtin_ctzll(moves);
-      move_list[num_moves] = add_movecapture(board, from, to, KNIGHTS);
+      move_list[num_moves] = move_add(board, from, to, QUIET, KNIGHTS);
       num_moves++;
       moves &= moves-1;
     }
@@ -285,7 +285,7 @@ int find_moves_bishops(s_board *board, s_move *move_list, uint64_t allowed)
     while(moves)
     {
       to = __builtin_ctzll(moves);
-      move_list[num_moves] = add_movecapture(board, from, to, BISHOPS);
+      move_list[num_moves] = move_add(board, from, to, QUIET, BISHOPS);
       num_moves++;
       moves &= moves-1;
     }
@@ -316,7 +316,7 @@ int find_moves_rooks(s_board *board, s_move *move_list, uint64_t allowed)
     while(moves)
     {
       to = __builtin_ctzll(moves);
-      move_list[num_moves] = add_movecapture(board, from, to, ROOKS);
+      move_list[num_moves] = move_add(board, from, to, QUIET, ROOKS);
       num_moves++;
       moves &= moves-1;
     }
@@ -347,7 +347,7 @@ int find_moves_queens(s_board *board, s_move *move_list, uint64_t allowed)
     while(moves)
     {
       to = __builtin_ctzll(moves);
-      move_list[num_moves] = add_movecapture(board, from, to, QUEENS);
+      move_list[num_moves] = move_add(board, from, to, QUIET, QUEENS);
       num_moves++;
       moves &= moves-1;
     }
@@ -364,7 +364,7 @@ int find_moves_queens(s_board *board, s_move *move_list, uint64_t allowed)
     while(moves)
     {
       to = __builtin_ctzll(moves);
-      move_list[num_moves] = add_movecapture(board, from, to, QUEENS);
+      move_list[num_moves] = move_add(board, from, to, QUIET, QUEENS);
       num_moves++;
       moves &= moves-1;
     }
@@ -395,7 +395,7 @@ int find_moves_bishops_queens(s_board *board, s_move *move_list, uint64_t allowe
     while(moves)
     {
       to = __builtin_ctzll(moves);
-      move_list[num_moves] = add_movecapture(board, from, to, BISHOPS);
+      move_list[num_moves] = move_add(board, from, to, QUIET, BISHOPS);
       num_moves++;
       moves &= moves-1;
     }
@@ -412,7 +412,7 @@ int find_moves_bishops_queens(s_board *board, s_move *move_list, uint64_t allowe
     while(moves)
     {
       to = __builtin_ctzll(moves);
-      move_list[num_moves] = add_movecapture(board, from, to, QUEENS);
+      move_list[num_moves] = move_add(board, from, to, QUIET, QUEENS);
       num_moves++;
       moves &= moves-1;
     }
@@ -443,7 +443,7 @@ int find_moves_rooks_queens(s_board *board, s_move *move_list, uint64_t allowed)
     while(moves)
     {
       to = __builtin_ctzll(moves);
-      move_list[num_moves] = add_movecapture(board, from, to, ROOKS);
+      move_list[num_moves] = move_add(board, from, to, QUIET, ROOKS);
       num_moves++;
       moves &= moves-1;
     }
@@ -460,12 +460,81 @@ int find_moves_rooks_queens(s_board *board, s_move *move_list, uint64_t allowed)
     while(moves)
     {
       to = __builtin_ctzll(moves);
-      move_list[num_moves] = add_movecapture(board, from, to, QUEENS);
+      move_list[num_moves] = move_add(board, from, to, QUIET, QUEENS);
       num_moves++;
       moves &= moves-1;
     }
     copy &= copy-1;
   }
+  
+  return num_moves;
+}
+
+int find_moves_all(s_board *board, s_move *move_list, int colour)
+{
+  assert(board != NULL);
+  assert(move_list != NULL);
+  assert(colour == WHITE || colour == BLACK);
+  
+  uint64_t allowed = ~board->colour[board->turn];
+  
+  int num_moves = 0;
+  
+  if(colour == WHITE)
+  {
+    num_moves += find_moves_wP_quiet(board, &move_list[num_moves]);
+  }
+  else
+  {
+    num_moves += find_moves_bP_quiet(board, &move_list[num_moves]);
+  }
+  
+  num_moves += find_moves_bishops_queens(board, &move_list[num_moves], allowed);
+  num_moves += find_moves_rooks_queens(board, &move_list[num_moves], allowed);
+  num_moves += find_moves_knights(board, &move_list[num_moves], allowed);
+  num_moves += find_moves_pawn_captures(board, &move_list[num_moves], board->colour[1-board->turn]);
+  num_moves += find_moves_pawn_ep(board, &move_list[num_moves]);
+  num_moves += find_moves_kings(board, &move_list[num_moves], allowed);
+  num_moves += find_moves_kings_castles(board, &move_list[num_moves]);
+  
+  #ifndef NDEBUG
+    int i;
+    for(i = 0; i < num_moves; ++i)
+    {
+      assert(is_legal_move(board, &move_list[i]));
+      
+      int type = move_get_type(move_list[i]);
+      switch(type)
+      {
+        case QUIET:
+        case DOUBLE_PAWN:
+        case KSC:
+        case QSC:
+          assert(!is_capture_move(move_list[i]));
+          assert(!is_promo_move(move_list[i]));
+          break;
+        case KNIGHT_PROMO:
+        case BISHOP_PROMO:
+        case ROOK_PROMO:
+        case QUEEN_PROMO:
+          assert(!is_capture_move(move_list[i]));
+          assert(is_promo_move(move_list[i]));
+          break;
+        case CAPTURE:
+        case EP:
+          assert(is_capture_move(move_list[i]));
+          assert(!is_promo_move(move_list[i]));
+          break;
+        case KNIGHT_PROMO_CAPTURE:
+        case BISHOP_PROMO_CAPTURE:
+        case ROOK_PROMO_CAPTURE:
+        case QUEEN_PROMO_CAPTURE:
+          assert(is_capture_move(move_list[i]));
+          assert(is_promo_move(move_list[i]));
+          break;
+      }
+    }
+  #endif
   
   return num_moves;
 }
@@ -491,7 +560,7 @@ int find_moves_captures(s_board *board, s_move *move_list, int colour)
     int i;
     for(i = 0; i < num_moves; ++i)
     {
-      assert(is_move_legal(board, &move_list[i]));
+      assert(is_legal_move(board, &move_list[i]));
     }
   #endif
   
@@ -528,7 +597,7 @@ int find_moves_quiet(s_board *board, s_move *move_list, int colour)
     int i;
     for(i = 0; i < num_moves; ++i)
     {
-      assert(is_move_legal(board, &move_list[i]));
+      assert(is_legal_move(board, &move_list[i]));
     }
   #endif
   

@@ -5,17 +5,30 @@
 s_board *board = NULL;
 s_search_settings search_settings;
 
-#ifdef KILLER_MOVES
-  uint64_t killer_moves_key[MAX_DEPTH];
+#if defined(KILLER_MOVES) || defined(KILLER_MOVES_2)
   s_move killer_moves[MAX_DEPTH];
 #endif
+
+int killers_clear()
+{
+  #if defined(KILLER_MOVES) || defined(KILLER_MOVES_2)
+    int i;
+    for(i = 0; i < MAX_DEPTH; ++i)
+    {
+      killer_moves[i] = NO_MOVE;
+    }
+  #endif
+  return 0;
+}
 
 int store_irreversible(s_irreversible *info, s_board *board)
 {
   assert(board);
   assert(info);
   
-  info->key           = board->key;
+  #ifdef HASHTABLE
+    info->key         = board->key;
+  #endif
   info->num_halfmoves = board->num_halfmoves;
   info->ep            = board->ep;
   info->castling      = board->castling;
@@ -28,7 +41,9 @@ int restore_irreversible(s_irreversible *info, s_board *board)
   assert(board);
   assert(info);
   
-  board->key           = info->key;
+  #ifdef HASHTABLE
+    board->key         = info->key;
+  #endif
   board->num_halfmoves = info->num_halfmoves;
   board->ep            = info->ep;
   board->castling      = info->castling;
@@ -102,16 +117,16 @@ int see(int sq, int side, int captured, uint64_t colours[2], uint64_t pieces[6])
 
 int see_capture(s_board *board, s_move move)
 {
-  uint64_t from_bb = (uint64_t)1<<move.from;
+  uint64_t from_bb = (uint64_t)1<<move_get_from(move);
   
   // Make move
-  board->pieces[move.piece_type] ^= from_bb;
+  board->pieces[move_get_piece(move)] ^= from_bb;
   board->colour[board->turn] ^= from_bb;
   
-  int value = piece_value(move.taken) - see(move.to, 1-board->turn, move.piece_type, board->colour, board->pieces);
+  int value = piece_value(move_get_captured(move)) - see(move_get_to(move), 1-board->turn, move_get_piece(move), board->colour, board->pieces);
   
   // Undo move
-  board->pieces[move.piece_type] ^= from_bb;
+  board->pieces[move_get_piece(move)] ^= from_bb;
   board->colour[board->turn] ^= from_bb;
   
   return value;
@@ -258,6 +273,7 @@ void *search_root(void *n)
       }
       else
       {
+        /*
         results = search(board, i, -50, 50);
         total_time += results.time_taken;
         total_nodes += results.nodes;
@@ -270,6 +286,52 @@ void *search_root(void *n)
           results = search(board, i, -INF, INF);
           total_time += results.time_taken;
           total_nodes += results.nodes;
+        }
+        */
+        
+        /*
+        results = search(board, i, -50, 50);
+        total_time += results.time_taken;
+        total_nodes += results.nodes;
+        
+        int val = results.evals[results.best_move_num];
+        if(results.out_of_time == 1) {break;}
+        
+        if(val <= -50 || val >= 50)
+        {
+          results = search(board, i, -200, 200);
+          total_time += results.time_taken;
+          total_nodes += results.nodes;
+        }
+        
+        val = results.evals[results.best_move_num];
+        if(results.out_of_time == 1) {break;}
+        
+        if(val <= -200 || val >= 200)
+        {
+          results = search(board, i, -INF, INF);
+          total_time += results.time_taken;
+          total_nodes += results.nodes;
+        }
+        */
+        
+        #define NUM_BOUNDS 3
+        const int bounds[NUM_BOUNDS] = {50, 200, INF};
+        
+        int n;
+        for(n = 0; n < NUM_BOUNDS; ++n)
+        {
+          results = search(board, i, -bounds[n], bounds[n]);
+          total_time += results.time_taken;
+          total_nodes += results.nodes;
+          
+          if(results.out_of_time == 1) {break;}
+          
+          int val = results.evals[results.best_move_num];
+          if(-bounds[n] < val && val < bounds[n])
+          {
+            break;
+          }
         }
       }
     #else
@@ -452,7 +514,14 @@ s_search_results search(s_board *board, int depth, int alpha, int beta)
     }
     for(i = 0; i < 8; ++i)
     {
-      printf("%i) %i %.2f%%\n", i, info->num_cutoffs[i], 100.0*info->num_cutoffs[i]/total_cutoffs);
+      if(total_cutoffs == 0)
+      {
+        printf("%i) %i -\n", i, info->num_cutoffs[i]);
+      }
+      else
+      {
+        printf("%i) %i %.2f%%\n", i, info->num_cutoffs[i], 100.0*info->num_cutoffs[i]/total_cutoffs);
+      }
     }
   #endif
   results.nodes = info->nodes;
@@ -502,8 +571,15 @@ int alpha_beta(s_board *board, s_search_info *info, int alpha, int beta, int dep
   pv_local.num_moves = 0;
   s_move_generator gen = {0};
   gen.stage = 0;
-  gen.hash_move = NO_MOVE;
-  gen.killer_move = NO_MOVE;
+  #ifdef HASHTABLE
+    gen.hash_move = NO_MOVE;
+  #endif
+  #ifdef KILLER_MOVES
+    gen.killer_move = NO_MOVE;
+  #endif
+  #ifdef KILLER_MOVES_2
+    gen.killer_move_2 = NO_MOVE;
+  #endif
   int score;
   pv->num_moves = 0;
   
@@ -584,11 +660,17 @@ int alpha_beta(s_board *board, s_search_info *info, int alpha, int beta, int dep
   #ifdef KILLER_MOVES
     gen.killer_move = killer_moves[info->ply];
   #endif
+  #ifdef KILLER_MOVES_2
+    if(info->ply-2 >= 0)
+    {
+      gen.killer_move_2 = killer_moves[info->ply-2];
+    }
+  #endif
   
   int best_score = -INF;
   
-  s_move move;
-  s_move best_move;
+  s_move move = NO_MOVE;
+  s_move best_move = NO_MOVE;
   int move_num = 0;
   
   while(next_move(board, &gen, &move))
@@ -613,13 +695,22 @@ int alpha_beta(s_board *board, s_search_info *info, int alpha, int beta, int dep
       info->ply++;
       
       #ifdef LMR
-        if(move_num < 4 || depth < 3 || in_check || move.type == CAPTURE || move.type == PROMOTE)
+        if(move_num < 4 || depth < 3 || in_check || move_get_type(move) == CAPTURE || move_get_type(move) == QUEEN_PROMO || move_get_type(move) == QUEEN_PROMO_CAPTURE)
+        // || square_attacked(board, board->pieces[KINGS]&board->colour[board->turn], board->turn))
         {
           score = -alpha_beta(board, info, -beta, -alpha, depth-1, 1, &pv_local);
         }
         else
         {
           score = -alpha_beta(board, info, -beta, -alpha, depth-2, 1, &pv_local);
+          
+          // Re-search if failed high
+          /*
+          if(score > alpha)
+          {
+            score = -alpha_beta(board, info, -beta, -alpha, depth-1, 1, &pv_local);
+          }
+          */
         }
       #else
         score = -alpha_beta(board, info, -beta, -alpha, depth-1, 1, &pv_local);
@@ -660,9 +751,8 @@ int alpha_beta(s_board *board, s_search_info *info, int alpha, int beta, int dep
       if(alpha >= beta)
       {
         #ifdef KILLER_MOVES
-          if(move.type == QUIET)
+          if(move_get_type(move) == QUIET)
           {
-            killer_moves_key[info->ply] = board->key;
             killer_moves[info->ply] = move;
           }
         #endif
@@ -757,21 +847,40 @@ int pvSearch(s_board *board, s_search_info *info, int alpha, int beta, int depth
     #endif
   }
   
-  // Check time
-  clock_t time_spent = (clock() - info->time_start) * 1000 / CLOCKS_PER_SEC;
-  if(time_spent >= search_settings.time_max)
+  clock_t time_spent = 0;
+  if(info->nodes%4096 == 0)
   {
-    return 0;
+    // Check time
+    time_spent = (clock() - info->time_start) * 1000 / CLOCKS_PER_SEC;
+    if(time_spent >= search_settings.time_max)
+    {
+      return 0;
+    }
+  }
+  
+  if(info->nodes%524288 == 0)
+  {
+    // Update GUI on our search
+    if(time_spent > 0)
+    {
+      GUI_Send("info nps %"PRIdPTR"\n", 1000*info->nodes/time_spent);
+    }
   }
   
   s_pv pv_local = {0};
   pv_local.num_moves = 0;
   s_move_generator gen = {0};
   gen.stage = 0;
-  gen.hash_move = NO_MOVE;
-  gen.killer_move = NO_MOVE;
+  #ifdef HASHTABLE
+    gen.hash_move = NO_MOVE;
+  #endif
+  #ifdef KILLER_MOVES
+    gen.killer_move = NO_MOVE;
+  #endif
+  #ifdef KILLER_MOVES_2
+    gen.killer_move_2 = NO_MOVE;
+  #endif
   int score = -INF;
-  int bSearchPv = 1;
   pv->num_moves = 0;
   
   #ifdef HASHTABLE
@@ -807,12 +916,14 @@ int pvSearch(s_board *board, s_search_info *info, int alpha, int beta, int depth
     }
   #endif
   
+  int pvnode = (beta - alpha > 1);
+  
   // Set old permissions
   s_irreversible permissions;
   store_irreversible(&permissions, board);
   
   #ifdef NULL_MOVE
-    if(null_move && alpha != beta && !is_endgame(board) && depth > 2 && !in_check)
+    if(null_move && !pvnode && depth > 2 && !in_check && !is_endgame(board))
     {
       // Make nullmove
       null_make(board);
@@ -840,11 +951,19 @@ int pvSearch(s_board *board, s_search_info *info, int alpha, int beta, int depth
   #ifdef KILLER_MOVES
     gen.killer_move = killer_moves[info->ply];
   #endif
+  #ifdef KILLER_MOVES_2
+    if(info->ply-2 >= 0)
+    {
+      gen.killer_move_2 = killer_moves[info->ply-2];
+    }
+  #endif
   
-  s_move move;
-  s_move best_move;
+  s_move move = NO_MOVE;
+  s_move best_move = NO_MOVE;
   int best_score = -INF;
+  int move_num = 0;
   
+  // Try the first move
   while(next_move(board, &gen, &move))
   {
     move_make(board, &move);
@@ -853,73 +972,101 @@ int pvSearch(s_board *board, s_search_info *info, int alpha, int beta, int depth
     {
       // Restore old permissions
       restore_irreversible(&permissions, board);
-      
       move_undo(board, &move);
       continue;
     }
     
+    move_num++;
     info->nodes++;
     info->ply++;
+    best_score = -pvSearch(board, info, -beta, -alpha, depth - 1, 1, &pv_local);
+    info->ply--;
     
-    if(bSearchPv)
+    // Restore old permissions
+    restore_irreversible(&permissions, board);
+    move_undo(board, &move);
+    
+    if(best_score > alpha)
+    {
+      if(best_score >= beta)
+      {
+        #ifdef KILLER_MOVES
+          if(move_get_type(move) == QUIET)
+          {
+            killer_moves[info->ply] = move;
+          }
+        #endif
+        
+        #ifndef NDEBUG
+          info->num_cutoffs[0]++;
+        #endif
+        
+        #ifdef HASHTABLE
+          flag = LOWERBOUND;
+          hashtable_add(hashtable, flag, board->key, depth, eval_to_tt(best_score, info->ply), move);
+        #endif
+        
+        return best_score;
+      }
+      alpha = best_score;
+    }
+    
+    // Store pv line
+    pv->moves[0] = move;
+    int i;
+    for(i = 0; i < pv_local.num_moves && i < MAX_DEPTH - 1; ++i)
+    {
+      pv->moves[i+1] = pv_local.moves[i];
+    }
+    pv->num_moves = pv_local.num_moves + 1;
+    
+    #ifdef HASHTABLE
+      best_move = move;
+    #endif
+    
+    break;
+  }
+  
+  // Try the rest of the moves
+  while(next_move(board, &gen, &move))
+  {
+    move_make(board, &move);
+    
+    if(square_attacked(board, board->pieces[KINGS]&board->colour[!board->turn], board->turn))
+    {
+      // Restore old permissions
+      restore_irreversible(&permissions, board);
+      move_undo(board, &move);
+      continue;
+    }
+    
+    move_num++;
+    info->nodes++;
+    info->ply++;
+    score = -pvSearch(board, info, -alpha-1, -alpha, depth - 1, 1, &pv_local);
+    
+    // Re-search
+    if(score > alpha && score < beta)
     {
       score = -pvSearch(board, info, -beta, -alpha, depth - 1, 1, &pv_local);
-    }
-    else
-    {
-      #ifdef LMR
-        if(gen.move_num < 4 || depth < 3 || in_check || move.type == CAPTURE || move.type == PROMOTE)
-        {
-          score = -pvSearch(board, info, -alpha-1, -alpha, depth-1, 1, &pv_local);
-        }
-        else
-        {
-          score = -pvSearch(board, info, -alpha-1, -alpha, depth-2, 1, &pv_local);
-        }
-      #else
-        score = -pvSearch(board, info, -alpha-1, -alpha, depth-1, 1, &pv_local);
-      #endif
-      
-      if(alpha < score && score < beta)
+      if(score > alpha)
       {
-        score = -pvSearch(board, info, -beta, -alpha, depth - 1, 1, &pv_local);
+        alpha = score;
       }
     }
     info->ply--;
     
     // Restore old permissions
     restore_irreversible(&permissions, board);
-    
     move_undo(board, &move);
     
     if(score > best_score)
     {
-      best_score = score;
-      bSearchPv = 0;
-      
-      #ifdef HASHTABLE
-        best_move = move;
-      #endif
-      
-      pv->moves[0] = move;
-      int i;
-      for(i = 0; i < pv_local.num_moves && i < MAX_DEPTH - 1; ++i)
-      {
-        pv->moves[i+1] = pv_local.moves[i];
-      }
-      pv->num_moves = pv_local.num_moves + 1;
-      
-      if(score > alpha)
-      {
-        alpha = score;
-      }
-      
-      if(alpha >= beta)
+      if(score >= beta)
       {
         #ifdef KILLER_MOVES
-          if(move.type == QUIET)
+          if(move_get_type(move) == QUIET)
           {
-            killer_moves_key[info->ply] = board->key;
             killer_moves[info->ply] = move;
           }
         #endif
@@ -929,10 +1076,26 @@ int pvSearch(s_board *board, s_search_info *info, int alpha, int beta, int depth
         #endif
         
         #ifndef NDEBUG
-          info->num_cutoffs[gen.move_num-1]++;
+          info->num_cutoffs[move_num-1]++;
         #endif
-        break;
+        
+        return score;
       }
+      
+      #ifdef HASHTABLE
+        best_move = move;
+      #endif
+      
+      // Store pv line
+      pv->moves[0] = move;
+      int i;
+      for(i = 0; i < pv_local.num_moves && i < MAX_DEPTH - 1; ++i)
+      {
+        pv->moves[i+1] = pv_local.moves[i];
+      }
+      pv->num_moves = pv_local.num_moves + 1;
+      
+      best_score = score;
     }
   }
   

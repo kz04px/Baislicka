@@ -171,6 +171,7 @@ int king_safety(s_board *board, int sq, int side)
   
   // Positive: Nearby friendly pieces
   eval += 5*__builtin_popcountll(surrounding&board->colour[side]);
+  //eval -= 5*__builtin_popcountll(surrounding&board->colour[1-side]);
   
   // Negative: Opponent attacking nearby squares
   /*
@@ -241,14 +242,12 @@ int piece_value(int piece)
   return piece_values[piece];
 }
 
-int pst_value(int piece, int sq)
+int pst_value(int piece, int sq, int endgame)
 {
   assert(sq >= 0);
   assert(sq < 64);
   assert(piece >= 0);
-  assert(piece < 5);
-  
-  int endgame = 0;
+  assert(piece < 6);
   
   return piece_location_bonus[endgame][piece][sq];
 }
@@ -257,6 +256,10 @@ int is_endgame(s_board *board)
 {
   assert(board != NULL);
   
+  // "side to move has three or less non-pawn pieces including king"
+  return __builtin_popcountll(board->colour[board->turn] & (board->pieces[KNIGHTS] | board->pieces[BISHOPS] | board->pieces[ROOKS] | board->pieces[QUEENS])) <= 2;
+  
+  /*
   // Both sides have no queens
   if(!board->pieces[QUEENS])
   {
@@ -272,6 +275,7 @@ int is_endgame(s_board *board)
   {
     return 1;
   }
+  */
   
   /*
   if(__builtin_popcountll(board->colour[WHITE]) < 5 && __builtin_popcountll(board->colour[BLACK]) < 5)
@@ -299,6 +303,7 @@ int is_threefold(s_board *board)
 {
   assert(board != NULL);
   
+  
   if(board->num_halfmoves < 8)
   {
     return 0;
@@ -323,7 +328,6 @@ int is_threefold(s_board *board)
       }
     }
   }
-  
   return 0;
 }
 

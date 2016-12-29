@@ -156,7 +156,7 @@ void hashtable_clear(s_hashtable *hashtable)
     hashtable->entries[i].depth = 0;
     hashtable->entries[i].eval = 0;
     hashtable->entries[i].key = 0;
-    hashtable->entries[i].pv.from = 0;
+    hashtable->entries[i].pv = NO_MOVE;
   }
 }
 

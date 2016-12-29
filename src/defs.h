@@ -123,26 +123,29 @@
 #define wQSC 4
 #define bQSC 8
 
-#define QUIESCENCE_SEARCH
-#define HASHTABLE
-#define NULL_MOVE
-#define SORT_MOVES
-//#define SORT_QUIET_MOVES
-#define KILLER_MOVES
 #define ALPHA_BETA
 //#define PVS
+
+#define HASHTABLE
+#define SORT_MOVES
+#define QUIESCENCE_SEARCH
+#define NULL_MOVE
+#define KILLER_MOVES
 #define ASPIRATION_WINDOW
+#define TAPERED_EVAL
+#define QUIET_SORTING
 #define LMR
 #define KING_SAFETY
 #define PIECE_MOBILITY
+
 //#define DELTA_PRUNING
-#define TAPERED_EVAL
 //#define PASSED_PAWN_EVAL
 //#define BACKWARD_PAWN_EVAL
+//#define KILLER_MOVES_2
 
 enum {WHITE, BLACK, BOTH};
 enum {PAWNS, KNIGHTS, BISHOPS, ROOKS, QUEENS, KINGS, EMPTY};
-enum {KSC, QSC, QUIET, DOUBLE_PAWN, CAPTURE, PROMOTE, EP};
+enum {QUIET, DOUBLE_PAWN, KSC, QSC, CAPTURE, EP, FILLER1, FILLER2, KNIGHT_PROMO, BISHOP_PROMO, ROOK_PROMO, QUEEN_PROMO, KNIGHT_PROMO_CAPTURE, BISHOP_PROMO_CAPTURE, ROOK_PROMO_CAPTURE, QUEEN_PROMO_CAPTURE};
 enum {EXACT, LOWERBOUND, UPPERBOUND};
 
 enum {A8=56, B8, C8, D8, E8, F8, G8, H8};
@@ -154,15 +157,7 @@ enum {A3=16, B3, C3, D3, E3, F3, G3, H3};
 enum {A2= 8, B2, C2, D2, E2, F2, G2, H2};
 enum {A1= 0, B1, C1, D1, E1, F1, G1, H1};
 
-typedef struct
-{
-  uint8_t from;
-  uint8_t to;
-  uint8_t taken;
-  uint8_t piece_type;
-  uint8_t type;
-  uint8_t promotion;
-} s_move;
+typedef uint32_t s_move;
 
 typedef struct
 {
@@ -265,8 +260,15 @@ typedef struct
   int move_num;
   int num_moves;
   int capture_piece;
-  s_move hash_move;
-  s_move killer_move;
+  #ifdef HASHTABLE
+    s_move hash_move;
+  #endif
+  #ifdef KILLER_MOVES
+    s_move killer_move;
+  #endif
+  #ifdef KILLER_MOVES_2
+    s_move killer_move_2;
+  #endif
   s_move moves[MAX_MOVES];
   int scores[MAX_MOVES];
 } s_move_generator;
@@ -319,6 +321,7 @@ int alpha_beta(s_board *board, s_search_info *info, int alpha, int beta, int dep
 int pvSearch(s_board *board, s_search_info *info, int alpha, int beta, int depth, int null_move, s_pv *pv_local);
 int see(int sq, int side, int captured, uint64_t colours[2], uint64_t pieces[6]);
 int see_capture(s_board *board, s_move move);
+int killers_clear();
 
 // hash_table.c
 void key_init();
@@ -337,7 +340,7 @@ int is_endgame(s_board *board);
 int is_fifty_move_draw(s_board *board);
 int is_threefold(s_board *board);
 int eval(s_board *board);
-int pst_value(int piece, int sq);
+int pst_value(int piece, int sq, int endgame);
 int king_safety(s_board *board, int sq, int side);
 int piece_mobility(s_board *board, int side);
 
@@ -354,6 +357,7 @@ int find_moves_bishops_queens(s_board *board, s_move *move_list, uint64_t allowe
 int find_moves_rooks_queens(s_board *board, s_move *move_list, uint64_t allowed);
 int find_moves_kings(s_board *board, s_move *move_list, uint64_t allowed);
 int find_moves_kings_castles(s_board *board, s_move *move_list);
+int find_moves_all(s_board *board, s_move *move_list, int colour);
 int find_moves_captures(s_board *board, s_move *move_list, int colour);
 int find_moves_quiet(s_board *board, s_move *move_list, int colour);
 int can_castle(s_board *board, int turn, int side);
@@ -374,17 +378,29 @@ int null_make(s_board *board);
 int null_undo(s_board *board);
 s_move move_add(s_board *board, int from, int to, int type, int piece_type);
 int move_add_pawn(s_board *board, s_move *move_list, int from, int to);
-s_move add_movecapture(s_board *board, int from, int to, int piece_type);
-s_move add_promotion_move(s_board *board, int from, int to, int piece_type, int promo_piece);
+s_move add_promotion_move(s_board *board, int from, int to, int type);
 void move_make(s_board *board, s_move *move);
 void move_undo(s_board *board, s_move *move);
-int moves_sort(s_move *moves, int num);
 int moves_sort_see(s_board *board, s_move *moves, int num_moves);
-int moves_sort_quiet(s_move *moves, int num);
-void move_make_ascii(s_board *board, char *move_string);
+int move_make_ascii(s_board *board, char *move_string);
 int move_to_string(char *string, s_move *move);
-int is_move_legal(s_board *board, s_move *move);
 int next_move(s_board *board, s_move_generator *generator, s_move *move);
+
+int is_legal_move(s_board *board, s_move *move);
+int is_promo_move(s_move move);
+int is_capture_move(s_move move);
+
+int move_get_to(s_move move);
+int move_get_from(s_move move);
+int move_get_type(s_move move);
+int move_get_captured(s_move move);
+int move_get_piece(s_move move);
+
+void move_set_to(s_move *move, uint8_t to);
+void move_set_from(s_move *move, uint8_t from);
+void move_set_type(s_move *move, uint8_t type);
+void move_set_captured(s_move *move, uint8_t piece);
+void move_set_piece(s_move *move, uint8_t piece);
 
 // display.c
 void print_move(s_move move);

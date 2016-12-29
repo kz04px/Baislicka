@@ -45,7 +45,7 @@ int test_move_legality(s_board *board, const char *filepath)
   assert(filepath);
   
   set_fen(board, START_FEN);
-  if(is_move_legal(board, &NO_MOVE)) {return -1;}
+  if(is_legal_move(board, &NO_MOVE)) {return -1;}
   
   FILE *file = fopen(filepath, "r");
   if(!file)
@@ -68,7 +68,7 @@ int test_move_legality(s_board *board, const char *filepath)
     int m;
     for(m = 0; m < num_moves; ++m)
     {
-      int legal = is_move_legal(board, &moves[m]);
+      int legal = is_legal_move(board, &moves[m]);
       if(!legal) {fclose(file); return -2;}
     }
   }

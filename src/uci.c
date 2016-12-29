@@ -44,6 +44,7 @@ void uci_listen()
       else if(strncmp(part, "ucinewgame", 10) == 0)
       {
         hashtable_clear(hashtable);
+        killers_clear();
         set_fen(board, START_FEN);
         break;
       }
@@ -187,30 +188,6 @@ void uci_listen()
             }
           }
         #endif
-      }
-      else if(strncmp(part, "test", 4) == 0)
-      {
-        int repeats = 0;
-        int lim = (board->num_halfmoves+1 < board->history_size) ? board->num_halfmoves+1 : board->history_size;
-        
-        printf("--- TEST ---\n");
-        printf("Key: %"PRIdPTR"\n", board->key);
-        printf("board->history_size: %i\n", board->history_size);
-        printf("lim: %i\n", lim);
-        
-        int i;
-        for(i = 1; i <= lim; ++i)
-        {
-          printf("%i) %"PRIdPTR"  %"PRIdPTR"  %"PRIdPTR"\n", i, board->key_history[board->history_size-i], board->key, create_key_board(board));
-          if(board->key_history[board->history_size-i] == board->key)
-          {
-            repeats++;
-            printf("repeats: %i\n", repeats);
-          }
-        }
-        
-        printf("repeats: %i\n", repeats);
-        printf("--- TEST ---\n");
       }
       
       part++;
