@@ -151,7 +151,11 @@ int next_move(s_board *board, s_move_generator *generator, s_move *move)
         int i;
         for(i = 0; i < generator->num_moves; ++i)
         {
-          #ifdef QUIET_SORTING
+          #ifdef HISTORY_HEURISTIC
+            int to = move_get_to(generator->moves[i]);
+            int from = move_get_from(generator->moves[i]);
+            generator->scores[i] = hh_score[from][to] / bf_score[from][to];
+          #elif defined(QUIET_PST_SORTING)
             generator->scores[i] = 500 +
                                    pst_value(move_get_piece(generator->moves[i]), move_get_to(generator->moves[i]),   endgame) -
                                    pst_value(move_get_piece(generator->moves[i]), move_get_from(generator->moves[i]), endgame);
@@ -763,8 +767,6 @@ int move_make_ascii(s_board *board, char *move_string)
   {
     promo = KNIGHTS;
   }
-  
-  printf("Hmm\n");
   
   // Set old permissions
   s_irreversible permissions;

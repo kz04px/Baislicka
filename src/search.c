@@ -9,6 +9,22 @@ s_search_settings search_settings;
   s_move killer_moves[MAX_DEPTH];
 #endif
 
+void reset_hh_bf()
+{
+  #ifdef HISTORY_HEURISTIC
+    int x;
+    for(x = 0; x < 64; ++x)
+    {
+      int y;
+      for(y = 0; y < 64; ++y)
+      {
+        hh_score[x][y] = 0;
+        bf_score[x][y] = 1;
+      }
+    }
+  #endif
+}
+
 int killers_clear()
 {
   #if defined(KILLER_MOVES) || defined(KILLER_MOVES_2)
@@ -260,6 +276,10 @@ void *search_root(void *n)
   int bestmove_eval;
   int total_time = 0;
   uint64_t total_nodes = 0;
+  
+  #ifdef HISTORY_HEURISTIC
+    reset_hh_bf();
+  #endif
   
   int i;
   for(i = 1; i <= target_depth && i < MAX_DEPTH; ++i)
@@ -612,20 +632,6 @@ int alpha_beta(s_board *board, s_search_info *info, int alpha, int beta, int dep
             return entry_eval;
           }
         }
-        
-        /*
-        if(entry_eval >= beta)
-        {
-          if(entry.flags == LOWERBOUND)
-          {
-            return entry_eval;
-          }
-        }
-        else if(entry.flags == UPPERBOUND)
-        {
-          return entry_eval;
-        }
-        */
       }
     }
   #endif
@@ -757,6 +763,13 @@ int alpha_beta(s_board *board, s_search_info *info, int alpha, int beta, int dep
           }
         #endif
         
+        #ifdef HISTORY_HEURISTIC
+          if(!is_capture_move(move))
+          {
+            hh_score[move_get_from(move)][move_get_to(move)] += depth*depth; 
+          }
+        #endif
+        
         #ifdef HASHTABLE
           flag = LOWERBOUND;
         #endif
@@ -766,6 +779,13 @@ int alpha_beta(s_board *board, s_search_info *info, int alpha, int beta, int dep
         #endif
         break;
       }
+      
+      #ifdef HISTORY_HEURISTIC
+        if(!is_capture_move(move))
+        {
+          bf_score[move_get_from(move)][move_get_to(move)] += 1;
+        }
+      #endif
     }
   }
   

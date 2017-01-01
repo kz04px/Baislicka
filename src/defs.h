@@ -133,10 +133,12 @@
 #define KILLER_MOVES
 #define ASPIRATION_WINDOW
 #define TAPERED_EVAL
-#define QUIET_SORTING
 #define LMR
 #define KING_SAFETY
 #define PIECE_MOBILITY
+
+#define QUIET_PST_SORTING
+//#define HISTORY_HEURISTIC
 
 //#define DELTA_PRUNING
 //#define PASSED_PAWN_EVAL
@@ -285,6 +287,11 @@ uint64_t ksc_king[2];
 uint64_t ksc_rook[2];
 uint64_t qsc_king[2];
 uint64_t qsc_rook[2];
+
+#ifdef HISTORY_HEURISTIC
+  unsigned int hh_score[64][64];
+  unsigned int bf_score[64][64];
+#endif
 
 // attack.c
 int square_attacked(s_board *board, uint64_t pos, int side);

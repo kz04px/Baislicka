@@ -276,10 +276,16 @@ int main()
       printf("Disabled - Piece mobility\n");
     #endif
     
-    #ifdef QUIET_SORTING
+    #ifdef QUIET_PST_SORTING
       printf("Enabled  - Quiet move sorting\n");
     #else
       printf("Disabled - Quiet move sorting\n");
+    #endif
+    
+    #ifdef HISTORY_HEURISTIC
+      printf("Enabled  - History heuristic\n");
+    #else
+      printf("Disabled - History heuristic\n");
     #endif
     
     printf("\n");
