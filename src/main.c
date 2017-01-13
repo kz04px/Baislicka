@@ -167,11 +167,12 @@ int main()
   }
   else if(strncmp(message, "about", 5) == 0)
   {
-    printf("Name:    %s\n", ENGINE_NAME);
+    printf("Engine:  %s\n", ENGINE_NAME);
     printf("Version: %s\n", ENGINE_VERSION);
     printf("Author:  %s\n", ENGINE_AUTHOR);
     printf("\n");
     
+    printf("Compiled:\n");
     printf("Date: %s\n", __DATE__);
     printf("Time: %s\n", __TIME__);
     printf("\n");

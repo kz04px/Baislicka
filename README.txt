@@ -1,4 +1,4 @@
-Baislicka 2.0
+Baislicka
 
 About:
   Basic chess engine in C

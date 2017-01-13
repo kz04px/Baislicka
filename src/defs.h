@@ -9,7 +9,7 @@
 #include <limits.h>
 
 #define ENGINE_NAME "Baislicka"
-#define ENGINE_VERSION "2.0"
+#define ENGINE_VERSION "1.0"
 #define ENGINE_AUTHOR "kz04px"
 #define START_FEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 #define SETBIT(x, n) ((x) = (x) | ((uint64_t)1<<(n)))
