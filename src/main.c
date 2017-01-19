@@ -187,11 +187,35 @@ int main()
     #endif
     printf("\n");
     
-    #ifdef ALPHA_BETA
-      printf("Enabled  - Alphabeta search\n");
+    printf("Search algorithm: ");
+    #if defined(ALPHA_BETA)
+      printf("Alpha-Beta Search\n");
     #elif defined(PVS)
-      printf("Enabled  - Principal Variation Search\n");
+      printf("Principal Variation Search\n");
+    #else
+      printf("None\n");
     #endif
+    
+    printf("Capture sorting: ");
+    #if defined(CAPTURE_SORT_SEE)
+      printf(" SEE\n");
+    #elif defined(CAPTURE_SORT_MVVLVA)
+      printf(" MVV-LVA\n");
+    #else
+      printf(" None\n");
+    #endif
+    
+    printf("Quiet sorting: ");
+    #if defined(QUIET_SORT_PST)
+      printf("   PST\n");
+    #elif defined(QUIET_SORT_HISTORY_HEURISTIC)
+      printf("   History heuristic\n");
+    #elif defined(QUIET_SORT_SEE)
+      printf("   SEE\n");
+    #else
+      printf("   None\n");
+    #endif
+    printf("\n");
     
     #ifdef QUIESCENCE_SEARCH
       printf("Enabled  - Quiescence search\n");
@@ -275,18 +299,6 @@ int main()
       printf("Enabled  - Piece mobility\n");
     #else
       printf("Disabled - Piece mobility\n");
-    #endif
-    
-    #ifdef QUIET_PST_SORTING
-      printf("Enabled  - Quiet move sorting\n");
-    #else
-      printf("Disabled - Quiet move sorting\n");
-    #endif
-    
-    #ifdef HISTORY_HEURISTIC
-      printf("Enabled  - History heuristic\n");
-    #else
-      printf("Disabled - History heuristic\n");
     #endif
     
     printf("\n");

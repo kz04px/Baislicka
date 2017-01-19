@@ -137,8 +137,12 @@
 #define KING_SAFETY
 #define PIECE_MOBILITY
 
-#define QUIET_PST_SORTING
-//#define HISTORY_HEURISTIC
+#define CAPTURE_SORT_SEE
+//#define CAPTURE_SORT_MVVLVA
+
+//#define QUIET_SORT_PST
+#define QUIET_SORT_SEE
+//#define QUIET_SORT_HISTORY_HEURISTIC
 
 //#define DELTA_PRUNING
 //#define PASSED_PAWN_EVAL
@@ -288,7 +292,7 @@ uint64_t ksc_rook[2];
 uint64_t qsc_king[2];
 uint64_t qsc_rook[2];
 
-#ifdef HISTORY_HEURISTIC
+#ifdef QUIET_SORT_HISTORY_HEURISTIC
   unsigned int hh_score[64][64];
   unsigned int bf_score[64][64];
 #endif
@@ -328,6 +332,7 @@ int alpha_beta(s_board *board, s_search_info *info, int alpha, int beta, int dep
 int pvSearch(s_board *board, s_search_info *info, int alpha, int beta, int depth, int null_move, s_pv *pv_local);
 int see(int sq, int side, int captured, uint64_t colours[2], uint64_t pieces[6]);
 int see_capture(s_board *board, s_move move);
+int see_quiet(s_board *board, s_move move);
 int killers_clear();
 
 // hash_table.c

@@ -11,7 +11,7 @@ s_search_settings search_settings;
 
 void reset_hh_bf()
 {
-  #ifdef HISTORY_HEURISTIC
+  #ifdef QUIET_SORT_HISTORY_HEURISTIC
     int x;
     for(x = 0; x < 64; ++x)
     {
@@ -140,6 +140,23 @@ int see_capture(s_board *board, s_move move)
   board->colour[board->turn] ^= from_bb;
   
   int value = piece_value(move_get_captured(move)) - see(move_get_to(move), 1-board->turn, move_get_piece(move), board->colour, board->pieces);
+  
+  // Undo move
+  board->pieces[move_get_piece(move)] ^= from_bb;
+  board->colour[board->turn] ^= from_bb;
+  
+  return value;
+}
+
+int see_quiet(s_board *board, s_move move)
+{
+  uint64_t from_bb = (uint64_t)1<<move_get_from(move);
+  
+  // Make move
+  board->pieces[move_get_piece(move)] ^= from_bb;
+  board->colour[board->turn] ^= from_bb;
+  
+  int value = 0 - see(move_get_to(move), 1-board->turn, move_get_piece(move), board->colour, board->pieces);
   
   // Undo move
   board->pieces[move_get_piece(move)] ^= from_bb;
@@ -277,7 +294,7 @@ void *search_root(void *n)
   int total_time = 0;
   uint64_t total_nodes = 0;
   
-  #ifdef HISTORY_HEURISTIC
+  #ifdef QUIET_SORT_HISTORY_HEURISTIC
     reset_hh_bf();
   #endif
   
@@ -763,7 +780,7 @@ int alpha_beta(s_board *board, s_search_info *info, int alpha, int beta, int dep
           }
         #endif
         
-        #ifdef HISTORY_HEURISTIC
+        #ifdef QUIET_SORT_HISTORY_HEURISTIC
           if(!is_capture_move(move))
           {
             hh_score[move_get_from(move)][move_get_to(move)] += depth*depth; 
@@ -780,7 +797,7 @@ int alpha_beta(s_board *board, s_search_info *info, int alpha, int beta, int dep
         break;
       }
       
-      #ifdef HISTORY_HEURISTIC
+      #ifdef QUIET_SORT_HISTORY_HEURISTIC
         if(!is_capture_move(move))
         {
           bf_score[move_get_from(move)][move_get_to(move)] += 1;

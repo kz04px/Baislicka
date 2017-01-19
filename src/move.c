@@ -117,9 +117,13 @@ int next_move(s_board *board, s_move_generator *generator, s_move *move)
         int i;
         for(i = 0; i < generator->num_moves; ++i)
         {
-          // SEE (Static Exchange Evaluation)
-          generator->scores[i] = 50000 + see_capture(board, generator->moves[i]);
-          
+          #if defined(CAPTURE_SORT_SEE)
+            generator->scores[i] = 50000 + see_capture(board, generator->moves[i]);
+          #elif defined(CAPTURE_SORT_MVVLVA)
+            generator->scores[i] = 0;
+          #else
+            generator->scores[i] = 0;
+          #endif
           assert(generator->scores[i] >= 0);
         }
         
@@ -151,14 +155,16 @@ int next_move(s_board *board, s_move_generator *generator, s_move *move)
         int i;
         for(i = 0; i < generator->num_moves; ++i)
         {
-          #ifdef HISTORY_HEURISTIC
+          #if defined(QUIET_SORT_HISTORY_HEURISTIC)
             int to = move_get_to(generator->moves[i]);
             int from = move_get_from(generator->moves[i]);
             generator->scores[i] = hh_score[from][to] / bf_score[from][to];
-          #elif defined(QUIET_PST_SORTING)
+          #elif defined(QUIET_SORT_PST)
             generator->scores[i] = 500 +
                                    pst_value(move_get_piece(generator->moves[i]), move_get_to(generator->moves[i]),   endgame) -
                                    pst_value(move_get_piece(generator->moves[i]), move_get_from(generator->moves[i]), endgame);
+          #elif defined(QUIET_SORT_SEE)
+            generator->scores[i] = 50000 + see_quiet(board, generator->moves[i]);
           #else
             generator->scores[i] = 0;
           #endif
