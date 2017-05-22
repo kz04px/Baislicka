@@ -1,5 +1,5 @@
 CXX           = gcc
-FLAGS         = -std=c++11 -Wall -Wextra -static -pthread
+FLAGS         = -Wall -Wextra -static -pthread
 RELEASE_FLAGS = $(FLAGS) -O3 -DNDEBUG
 DEBUG_FLAGS   = $(FLAGS) -g -gdwarf-2 -Wall -Wextra
 
