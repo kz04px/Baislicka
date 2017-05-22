@@ -484,6 +484,7 @@ int perft_movegen_sides(s_board *board, const char *filepath)
 
   printf("\n");
 
+  fclose(file);
   return 0;
 }
 
@@ -611,6 +612,7 @@ int perft_movegen(s_board *board, const char *filepath)
 
   printf("\n");
 
+  fclose(file);
   return 0;
 }
 
@@ -702,4 +704,5 @@ void perft_suite_search(s_board *board, int max_depth, char *filepath)
   printf("kNPS:  %"PRIdPTR"\n", (uint64_t)(nodes/time_taken/1000.0));
   printf("Time:  %.3fs\n", time_taken);
   printf("Tests: %i\n", num_tests);
+  fclose(file);
 }
