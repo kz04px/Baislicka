@@ -283,6 +283,7 @@ int perft_suite(s_board *board, int max_depth, char *filepath, int output)
     printf("Failed: %i (%.1f%%)\n", num_failed, 100*(float)num_failed/num_tests);
   }
 
+  fclose(file);
   return !(num_passed == num_tests);
 }
 
