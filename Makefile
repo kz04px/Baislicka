@@ -1,15 +1,31 @@
-SRC = $(wildcard src/*.c)
-OBJ = ${SRC:.c=.o}
+CXX           = gcc
+FLAGS         = -std=c++11 -Wall -Wextra -static -pthread
+RELEASE_FLAGS = $(FLAGS) -O3 -DNDEBUG
+DEBUG_FLAGS   = $(FLAGS) -g -gdwarf-2 -Wall -Wextra
 
-all: baislicka
+LINKER  = gcc
+LFLAGS  = 
 
-baislicka: ${OBJ}
-	@echo ${OBJ}
-	@echo CC -o $@
-	@${CC} -o bin/$@ ${OBJ} ${LDFLAGS}
+EXEC    = baislicka
+SRCDIR  = src
+OBJDIR  = obj
+BINDIR  = bin
+
+SOURCES  := $(wildcard $(SRCDIR)/*.c)
+INCLUDES := $(wildcard $(SRCDIR)/*.h)
+OBJECTS  := $(SOURCES:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
+
+$(BINDIR)/$(EXEC): $(OBJECTS)
+	@$(LINKER) -o $@ $(OBJECTS) $(LFLAGS)
+
+$(OBJECTS): $(OBJDIR)/%.o : $(SRCDIR)/%.c
+	@$(CXX) $(FLAGS) -c $< -o $@
+
+release:
+	$(MAKE) FLAGS="$(RELEASE_FLAGS)"
+
+debug:
+	$(MAKE) FLAGS="$(DEBUG_FLAGS)" EXEC="$(EXEC)-debug"
 
 clean:
-	@echo cleaning
-	@rm -f src/*.o bin/baislicka
-
-.PHONY: all clean
+	-rm -f $(OBJECTS)

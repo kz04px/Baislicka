@@ -349,6 +349,8 @@ void *search_root(void *n)
     int n;
     for(n = 0; n < bestmove_pv->num_moves; ++n)
     {
+      move_string[index] = ' ';
+      index++;
       index += move_to_string(&move_string[index], &bestmove_pv->moves[n]);
     }
 
