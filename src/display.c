@@ -3,7 +3,7 @@
 void print_move(s_move move)
 {
   printf("%c%c %c%c ", SQ_TO_FILE_CHAR(move_get_from(move)), SQ_TO_RANK_CHAR(move_get_from(move)), SQ_TO_FILE_CHAR(move_get_to(move)), SQ_TO_RANK_CHAR(move_get_to(move)));
-  
+
   switch(move_get_piece(move))
   {
     case PAWNS:
@@ -28,7 +28,7 @@ void print_move(s_move move)
       printf("[?] ");
       break;
   }
-  
+
   switch(move_get_captured(move))
   {
     case PAWNS:
@@ -53,7 +53,7 @@ void print_move(s_move move)
       printf("[?] ");
       break;
   }
-  
+
   switch(is_promo_move(move))
   {
     case KNIGHT_PROMO:
@@ -76,7 +76,7 @@ void print_move(s_move move)
       printf("[?] ");
       break;
   }
-  
+
   switch(move_get_type(move))
   {
     case QUIET:
@@ -111,20 +111,20 @@ void print_move(s_move move)
       printf("??? (%i)", move_get_type(move));
       break;
   }
-  
+
   printf("\n");
 }
 
 void print_moves(s_move *moves, int num_moves)
 {
   assert(moves != NULL);
-  
+
   int i;
   for(i = 0; i < num_moves; ++i)
   {
     if(i+1 < 10) {printf(" ");}
     printf("%i: ", i+1);
-    
+
     print_move(moves[i]);
   }
 }
@@ -137,7 +137,7 @@ void print_u64(uint64_t board)
     printf("%i", (int)(1&(board>>i)));
     if(i%8 == 7) {i -= 16; printf("\n");}
   }
-  
+
   return;
 }
 
@@ -216,13 +216,13 @@ void display_board(s_board *board)
     {
       printf("-");
     }
-    
+
     if(i%8 == 7) {i -= 16; printf("\n");}
   }
-  
+
   if(board->turn == WHITE) {printf("Turn: w\n");}
   else {printf("Turn: b\n");}
-  
+
   #ifdef HASHTABLE
     printf("Key: %"PRIdPTR"\n", board->key);
   #endif
@@ -231,26 +231,26 @@ void display_board(s_board *board)
   printf("is 3fold:   %i\n", is_threefold(board));
   printf("is 50move:  %i\n", is_fifty_move_draw(board));
   printf("is endgame: %i\n", is_endgame(board));
-  
+
   printf("White king safety: %i\n", king_safety(board, __builtin_ctzll(board->pieces[KINGS]&board->colour[WHITE]), WHITE));
   printf("Black king safety: %i\n", -king_safety(board, __builtin_ctzll(board->pieces[KINGS]&board->colour[BLACK]), BLACK));
-  
+
   printf("Eval: %i\n", eval(board));
-  
+
   printf("Castling: ");
   if(board->castling & wKSC) {printf("K");}
   if(board->castling & wQSC) {printf("Q");}
   if(board->castling & bKSC) {printf("k");}
   if(board->castling & bQSC) {printf("q");}
   printf("\n");
-  
+
   printf("Ep: %c%c\n", SQ_TO_FILE_CHAR(board->ep), SQ_TO_RANK_CHAR(board->ep));
 }
 
 void display_history(s_board *board)
 {
   assert(board != NULL);
-  
+
   int i;
   for(i = 0; i < board->history_size; ++i)
   {

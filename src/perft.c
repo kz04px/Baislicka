@@ -16,38 +16,38 @@ void perft_search(s_board *board, int d)
   assert(board != NULL);
   assert(d > 0);
   assert(board->turn == WHITE || board->turn == BLACK);
-  
+
   s_move moves[MAX_MOVES];
   int num_moves = find_moves_all(board, &moves[0], board->turn);
-  
+
   // Set old permissions
   s_irreversible permissions;
   store_irreversible(&permissions, board);
-  
+
   int m;
   for(m = 0; m < num_moves; ++m)
   {
     move_make(board, &moves[m]);
-    
+
     if(square_attacked(board, board->pieces[KINGS]&board->colour[!board->turn], board->turn))
     {
       // Restore old permissions
       restore_irreversible(&permissions, board);
-      
+
       move_undo(board, &moves[m]);
       continue;
     }
-    
+
     if(d == 1)
     {
       moves_total++;
-      
+
       /*
       if(square_attacked(board, board->pieces[KINGS]&board->colour[board->turn], !board->turn))
       {
         moves_check++;
       }
-      
+
       switch(move_get_type(move))
       {
         case QUIET:
@@ -80,13 +80,13 @@ void perft_search(s_board *board, int d)
     {
       perft_search(board, d-1);
     }
-    
+
     // Restore old permissions
     restore_irreversible(&permissions, board);
-    
+
     move_undo(board, &moves[m]);
   }
-  
+
   return;
 }
 
@@ -95,7 +95,7 @@ int perft_split(s_board *board, int depth, char *fen)
   assert(board != NULL);
   assert(depth > 0);
   assert(fen != NULL);
-  
+
   int combined_total = 0;
   int r = set_fen(board, fen);
   if(r != 0)
@@ -104,38 +104,38 @@ int perft_split(s_board *board, int depth, char *fen)
     printf("Error code: %i\n", r);
     return r;
   }
-  
+
   printf("Board:\n");
   display_board(board);
-  
+
   clock_t start;
   start = clock();
-  
+
   int move_num = 0;
-  
+
   s_move moves[MAX_MOVES];
   int num_moves = find_moves_all(board, &moves[0], board->turn);
-  
+
   // Set old permissions
   s_irreversible permissions;
   store_irreversible(&permissions, board);
-  
+
   int m;
   for(m = 0; m < num_moves; ++m)
   {
     move_make(board, &moves[m]);
-    
+
     if(square_attacked(board, board->pieces[KINGS]&board->colour[!board->turn], board->turn))
     {
       // Restore old permissions
       restore_irreversible(&permissions, board);
-      
+
       move_undo(board, &moves[m]);
       continue;
     }
-    
+
     move_num++;
-    
+
     // Reset position and stats
     moves_total = 0;
     moves_quiet = 0;
@@ -146,23 +146,23 @@ int perft_split(s_board *board, int depth, char *fen)
     moves_wQSC = 0;
     moves_bKSC = 0;
     moves_bQSC = 0;
-    
+
     if(depth > 1)
     {
       perft_search(board, depth-1);
     }
-    
+
     printf("%I64u - ", moves_total);
     print_move(moves[m]);
-    
+
     // Restore old permissions
     restore_irreversible(&permissions, board);
-    
+
     move_undo(board, &moves[m]);
-    
+
     combined_total += moves_total;
   }
-  
+
   double time_taken = ((double)clock()-start)/CLOCKS_PER_SEC;
   printf("Moves: %i\n", move_num);
   printf("Time: %.3fs\n", time_taken);
@@ -175,7 +175,7 @@ int perft_suite(s_board *board, int max_depth, char *filepath, int output)
   assert(board != NULL);
   assert(max_depth > 0);
   assert(filepath != NULL);
-  
+
   FILE *file = fopen(filepath, "r");
   if(!file)
   {
@@ -186,26 +186,26 @@ int perft_suite(s_board *board, int max_depth, char *filepath, int output)
     }
     return -1;
   }
-  
+
   clock_t start;
   double time_taken;
-  
+
   if(output)
   {
     printf("Starting test suite\n");
     printf("\n");
   }
-  
+
   int num_tests = 0;
   int num_passed = 0;
   int num_failed = 0;
-  
+
   start = clock();
   char line[1024];
   while(fgets(line, sizeof(line), file))
   {
     char *pch = strtok(line, ";");
-    
+
     int r = set_fen(board, line);
     if(r != 0)
     {
@@ -218,28 +218,28 @@ int perft_suite(s_board *board, int max_depth, char *filepath, int output)
       continue;
     }
     num_tests++;
-    
+
     if(output)
     {
       printf("Test %i: ", num_tests);
     }
-    
+
     int pass = 1;
-    
+
     while((pch = strtok(NULL, ";\n")))
     {
       int depth = 0;
       uint64_t result = 0;
       sscanf(pch+1, "%i %I64u", &depth, &result);
-      
+
       if(depth > max_depth)
       {
         break;
       }
-      
-      moves_total = 0;  
+
+      moves_total = 0;
       perft_search(board, depth);
-      
+
       if(moves_total != result)
       {
         if(output)
@@ -248,14 +248,14 @@ int perft_suite(s_board *board, int max_depth, char *filepath, int output)
           {
             printf("failed\n");
           }
-          
+
           printf(" %i: %I64u %I64u\n", depth, moves_total, result);
         }
-        
+
         pass = 0;
       }
     }
-    
+
     if(pass)
     {
       if(output)
@@ -270,7 +270,7 @@ int perft_suite(s_board *board, int max_depth, char *filepath, int output)
     }
   }
   time_taken = ((double)clock()-start)/CLOCKS_PER_SEC;
-  
+
   if(output)
   {
     printf("\n");
@@ -282,7 +282,7 @@ int perft_suite(s_board *board, int max_depth, char *filepath, int output)
     printf("Passed: %i (%.1f%%)\n", num_passed, 100*(float)num_passed/num_tests);
     printf("Failed: %i (%.1f%%)\n", num_failed, 100*(float)num_failed/num_tests);
   }
-  
+
   return !(num_passed == num_tests);
 }
 
@@ -291,10 +291,10 @@ void perft(s_board *board, int max_depth, char *fen)
   assert(board != NULL);
   assert(max_depth > 0);
   assert(fen != NULL);
-  
+
   clock_t start;
   double time_taken;
-  
+
   printf("D   Time      NPS     Moves       Captures  EP     Castles Checks\n");
   int d;
   for(d = 1; d <= max_depth; ++d)
@@ -309,7 +309,7 @@ void perft(s_board *board, int max_depth, char *fen)
     moves_wQSC = 0;
     moves_bKSC = 0;
     moves_bQSC = 0;
-    
+
     int r = set_fen(board, fen);
     if(r != 0)
     {
@@ -317,20 +317,20 @@ void perft(s_board *board, int max_depth, char *fen)
       printf("Error code: %i\n", r);
       break;
     }
-    
+
     // Test position
     start = clock();
     perft_search(board, d);
     time_taken = ((double)clock()-start)/CLOCKS_PER_SEC;
-    
+
     printf("%i  ", d);
     if(d < 10)  {printf(" ");}
-    
+
     // Time taken
     printf("%.3fs  ", time_taken);
          if(time_taken < 10.0)  {printf("  ");}
     else if(time_taken < 100.0) {printf(" ");}
-    
+
     // NPS
     if(time_taken < 0.005)
     {
@@ -343,7 +343,7 @@ void perft(s_board *board, int max_depth, char *fen)
       else if((moves_total/time_taken)/1000000 < 10)  {printf("  ");}
       else if((moves_total/time_taken)/1000000 < 100) {printf(" ");}
     }
-    
+
     printf("%I64u", moves_total);
          if(moves_total < 10)           {printf("           ");}
     else if(moves_total < 100)          {printf("          ");}
@@ -356,7 +356,7 @@ void perft(s_board *board, int max_depth, char *fen)
     else if(moves_total < 1000000000)   {printf("   ");}
     else if(moves_total < 10000000000)  {printf("  ");}
     else if(moves_total < 100000000000) {printf(" ");}
-    
+
     printf("%I64u", moves_capture);
          if(moves_capture < 10)         {printf("         ");}
     else if(moves_capture < 100)        {printf("        ");}
@@ -367,7 +367,7 @@ void perft(s_board *board, int max_depth, char *fen)
     else if(moves_capture < 10000000)   {printf("   ");}
     else if(moves_capture < 100000000)  {printf("  ");}
     else if(moves_capture < 1000000000) {printf(" ");}
-    
+
     printf("%I64u", moves_ep);
          if(moves_ep < 10)        {printf("      ");}
     else if(moves_ep < 100)       {printf("     ");}
@@ -375,7 +375,7 @@ void perft(s_board *board, int max_depth, char *fen)
     else if(moves_ep < 10000)     {printf("   ");}
     else if(moves_ep < 100000)    {printf("  ");}
     else if(moves_ep < 1000000)   {printf(" ");}
-    
+
     printf("%I64u", moves_wKSC + moves_wQSC + moves_bKSC + moves_bQSC);
          if(moves_wKSC + moves_wQSC + moves_bKSC + moves_bQSC < 10)        {printf("       ");}
     else if(moves_wKSC + moves_wQSC + moves_bKSC + moves_bQSC < 100)       {printf("      ");}
@@ -385,7 +385,7 @@ void perft(s_board *board, int max_depth, char *fen)
     else if(moves_wKSC + moves_wQSC + moves_bKSC + moves_bQSC < 1000000)   {printf("  ");}
     else if(moves_wKSC + moves_wQSC + moves_bKSC + moves_bQSC < 10000000)  {printf(" ");}
     //printf("(%i %i %i %i)", moves_wKSC, moves_wQSC, moves_bKSC, moves_bQSC);
-    
+
     printf("%I64u", moves_check);
          if(moves_check < 10)        {printf("      ");}
     else if(moves_check < 100)       {printf("     ");}
@@ -393,11 +393,11 @@ void perft(s_board *board, int max_depth, char *fen)
     else if(moves_check < 10000)     {printf("   ");}
     else if(moves_check < 100000)    {printf("  ");}
     else if(moves_check < 1000000)   {printf(" ");}
-    
+
     printf("\n");
   }
   printf("\n");
-  
+
   return;
 }
 
@@ -413,7 +413,7 @@ int perft_movegen_sides(s_board *board, const char *filepath)
 {
   assert(board != NULL);
   assert(filepath != NULL);
-  
+
   clock_t start;
   double time_taken;
   double time_total = 0;
@@ -423,18 +423,18 @@ int perft_movegen_sides(s_board *board, const char *filepath)
   int repeats = 5000000;
   int i;
   int test = 0;
-  
+
   FILE *file = fopen(filepath, "r");
   if(file == NULL) {return -1;}
-  
+
   printf("Test White  Black\n");
   char line[1024];
   while(fgets(line, sizeof(line), file))
   {
     //if(test == 20) {break;}
-    
+
     char *pch = strtok(line, ";");
-    
+
     int r = set_fen(board, pch);
     if(r != 0)
     {
@@ -443,12 +443,12 @@ int perft_movegen_sides(s_board *board, const char *filepath)
       printf("Skipping test\n");
       continue;
     }
-    
+
     printf("%i", test);
          if(test < 10)   {printf("    ");}
     else if(test < 100)  {printf("   ");}
     else if(test < 1000) {printf("  ");}
-    
+
     // White
     start = clock();
     for(i = 0; i < repeats; ++i)
@@ -459,7 +459,7 @@ int perft_movegen_sides(s_board *board, const char *filepath)
     time_total += time_taken;
     time_white += time_taken;
     printf("%.3f", time_taken);
-    
+
     // Black
     start = clock();
     for(i = 0; i < repeats; ++i)
@@ -470,19 +470,19 @@ int perft_movegen_sides(s_board *board, const char *filepath)
     time_total += time_taken;
     time_black += time_taken;
     printf("  %.3f", time_taken);
-    
+
     printf("\n");
     test++;
   }
-  
+
   printf("\n");
-  
+
   printf("Total: %.3f\n", time_total);
   printf("White: %.3f\n", time_white);
   printf("Black: %.3f\n", time_black);
-  
+
   printf("\n");
-  
+
   return 0;
 }
 
@@ -490,7 +490,7 @@ int perft_movegen(s_board *board, const char *filepath)
 {
   assert(board != NULL);
   assert(filepath != NULL);
-  
+
   clock_t start;
   double time_taken;
   double time_total;
@@ -504,19 +504,19 @@ int perft_movegen(s_board *board, const char *filepath)
   int repeats = 5000000;
   int i;
   int test = 0;
-  
+
   FILE *file = fopen(filepath, "r");
   if(file == NULL) {return -1;}
-  
+
   printf("Test Pawn   Knight Bishop Rook  King   Total\n");
   char line[1024];
   while(fgets(line, sizeof(line), file))
   {
     if(test == 20) {break;}
     time_total = 0;
-    
+
     char *pch = strtok(line, ";");
-    
+
     int r = set_fen(board, pch);
     if(r != 0)
     {
@@ -525,12 +525,12 @@ int perft_movegen(s_board *board, const char *filepath)
       printf("Skipping test\n");
       continue;
     }
-    
+
     printf("%i", test);
          if(test < 10)   {printf("    ");}
     else if(test < 100)  {printf("   ");}
     else if(test < 1000) {printf("  ");}
-    
+
     // Pawns
     start = clock();
     for(i = 0; i < repeats; ++i)
@@ -544,7 +544,7 @@ int perft_movegen(s_board *board, const char *filepath)
     time_total += time_taken;
     time_pawn += time_taken;
     printf("%.3f", time_taken);
-    
+
     // Knight
     start = clock();
     for(i = 0; i < repeats; ++i)
@@ -556,7 +556,7 @@ int perft_movegen(s_board *board, const char *filepath)
     time_total += time_taken;
     time_knight += time_taken;
     printf("  %.3f", time_taken);
-    
+
     // Bishop & Queen
     start = clock();
     for(i = 0; i < repeats; ++i)
@@ -568,7 +568,7 @@ int perft_movegen(s_board *board, const char *filepath)
     time_total += time_taken;
     time_bishop += time_taken;
     printf("  %.3f", time_taken);
-    
+
     // Rook & Queen
     start = clock();
     for(i = 0; i < repeats; ++i)
@@ -580,7 +580,7 @@ int perft_movegen(s_board *board, const char *filepath)
     time_total += time_taken;
     time_rook += time_taken;
     printf("  %.3f", time_taken);
-    
+
     // King
     start = clock();
     for(i = 0; i < repeats; ++i)
@@ -592,13 +592,13 @@ int perft_movegen(s_board *board, const char *filepath)
     time_total += time_taken;
     time_king += time_taken;
     printf("  %.3f", time_taken);
-    
+
     printf("  %.3f", time_total);
-    
+
     printf("\n");
     test++;
   }
-  
+
   printf("Sum  ");
   printf("%.3f", time_pawn);   if(time_pawn < 10)   {printf(" ");} printf(" ");
   printf("%.3f", time_knight); if(time_knight < 10) {printf(" ");} printf(" ");
@@ -607,9 +607,9 @@ int perft_movegen(s_board *board, const char *filepath)
   printf("%.3f", time_queen);  if(time_queen < 10)  {printf(" ");} printf(" ");
   printf("%.3f", time_king);   if(time_king < 10)   {printf(" ");} printf(" ");
   printf("%.3f", time_pawn + time_knight + time_bishop + time_rook + time_queen + time_king);
-  
+
   printf("\n");
-  
+
   return 0;
 }
 
@@ -618,7 +618,7 @@ void perft_suite_search(s_board *board, int max_depth, char *filepath)
   assert(board != NULL);
   assert(max_depth > 0);
   assert(filepath != NULL);
-  
+
   FILE *file = fopen(filepath, "r");
   if(!file)
   {
@@ -626,21 +626,21 @@ void perft_suite_search(s_board *board, int max_depth, char *filepath)
     printf("Aborting test suite\n");
     return;
   }
-  
+
   clock_t start;
   double time_taken;
-  
+
   printf("Starting test suite\n");
   printf("\n");
-  
+
   int num_tests = 0;
   uint64_t nodes = 0;
   s_search_results results;
-  
+
   s_move *bestmove = NULL;
   s_pv *bestmove_pv = NULL;
   int *bestmove_eval = NULL;
-  
+
   start = clock();
   char line[1024];
   while(fgets(line, sizeof(line), file))
@@ -654,45 +654,45 @@ void perft_suite_search(s_board *board, int max_depth, char *filepath)
       continue;
     }
     num_tests++;
-    
+
     printf("Test %i:  ", num_tests);
-    
+
     s_search_settings settings;
     settings.time_max = 10000000;
     search_settings_set(settings);
-    
+
     hashtable_clear(hashtable);
-    
+
     int i;
     for(i = 1; i <= max_depth; ++i)
     {
       results = search(board, i, -INF, INF);
     }
-    
+
     bestmove = &results.moves[results.best_move_num];
     bestmove_pv = &results.pvs[results.best_move_num];
     bestmove_eval = &results.evals[results.best_move_num];
-    
+
          if(results.time_taken < 10) {printf("     ");}
     else if(results.time_taken < 100) {printf("    ");}
     else if(results.time_taken < 1000) {printf("   ");}
     else if(results.time_taken < 10000) {printf("  ");}
     else if(results.time_taken < 100000) {printf(" ");}
     printf("%ims", results.time_taken);
-    
+
          if(abs(*bestmove_eval) < 10) {printf("    ");}
     else if(abs(*bestmove_eval) < 100) {printf("   ");}
     else if(abs(*bestmove_eval) < 1000) {printf("  ");}
     else if(abs(*bestmove_eval) < 10000) {printf(" ");}
     if(*bestmove_eval >= 0) {printf(" ");}
     printf("%icp   ", *bestmove_eval);
-    
+
     print_move(*bestmove);
-    
+
     nodes += results.nodes;
   }
   time_taken = ((double)clock()-start)/CLOCKS_PER_SEC;
-  
+
   printf("\n");
   printf("Results:\n");
   printf("Location: %s\n", filepath);

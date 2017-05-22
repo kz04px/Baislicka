@@ -252,7 +252,7 @@ typedef struct
   int seldepth;
   uint64_t nodes;
   uint64_t hashtable_hits;
-  
+
   int best_move_num;
   int num_moves;
   s_move moves[MAX_MOVES];

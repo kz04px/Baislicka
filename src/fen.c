@@ -7,12 +7,12 @@ int set_fen(s_board *board, const char *fen)
 {
   assert(board != NULL);
   assert(fen != NULL);
-  
+
   if(strncmp(fen, "startpos", 8) == 0)
   {
     fen = temp;
   }
-  
+
   int i;
   for(i = 0; i < 6; ++i)
   {
@@ -20,11 +20,11 @@ int set_fen(s_board *board, const char *fen)
   }
   board->colour[WHITE] = 0;
   board->colour[BLACK] = 0;
-  
+
   board->ep = 0;
-  
+
   board->castling = 0;
-  
+
   /*
   int i, j;
   for(i = 0; i < 12; ++i)
@@ -36,7 +36,7 @@ int set_fen(s_board *board, const char *fen)
     }
   }
   */
-  
+
   int n = 0, x = A8;
   while(fen[n] != ' ')
   {
@@ -140,7 +140,7 @@ int set_fen(s_board *board, const char *fen)
     x++;
   }
   n += 1;
-  
+
   if(fen[n] == 'w')
   {
     board->turn = WHITE;
@@ -154,7 +154,7 @@ int set_fen(s_board *board, const char *fen)
     return -1;
   }
   n += 2;
-  
+
   while(fen[n] != ' ' && fen[n] != '\0' && fen[n] != '\n')
   {
     switch(fen[n])
@@ -191,7 +191,7 @@ int set_fen(s_board *board, const char *fen)
     n++;
   }
   n++;
-  
+
   if(fen[n] != '-')
   {
     int file = fen[n] - 'a';
@@ -202,16 +202,16 @@ int set_fen(s_board *board, const char *fen)
     n++;
   }
   n += 2;
-  
+
   board->num_halfmoves = atoi(&fen[n]);
-  
+
   #ifdef HASHTABLE
     board->key = create_key_board(board);
   #endif
-  
+
   // History
   board->key_history[0] = board->key;
   board->history_size = 1;
-  
+
   return 0;
 }

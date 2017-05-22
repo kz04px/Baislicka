@@ -5,19 +5,19 @@
 void uci_listen()
 {
   int exit = 1;
-  
+
   // board & search information
   s_board *board = (s_board*) malloc(1*sizeof(s_board));
   s_search_settings *settings = (s_search_settings*) malloc(1*sizeof(s_search_settings));
-  
+
   // search thread
   pthread_t search_thread;
   s_thread_data data;
   data.board = board;
   data.settings = settings;
-  
+
   set_fen(board, START_FEN);
-  
+
   char message[4096];
   while(exit == 1)
   {
@@ -26,9 +26,9 @@ void uci_listen()
     {
       break;
     }
-    
+
     char *part = message;
-    
+
     while(part[0] != '\0')
     {
       if(strncmp(part, "quit", 4) == 0)
@@ -64,7 +64,7 @@ void uci_listen()
       else if(strncmp(part, "moves", 5) == 0)
       {
         //part += 6;
-        
+
         unsigned int i;
         for(i = 0; i < strlen(part)-4; ++i)
         {
@@ -72,7 +72,7 @@ void uci_listen()
           if(part[i+1] < '1' || '8' < part[i+1]) {continue;}
           if(part[i+2] < 'a' || 'h' < part[i+2]) {continue;}
           if(part[i+3] < '1' || '8' < part[i+3]) {continue;}
-          
+
           move_make_ascii(board, &part[i]);
         }
       }
@@ -89,14 +89,14 @@ void uci_listen()
           pthread_cancel(search_thread);
         }
         */
-        
+
         // arbitrary default values 1+0
         settings->wtime = 60000;
         settings->btime = 60000;
         settings->winc = 0;
         settings->binc = 0;
         settings->movestogo = 20;
-        
+
         // This is a bit ugly
         while(part[1] != '\0')
         {
@@ -106,7 +106,7 @@ void uci_listen()
             settings->btime = INT_MAX;
             break;
           }
-          
+
           if(strncmp(part, "wtime", 5) == 0)
           {
             part += 6;
@@ -132,24 +132,24 @@ void uci_listen()
             part += 10;
             settings->movestogo = atoi(part);
           }
-          
+
           part++;
         }
-        
+
         settings->depth = -1;
         settings->nodes = -1;
         settings->mate = -1;
         settings->movetime = -1;
-            
+
         if(settings->movestogo == 1)
         {
           // Maintain a small period of buffer time for the search to end
           settings->wtime -= 50;
           settings->btime -= 50;
         }
-        
+
         search_settings_set(*settings);
-        
+
         if(pthread_create(&search_thread, NULL, search_root, &data))
         {
           fprintf(stderr, "Error creating thread\n");
@@ -168,18 +168,18 @@ void uci_listen()
           {
             part += 26;
             int size = atoi(part);
-            
+
             if(HASHTABLE_SIZE_MIN <= size && size <= HASHTABLE_SIZE_MAX)
             {
               while(size >= HASHTABLE_SIZE_MIN)
               {
                 int r = hashtable_init(hashtable, size);
-                
+
                 if(r != -1) {break;}
-                
+
                 size = size>>1;
               }
-              
+
               #ifndef NDEBUG
                 printf("Total size: %iMB\n", hashtable->size_bytes/1024/1024);
                 printf("Entry size: %"PRIdPTR"B\n", sizeof(s_hashtable_entry));
@@ -189,11 +189,11 @@ void uci_listen()
           }
         #endif
       }
-      
+
       part++;
     }
   }
-  
+
   free(board);
   free(settings);
   return;

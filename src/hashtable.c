@@ -10,12 +10,12 @@ uint64_t create_key_board(s_board *board)
   assert(board != NULL);
 
   uint64_t key = 0;
-  
+
   int sq;
   for(sq = 0; sq < 64; ++sq)
   {
     int p;
-    
+
     for(p = 0; p < 6; ++p)
     {
       if((board->pieces[p]>>sq)&1)
@@ -31,13 +31,13 @@ uint64_t create_key_board(s_board *board)
       }
     }
   }
-  
+
   key_ksc[WHITE] = key_piece_positions[KINGS][WHITE][E1] ^ key_piece_positions[KINGS][WHITE][G1] ^ key_piece_positions[ROOKS][WHITE][F1] ^ key_piece_positions[ROOKS][WHITE][H1];
   key_ksc[BLACK] = key_piece_positions[KINGS][BLACK][E8] ^ key_piece_positions[KINGS][BLACK][G8] ^ key_piece_positions[ROOKS][BLACK][F8] ^ key_piece_positions[ROOKS][BLACK][H8];
-  
+
   key_qsc[WHITE] = key_piece_positions[KINGS][WHITE][E1] ^ key_piece_positions[KINGS][WHITE][C1] ^ key_piece_positions[ROOKS][WHITE][D1] ^ key_piece_positions[ROOKS][WHITE][A1];
   key_qsc[BLACK] = key_piece_positions[KINGS][BLACK][E8] ^ key_piece_positions[KINGS][BLACK][C8] ^ key_piece_positions[ROOKS][BLACK][D8] ^ key_piece_positions[ROOKS][BLACK][A8];
-  
+
   if(board->turn == WHITE)
   {
     key ^= key_turn;
@@ -47,9 +47,9 @@ uint64_t create_key_board(s_board *board)
   {
     key ^= key_ep_file[SQ_TO_FILE(board->ep)];
   }
-  
+
   key ^= key_castling[board->castling];
-  
+
   return key;
 }
 
@@ -83,7 +83,7 @@ void key_init()
 s_hashtable_entry *hashtable_poll(s_hashtable *hashtable, uint64_t key)
 {
   assert(hashtable != NULL);
-  
+
   return &hashtable->entries[key%(hashtable->max_entries)];
 }
 
@@ -112,12 +112,12 @@ int hashtable_init(s_hashtable *hashtable, int size_megabytes)
 {
   assert(hashtable != NULL);
   assert(size_megabytes > 0);
-  
+
   if(hashtable->entries != NULL)
   {
     free(hashtable->entries);
   }
-  
+
   if(size_megabytes > HASHTABLE_SIZE_MAX)
   {
     size_megabytes = HASHTABLE_SIZE_MAX;
@@ -127,9 +127,9 @@ int hashtable_init(s_hashtable *hashtable, int size_megabytes)
   hashtable->num_entries = 0;
   hashtable->max_entries = hashtable->size_bytes/sizeof(s_hashtable_entry);
   hashtable->size_bytes = hashtable->max_entries*sizeof(s_hashtable_entry);
-  
+
   hashtable->entries = calloc(hashtable->max_entries, sizeof(s_hashtable_entry));
-  
+
   if(hashtable->entries == NULL)
   {
     hashtable->size_bytes = 0;

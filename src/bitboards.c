@@ -100,31 +100,31 @@ uint64_t calculate_rook_mask(int sq)
   int file = SQ_TO_FILE(sq);
   int rank = SQ_TO_RANK(sq);
   int i;
-  
+
   // Right
   for(i = rank+1; i <= 6; ++i)
   {
     result |= ((uint64_t)1 << (file + i*8));
   }
-  
+
   // Left
   for(i = rank-1; i >= 1; --i)
   {
     result |= ((uint64_t)1 << (file + i*8));
   }
-  
+
   // Up
   for(i = file+1; i <= 6; ++i)
   {
     result |= ((uint64_t)1 << (i + rank*8));
   }
-  
+
   // Down
   for(i = file-1; i >= 1; --i)
   {
     result |= ((uint64_t)1 << (i + rank*8));
   }
-  
+
   return result;
 }
 
@@ -135,31 +135,31 @@ uint64_t calculate_bishop_mask(int sq)
   int rank = SQ_TO_RANK(sq);
   int x;
   int y;
-  
+
   // Up 1 Right 1
   for(y = rank+1, x = file+1; y <= 6 && x <= 6; ++y, ++x)
   {
     result |= ((uint64_t)1 << (x + y*8));
   }
-  
+
   // Up 1 Left 1
   for(y = rank+1, x = file-1; y <= 6 && x >= 1; ++y, --x)
   {
     result |= ((uint64_t)1 << (x + y*8));
   }
-  
+
   // Down 1 Right 1
   for(y = rank-1, x = file+1; y >= 1 && x <= 6; --y, ++x)
   {
     result |= ((uint64_t)1 << (x + y*8));
   }
-  
+
   // Down 1 Left 1
   for(y = rank-1, x = file-1; y >= 1 && x >= 1; --y, --x)
   {
     result |= ((uint64_t)1 << (x + y*8));
   }
-  
+
   return result;
 }
 
@@ -169,7 +169,7 @@ uint64_t calculate_rook_moves(int sq, uint64_t blockers)
   int file = SQ_TO_FILE(sq);
   int rank = SQ_TO_RANK(sq);
   int i;
-  
+
   // Up
   for(i = rank+1; i <= 7; ++i)
   {
@@ -179,7 +179,7 @@ uint64_t calculate_rook_moves(int sq, uint64_t blockers)
       break;
     }
   }
-  
+
   // Down
   for(i = rank-1; i >= 0; --i)
   {
@@ -189,7 +189,7 @@ uint64_t calculate_rook_moves(int sq, uint64_t blockers)
       break;
     }
   }
-  
+
   // Right
   for(i = file+1; i <= 7; ++i)
   {
@@ -199,7 +199,7 @@ uint64_t calculate_rook_moves(int sq, uint64_t blockers)
       break;
     }
   }
-  
+
   // Left
   for(i = file-1; i >= 0; --i)
   {
@@ -209,7 +209,7 @@ uint64_t calculate_rook_moves(int sq, uint64_t blockers)
       break;
     }
   }
-  
+
   return result;
 }
 
@@ -220,7 +220,7 @@ uint64_t calculate_bishop_moves(int sq, uint64_t blockers)
   int rank = SQ_TO_RANK(sq);
   int x;
   int y;
-  
+
   // Up 1 Right 1
   for(y = rank+1, x = file+1; y <= 7 && x <= 7; ++y, ++x)
   {
@@ -230,7 +230,7 @@ uint64_t calculate_bishop_moves(int sq, uint64_t blockers)
       break;
     }
   }
-  
+
   // Up 1 Left 1
   for(y = rank+1, x = file-1; y <= 7 && x >= 0; ++y, --x)
   {
@@ -240,7 +240,7 @@ uint64_t calculate_bishop_moves(int sq, uint64_t blockers)
       break;
     }
   }
-  
+
   // Down 1 Right 1
   for(y = rank-1, x = file+1; y >= 0 && x <= 7; --y, ++x)
   {
@@ -250,7 +250,7 @@ uint64_t calculate_bishop_moves(int sq, uint64_t blockers)
       break;
     }
   }
-  
+
   // Down 1 Left 1
   for(y = rank-1, x = file-1; y >= 0 && x >= 0; --y, --x)
   {
@@ -260,7 +260,7 @@ uint64_t calculate_bishop_moves(int sq, uint64_t blockers)
       break;
     }
   }
-  
+
   return result;
 }
 
@@ -324,7 +324,7 @@ uint64_t get_adj_files(int file)
 int u64_file(uint64_t pos)
 {
   assert(pos);
-  
+
   if(pos&U64_FILE_A) {return 0;}
   if(pos&U64_FILE_B) {return 1;}
   if(pos&U64_FILE_C) {return 2;}
@@ -338,7 +338,7 @@ int u64_file(uint64_t pos)
 int u64_rank(uint64_t pos)
 {
   assert(pos);
-  
+
   if(pos&U64_RANK_1) {return 0;}
   if(pos&U64_RANK_2) {return 1;}
   if(pos&U64_RANK_3) {return 2;}
@@ -354,18 +354,18 @@ void bitboards_init()
   uint64_t perm;
   uint64_t *index = NULL;
   uint64_t from;
-  
+
   int sq;
   for(sq = 0; sq < 64; ++sq)
   {
     int f = SQ_TO_FILE(sq);
     int r = SQ_TO_RANK(sq);
-    
+
     // Pawns
     from = (uint64_t)1<<sq;
     pawn_mask[WHITE][sq] = ((from << 7) &(~U64_FILE_H)) | ((from << 9) &(~U64_FILE_A));
     pawn_mask[BLACK][sq] = ((from >> 7) &(~U64_FILE_A)) | ((from >> 9) &(~U64_FILE_H));
-    
+
     // Calculate passed pawn blockers
     if(r == 0 || r == 7)
     {
@@ -377,7 +377,7 @@ void bitboards_init()
       passed_pawn_blockers[WHITE][sq] = (~U64_RANK_8)&((get_file(f) | get_adj_files(f))<<(r*8+8));
       passed_pawn_blockers[BLACK][sq] = (~U64_RANK_1)&((get_file(f) | get_adj_files(f))>>((7-r)*8+8));
     }
-    
+
     // Knights
     from = (uint64_t)1<<sq;
     knight_mask[sq]  = (from<<17) & (~U64_FILE_A); // Up 2 right 1
@@ -388,7 +388,7 @@ void bitboards_init()
     knight_mask[sq] |= (from>>6)  & ~(U64_FILE_B|U64_FILE_A); // Right 2 down 1
     knight_mask[sq] |= (from<<6)  & ~(U64_FILE_H|U64_FILE_G); // Left 2 up 1
     knight_mask[sq] |= (from>>10) & ~(U64_FILE_H|U64_FILE_G); // Left 2 down 1
-    
+
     // Bishops
     perm = 0;
     bishop_mask[sq] = calculate_bishop_mask(sq);
@@ -397,7 +397,7 @@ void bitboards_init()
       index = (uint64_t*)(bishop_offsets[sq] + (((perm & bishop_mask[sq]) * bishop_magic[sq]) >> 55));
       *index = calculate_bishop_moves(sq, perm);
     } while ((perm = permute(bishop_mask[sq], perm)));
-    
+
     // Rooks
     perm = 0;
     rook_mask[sq] = calculate_rook_mask(sq);
@@ -406,7 +406,7 @@ void bitboards_init()
       index = (uint64_t*)(rook_offsets[sq] + (((perm & rook_mask[sq]) * rook_magic[sq]) >> 52));
       *index = calculate_rook_moves(sq, perm);
     } while ((perm = permute(rook_mask[sq], perm)));
-    
+
     // King
     uint64_t from = (uint64_t)1<<sq;
     king_mask[sq]  = (from<<8); // Up 1
@@ -425,41 +425,41 @@ uint64_t pinned_pieces_white(s_board *board, int sq)
   assert(board != NULL);
   assert(0 <= sq);
   assert(sq < 64);
-  
+
   uint64_t pinned = 0;
   uint64_t pos;
   uint64_t blockers;
-  
+
   // Bishops and Queens
   blockers = magic_moves_bishop((board->colour[WHITE]|board->colour[BLACK]), sq) & board->colour[WHITE];
-  
+
   while(blockers)
   {
     pos = blockers & ~(blockers-1);
-    
+
     if(magic_moves_bishop((board->colour[WHITE]|board->colour[BLACK]) ^ pos, sq) & (board->colour[BLACK] & (board->pieces[BISHOPS]|board->pieces[QUEENS])))
     {
       pinned ^= pos;
     }
-    
+
     blockers = blockers ^ pos;
   }
-  
+
   // Rooks and Queens
   blockers = magic_moves_rook((board->colour[WHITE]|board->colour[BLACK]), sq) & board->colour[WHITE];
-  
+
   while(blockers)
   {
     pos = blockers & ~(blockers-1);
-    
+
     if(magic_moves_rook((board->colour[WHITE]|board->colour[BLACK]) ^ pos, sq) & (board->colour[BLACK] & (board->pieces[ROOKS]|board->pieces[QUEENS])))
     {
       pinned ^= pos;
     }
-    
+
     blockers = blockers ^ pos;
   }
-  
+
   return pinned;
 }
 
@@ -468,79 +468,79 @@ uint64_t pinned_pieces_black(s_board *board, int sq)
   assert(board != NULL);
   assert(0 <= sq);
   assert(sq < 64);
-  
+
   uint64_t pinned = 0;
   uint64_t pos;
   uint64_t blockers;
-  
+
   // Bishops and Queens
   blockers = magic_moves_bishop((board->colour[WHITE]|board->colour[BLACK]), sq) & board->colour[BLACK];
-  
+
   while(blockers)
   {
     pos = blockers & ~(blockers-1);
-    
+
     if(magic_moves_bishop((board->colour[WHITE]|board->colour[BLACK]) ^ pos, sq) & (board->colour[WHITE] & (board->pieces[BISHOPS]|board->pieces[QUEENS])))
     {
       pinned ^= pos;
     }
-    
+
     blockers = blockers ^ pos;
   }
-  
+
   // Rooks and Queens
   blockers = magic_moves_rook((board->colour[WHITE]|board->colour[BLACK]), sq) & board->colour[BLACK];
-  
+
   while(blockers)
   {
     pos = blockers & ~(blockers-1);
-    
+
     if(magic_moves_rook((board->colour[WHITE]|board->colour[BLACK]) ^ pos, sq) & (board->colour[WHITE] & (board->pieces[ROOKS]|board->pieces[QUEENS])))
     {
       pinned ^= pos;
     }
-    
+
     blockers = blockers ^ pos;
   }
-  
+
   return pinned;
 }
 
 int error_check(s_board *board)
 {
   assert(board != NULL);
-  
+
   if(__builtin_popcountll(board->colour[WHITE]) > 16) {return 1;}
   if(__builtin_popcountll(board->colour[BLACK]) > 16) {return 2;}
-  
+
   if(board->colour[WHITE] & board->colour[BLACK]) {return 3;}
-  
+
   if(board->pieces[PAWNS] & board->pieces[KNIGHTS]) {return 4;}
   if(board->pieces[PAWNS] & board->pieces[BISHOPS]) {return 5;}
   if(board->pieces[PAWNS] & board->pieces[ROOKS]) {return 6;}
   if(board->pieces[PAWNS] & board->pieces[QUEENS]) {return 7;}
   if(board->pieces[PAWNS] & board->pieces[KINGS]) {return 8;}
-  
+
   if(board->pieces[KNIGHTS] & board->pieces[BISHOPS]) {return 9;}
   if(board->pieces[KNIGHTS] & board->pieces[ROOKS]) {return 10;}
   if(board->pieces[KNIGHTS] & board->pieces[QUEENS]) {return 11;}
   if(board->pieces[KNIGHTS] & board->pieces[KINGS]) {return 12;}
-  
+
   if(board->pieces[BISHOPS] & board->pieces[ROOKS]) {return 13;}
   if(board->pieces[BISHOPS] & board->pieces[QUEENS]) {return 14;}
   if(board->pieces[BISHOPS] & board->pieces[KINGS]) {return 15;}
-  
+
   if(board->pieces[ROOKS] & board->pieces[QUEENS]) {return 16;}
   if(board->pieces[ROOKS] & board->pieces[KINGS]) {return 17;}
-  
+
   if(board->pieces[QUEENS] & board->pieces[KINGS]) {return 18;}
-  
+
   if(__builtin_popcountll(board->pieces[PAWNS]) > 16) {return 19;}
   if(__builtin_popcountll(board->pieces[KNIGHTS]) > 10) {return 20;}
   if(__builtin_popcountll(board->pieces[BISHOPS]) > 10) {return 21;}
   if(__builtin_popcountll(board->pieces[ROOKS]) > 10) {return 22;}
   if(__builtin_popcountll(board->pieces[QUEENS]) > 10) {return 23;}
   if(__builtin_popcountll(board->pieces[KINGS]) != 2) {return 24;}
-  
+
   return 0;
 }
