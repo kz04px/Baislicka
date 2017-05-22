@@ -286,10 +286,10 @@ int null_undo(s_board *board)
   return 0;
 }
 
-int move_add_pawn(s_board *board, s_move *moves, int from, int to)
+int move_add_pawn(s_board *board, s_move *move_list, int from, int to)
 {
   assert(board != NULL);
-  assert(moves != NULL);
+  assert(move_list != NULL);
   assert(from >= 0);
   assert(from <= 63);
   assert(to >= 0);
@@ -297,15 +297,15 @@ int move_add_pawn(s_board *board, s_move *moves, int from, int to)
 
   if(((uint64_t)1<<to)&(U64_RANK_1|U64_RANK_8))
   {
-    moves[0] = add_promotion_move(board, from, to, QUEEN_PROMO);
-    moves[1] = add_promotion_move(board, from, to, KNIGHT_PROMO);
-    moves[2] = add_promotion_move(board, from, to, ROOK_PROMO);
-    moves[3] = add_promotion_move(board, from, to, BISHOP_PROMO);
+    move_list[0] = add_promotion_move(board, from, to, QUEEN_PROMO);
+    move_list[1] = add_promotion_move(board, from, to, KNIGHT_PROMO);
+    move_list[2] = add_promotion_move(board, from, to, ROOK_PROMO);
+    move_list[3] = add_promotion_move(board, from, to, BISHOP_PROMO);
     return 4;
   }
   else
   {
-    moves[0] = move_add(board, from, to, QUIET, PAWNS);
+    move_list[0] = move_add(board, from, to, QUIET, PAWNS);
     return 1;
   }
 }
@@ -860,9 +860,10 @@ int move_to_string(char *string, s_move *move)
         break;
     }
     string[5] = '\0';
+    return 5;
   }
 
-  return 0;
+  return 4;
 }
 
 int find_move(s_board *board, s_move *move)
@@ -1016,7 +1017,7 @@ int is_legal_move(s_board *board, s_move *move)
       return 1;
     }
   }
-  */
 
   return 0;
+  */
 }

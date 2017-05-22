@@ -351,13 +351,13 @@ int u64_rank(uint64_t pos)
 
 void bitboards_init()
 {
-  uint64_t perm;
   uint64_t *index = NULL;
-  uint64_t from;
 
   int sq;
   for(sq = 0; sq < 64; ++sq)
   {
+    uint64_t perm;
+    uint64_t from;
     int f = SQ_TO_FILE(sq);
     int r = SQ_TO_RANK(sq);
 
@@ -408,7 +408,7 @@ void bitboards_init()
     } while ((perm = permute(rook_mask[sq], perm)));
 
     // King
-    uint64_t from = (uint64_t)1<<sq;
+    from = (uint64_t)1<<sq;
     king_mask[sq]  = (from<<8); // Up 1
     king_mask[sq] |= (from>>8); // Down 1
     king_mask[sq] |= (from<<1) & (~U64_FILE_A); // Right 1

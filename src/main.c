@@ -84,7 +84,7 @@ int main()
 
     set_fen(board, START_FEN);
 
-    s_search_settings settings;
+    s_search_settings settings = {0};
     settings.time_max = 10000000;
     search_settings_set(settings);
     uint64_t nodes_last = 0;
@@ -144,14 +144,12 @@ int main()
 
       printf("  Eval: %i\n", results.evals[results.best_move_num]);
 
-      char move_string[4096];
-      char temp[16];
-      move_string[0] = '\0';
+      int index = 0;
+      char move_string[4096] = {0};
       int n;
       for(n = 0; n < results.pvs[results.best_move_num].num_moves; ++n)
       {
-        move_to_string(temp, &results.pvs[results.best_move_num].moves[n]);
-        sprintf(move_string, "%s %s", move_string, temp);
+        index += move_to_string(&move_string[index], &results.pvs[results.best_move_num].moves[n]);
       }
       printf("  pv: %s\n", move_string);
 

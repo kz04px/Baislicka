@@ -293,13 +293,14 @@ void perft(s_board *board, int max_depth, char *fen)
   assert(max_depth > 0);
   assert(fen != NULL);
 
-  clock_t start;
-  double time_taken;
 
   printf("D   Time      NPS     Moves       Captures  EP     Castles Checks\n");
   int d;
   for(d = 1; d <= max_depth; ++d)
   {
+    clock_t start;
+    double time_taken;
+
     // Reset position & stats
     moves_total = 0;
     moves_quiet = 0;
@@ -495,7 +496,6 @@ int perft_movegen(s_board *board, const char *filepath)
 
   clock_t start;
   double time_taken;
-  double time_total;
   double time_pawn = 0;
   double time_knight = 0;
   double time_bishop = 0;
@@ -515,7 +515,7 @@ int perft_movegen(s_board *board, const char *filepath)
   while(fgets(line, sizeof(line), file))
   {
     if(test == 20) {break;}
-    time_total = 0;
+    double time_total = 0;
 
     char *pch = strtok(line, ";");
 
@@ -660,7 +660,7 @@ void perft_suite_search(s_board *board, int max_depth, char *filepath)
 
     printf("Test %i:  ", num_tests);
 
-    s_search_settings settings;
+    s_search_settings settings = {0};
     settings.time_max = 10000000;
     search_settings_set(settings);
 

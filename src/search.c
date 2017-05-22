@@ -284,13 +284,11 @@ void *search_root(void *n)
 
   int target_depth = 1;
   char move_string[4096];
-  char temp[16];
   s_move ponder;
   s_search_results results;
 
   s_move bestmove;
   s_pv *bestmove_pv = NULL;
-  int bestmove_eval;
   int total_time = 0;
   uint64_t total_nodes = 0;
 
@@ -301,6 +299,8 @@ void *search_root(void *n)
   int i;
   for(i = 1; i <= target_depth && i < MAX_DEPTH; ++i)
   {
+    int bestmove_eval;
+
     #ifdef ASPIRATION_WINDOW
       if(i < 3)
       {
@@ -310,48 +310,6 @@ void *search_root(void *n)
       }
       else
       {
-        /*
-        results = search(board, i, -50, 50);
-        total_time += results.time_taken;
-        total_nodes += results.nodes;
-
-        int val = results.evals[results.best_move_num];
-        if(results.out_of_time == 1) {break;}
-
-        if(val <= -50 || val >= 50)
-        {
-          results = search(board, i, -INF, INF);
-          total_time += results.time_taken;
-          total_nodes += results.nodes;
-        }
-        */
-
-        /*
-        results = search(board, i, -50, 50);
-        total_time += results.time_taken;
-        total_nodes += results.nodes;
-
-        int val = results.evals[results.best_move_num];
-        if(results.out_of_time == 1) {break;}
-
-        if(val <= -50 || val >= 50)
-        {
-          results = search(board, i, -200, 200);
-          total_time += results.time_taken;
-          total_nodes += results.nodes;
-        }
-
-        val = results.evals[results.best_move_num];
-        if(results.out_of_time == 1) {break;}
-
-        if(val <= -200 || val >= 200)
-        {
-          results = search(board, i, -INF, INF);
-          total_time += results.time_taken;
-          total_nodes += results.nodes;
-        }
-        */
-
         #define NUM_BOUNDS 3
         const int bounds[NUM_BOUNDS] = {50, 200, INF};
 
@@ -386,12 +344,12 @@ void *search_root(void *n)
     bestmove_pv = &results.pvs[results.best_move_num];
     bestmove_eval = results.evals[results.best_move_num];
 
+    int index = 0;
     move_string[0] = '\0';
     int n;
     for(n = 0; n < bestmove_pv->num_moves; ++n)
     {
-      move_to_string(temp, &bestmove_pv->moves[n]);
-      sprintf(move_string, "%s %s", move_string, temp);
+      index += move_to_string(&move_string[index], &bestmove_pv->moves[n]);
     }
 
     if(bestmove_eval > INF-MAX_DEPTH)
@@ -423,7 +381,6 @@ void *search_root(void *n)
     }
 
     if(4*total_time < search_settings.time_max)
-    //if(4*results.time_taken < search_settings.time_max)
     {
       target_depth++;
     }

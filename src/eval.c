@@ -258,33 +258,6 @@ int is_endgame(s_board *board)
 
   // "side to move has three or less non-pawn pieces including king"
   return __builtin_popcountll(board->colour[board->turn] & (board->pieces[KNIGHTS] | board->pieces[BISHOPS] | board->pieces[ROOKS] | board->pieces[QUEENS])) <= 2;
-
-  /*
-  // Both sides have no queens
-  if(!board->pieces[QUEENS])
-  {
-    return 1;
-  }
-
-  // Every side which has a queen has additionally no other pieces or one minorpiece maximum
-  if(board->colour[WHITE]&board->pieces[QUEENS] && !(board->colour[WHITE] & (board->pieces[KNIGHTS] | board->pieces[BISHOPS] | board->pieces[ROOKS])))
-  {
-    return 1;
-  }
-  if(board->colour[BLACK]&board->pieces[QUEENS] && !(board->colour[BLACK] & (board->pieces[KNIGHTS] | board->pieces[BISHOPS] | board->pieces[ROOKS])))
-  {
-    return 1;
-  }
-  */
-
-  /*
-  if(__builtin_popcountll(board->colour[WHITE]) < 5 && __builtin_popcountll(board->colour[BLACK]) < 5)
-  {
-    return 1;
-  }
-  */
-
-  return 0;
 }
 
 int is_fifty_move_draw(s_board *board)
@@ -409,7 +382,6 @@ int eval(s_board *board)
   }
 
   int sq;
-  uint64_t copy;
 
   #ifdef TAPERED_EVAL
     int opening_score = 0;
@@ -419,6 +391,8 @@ int eval(s_board *board)
   int piece_type;
   for(piece_type = 0; piece_type < 6; ++piece_type)
   {
+    uint64_t copy;
+
     // White
     copy = board->pieces[piece_type] & board->colour[WHITE];
     while(copy)

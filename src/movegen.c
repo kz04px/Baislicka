@@ -6,17 +6,16 @@ int find_moves_pawn_ep(s_board *board, s_move *move_list)
   assert(move_list != NULL);
 
   int num_moves = 0;
-  uint64_t moves;
-  int from;
 
   // ep
   if(board->ep)
   {
-    moves = magic_moves_pawns(!board->turn, board->ep) & board->pieces[PAWNS] & board->colour[board->turn];
+    int num_moves = 0;
+    uint64_t moves = magic_moves_pawns(!board->turn, board->ep) & board->pieces[PAWNS] & board->colour[board->turn];
 
     while(moves)
     {
-      from = __builtin_ctzll(moves);
+      int from = __builtin_ctzll(moves);
       move_list[num_moves] = move_add(board, from, board->ep, EP, PAWNS);
       num_moves++;
       moves &= moves-1;
@@ -32,20 +31,16 @@ int find_moves_pawn_captures(s_board *board, s_move *move_list, uint64_t allowed
   assert(move_list != NULL);
 
   int num_moves = 0;
-  uint64_t moves;
-  int from;
-  int to;
-  uint64_t copy;
 
-  copy = board->pieces[PAWNS] & board->colour[board->turn];
+  uint64_t copy = board->pieces[PAWNS] & board->colour[board->turn];
   while(copy)
   {
-    from = __builtin_ctzll(copy);
-    moves = magic_moves_pawns(board->turn, from) & allowed;
+    int from = __builtin_ctzll(copy);
+    uint64_t moves = magic_moves_pawns(board->turn, from) & allowed;
 
     while(moves)
     {
-      to = __builtin_ctzll(moves);
+      int to = __builtin_ctzll(moves);
       num_moves += move_add_pawn(board, &move_list[num_moves], from, to);
       moves &= moves-1;
     }
@@ -61,14 +56,12 @@ int find_moves_wP_quiet(s_board *board, s_move *move_list)
   assert(move_list != NULL);
 
   int num_moves = 0;
-  uint64_t moves;
-  int to;
 
   // Up 1
-  moves = ((board->pieces[PAWNS] & board->colour[WHITE])<<8) & (~(board->colour[WHITE]|board->colour[BLACK]));
+  uint64_t moves = ((board->pieces[PAWNS] & board->colour[WHITE])<<8) & (~(board->colour[WHITE]|board->colour[BLACK]));
   while(moves)
   {
-    to = __builtin_ctzll(moves);
+    int to = __builtin_ctzll(moves);
     num_moves += move_add_pawn(board, &move_list[num_moves], to-8, to);
 
     // Up 2
@@ -90,14 +83,12 @@ int find_moves_bP_quiet(s_board *board, s_move *move_list)
   assert(move_list != NULL);
 
   int num_moves = 0;
-  uint64_t moves;
-  int to;
 
   // Down 1
-  moves = ((board->pieces[PAWNS] & board->colour[BLACK])>>8) & (~(board->colour[WHITE]|board->colour[BLACK]));
+  uint64_t moves = ((board->pieces[PAWNS] & board->colour[BLACK])>>8) & (~(board->colour[WHITE]|board->colour[BLACK]));
   while(moves)
   {
-    to = __builtin_ctzll(moves);
+    int to = __builtin_ctzll(moves);
     num_moves += move_add_pawn(board, &move_list[num_moves], to+8, to);
 
     // Down 2
@@ -218,14 +209,12 @@ int find_moves_kings(s_board *board, s_move *move_list, uint64_t allowed)
   assert(move_list != NULL);
 
   int num_moves = 0;
-  uint64_t moves;
-  int to;
 
   uint64_t from = __builtin_ctzll(board->colour[board->turn] & board->pieces[KINGS]);
-  moves = magic_moves_king(from) & allowed;
+  uint64_t moves = magic_moves_king(from) & allowed;
   while(moves)
   {
-    to = __builtin_ctzll(moves);
+    int to = __builtin_ctzll(moves);
     move_list[num_moves] = move_add(board, from, to, QUIET, KINGS);
     num_moves++;
     moves &= moves-1;
@@ -240,20 +229,16 @@ int find_moves_knights(s_board *board, s_move *move_list, uint64_t allowed)
   assert(move_list != NULL);
 
   int num_moves = 0;
-  uint64_t moves;
-  int from;
-  int to;
-  uint64_t copy;
 
-  copy = board->pieces[KNIGHTS] & board->colour[board->turn];
+  uint64_t copy = board->pieces[KNIGHTS] & board->colour[board->turn];
   while(copy)
   {
-    from = __builtin_ctzll(copy);
-    moves = magic_moves_knight(from) & allowed;
+    int from = __builtin_ctzll(copy);
+    uint64_t moves = magic_moves_knight(from) & allowed;
 
     while(moves)
     {
-      to = __builtin_ctzll(moves);
+      int to = __builtin_ctzll(moves);
       move_list[num_moves] = move_add(board, from, to, QUIET, KNIGHTS);
       num_moves++;
       moves &= moves-1;
@@ -270,21 +255,17 @@ int find_moves_bishops(s_board *board, s_move *move_list, uint64_t allowed)
   assert(move_list != NULL);
 
   int num_moves = 0;
-  uint64_t moves;
-  int from;
-  int to;
-  uint64_t copy;
 
   // Bishops
-  copy = board->pieces[BISHOPS] & board->colour[board->turn];
+  uint64_t copy = board->pieces[BISHOPS] & board->colour[board->turn];
   while(copy)
   {
-    from = __builtin_ctzll(copy);
-    moves = magic_moves_bishop((board->colour[WHITE]|board->colour[BLACK]), from) & allowed;
+    int from = __builtin_ctzll(copy);
+    uint64_t moves = magic_moves_bishop((board->colour[WHITE]|board->colour[BLACK]), from) & allowed;
 
     while(moves)
     {
-      to = __builtin_ctzll(moves);
+      int to = __builtin_ctzll(moves);
       move_list[num_moves] = move_add(board, from, to, QUIET, BISHOPS);
       num_moves++;
       moves &= moves-1;
@@ -301,21 +282,17 @@ int find_moves_rooks(s_board *board, s_move *move_list, uint64_t allowed)
   assert(move_list != NULL);
 
   int num_moves = 0;
-  uint64_t moves;
-  int from;
-  int to;
-  uint64_t copy;
 
   // Rook
-  copy = board->pieces[ROOKS] & board->colour[board->turn];
+  uint64_t copy = board->pieces[ROOKS] & board->colour[board->turn];
   while(copy)
   {
-    from = __builtin_ctzll(copy);
-    moves = magic_moves_rook((board->colour[WHITE]|board->colour[BLACK]), from) & allowed;
+    int from = __builtin_ctzll(copy);
+    uint64_t moves = magic_moves_rook((board->colour[WHITE]|board->colour[BLACK]), from) & allowed;
 
     while(moves)
     {
-      to = __builtin_ctzll(moves);
+      int to = __builtin_ctzll(moves);
       move_list[num_moves] = move_add(board, from, to, QUIET, ROOKS);
       num_moves++;
       moves &= moves-1;
