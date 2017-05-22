@@ -224,7 +224,7 @@ void display_board(s_board *board)
   else {printf("Turn: b\n");}
 
   #ifdef HASHTABLE
-    printf("Key: %"PRIdPTR"\n", board->key);
+    printf("Key: %" PRIu64 "\n", board->key);
   #endif
   printf("50 move rule: %i\n", board->num_halfmoves);
   printf("history size: %i\n", board->history_size);
@@ -254,6 +254,6 @@ void display_history(s_board *board)
   int i;
   for(i = 0; i < board->history_size; ++i)
   {
-    printf("%i) %"PRIdPTR"\n", i, board->key_history[i]);
+    printf("%i) %" PRIu64 "\n", i, board->key_history[i]);
   }
 }

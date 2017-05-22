@@ -124,7 +124,7 @@ int main()
       #endif
 
       printf("  Search time: %ims\n", total_time);
-      printf("  Nodes: %"PRIdPTR"\n", results.nodes);
+      printf("  Nodes: %" PRIu64 "\n", results.nodes);
       if(i == 1)
       {
         printf("  Branching: -\n");
@@ -139,7 +139,7 @@ int main()
       #endif
       if(results.time_taken > 0)
       {
-        printf("  kNPS: %"PRIdPTR"\n", results.nodes/results.time_taken);
+        printf("  kNPS: %" PRIu64 "\n", results.nodes/results.time_taken);
       }
 
       printf("  Eval: %i\n", results.evals[results.best_move_num]);
@@ -179,11 +179,11 @@ int main()
 
     printf("Max search depth: %i\n", MAX_DEPTH);
     printf("Default hash size: %iMB\n", HASHTABLE_SIZE_DEFAULT);
-    printf("sizeof(s_board): %"PRIdPTR"B\n", sizeof(s_board));
-    printf("sizeof(s_move):  %"PRIdPTR"B\n", sizeof(s_move));
+    printf("sizeof(s_board): %" PRIu64 "B\n", sizeof(s_board));
+    printf("sizeof(s_move):  %" PRIu64 "B\n", sizeof(s_move));
     #ifdef HASHTABLE
-      printf("sizeof(s_hashtable_entry):  %"PRIdPTR"B\n", sizeof(s_hashtable_entry));
-      printf("Hashtable entries per MB:  %"PRIdPTR"\n", 1024*1024/sizeof(s_hashtable_entry));
+      printf("sizeof(s_hashtable_entry):  %" PRIu64 "B\n", sizeof(s_hashtable_entry));
+      printf("Hashtable entries per MB:  %" PRIu64 "\n", 1024*1024/sizeof(s_hashtable_entry));
     #endif
     printf("\n");
 

@@ -182,7 +182,7 @@ void uci_listen()
 
               #ifndef NDEBUG
                 printf("Total size: %iMB\n", hashtable->size_bytes/1024/1024);
-                printf("Entry size: %"PRIdPTR"B\n", sizeof(s_hashtable_entry));
+                printf("Entry size: %" PRIu64 "B\n", sizeof(s_hashtable_entry));
                 printf("Max entries: %i\n", hashtable->max_entries);
               #endif
             }

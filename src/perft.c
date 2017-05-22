@@ -700,8 +700,8 @@ void perft_suite_search(s_board *board, int max_depth, char *filepath)
   printf("Results:\n");
   printf("Location: %s\n", filepath);
   printf("Depth: %i\n", max_depth);
-  printf("Nodes: %"PRIdPTR"\n", nodes);
-  printf("kNPS:  %"PRIdPTR"\n", (uint64_t)(nodes/time_taken/1000.0));
+  printf("Nodes: %" PRIu64 "\n", nodes);
+  printf("kNPS:  %" PRIu64 "\n", (uint64_t)(nodes/time_taken/1000.0));
   printf("Time:  %.3fs\n", time_taken);
   printf("Tests: %i\n", num_tests);
   fclose(file);
