@@ -62,20 +62,6 @@ int main()
   {
     GUI_Send("xboard protocol not implemented\n");
   }
-  else if(strncmp(message, "perft", 5) == 0)
-  {
-    s_board *board = (s_board*) malloc(1*sizeof(s_board));
-    if(board == NULL) {return -1;}
-
-    perft_suite(board, 5, "perftsuite.epd", 1);
-    //perft(board, 7, "startpos");
-    //perft_split(board, 6, "startpos");
-    //perft_suite_search(board, 9, "perftsuite_2.epd");
-    //perft_movegen(board, "perftsuite.epd");
-    //perft_movegen_sides(board, "perftsuite.epd");
-
-    getchar();
-  }
   else if(strncmp(message, "about", 5) == 0)
   {
     printf("Engine:  %s\n", ENGINE_NAME);

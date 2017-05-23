@@ -4,7 +4,6 @@
 #include "move.h"
 #include "eval.h"
 #include "hashtable.h"
-#include "perft.h"
 #include <string.h>
 #include <assert.h>
 
@@ -257,15 +256,11 @@ int test_all()
   r = test_eval_mirroring(board, "perftsuite.epd");
   printf("%s (%i)\n", TEST_PASS(r), r);
 
-  printf(" 3) Perftsuite 3:   ");
-  r = perft_suite(board, 3, "perftsuite.epd", 0);
-  printf("%s (%i)\n", TEST_PASS(r), r);
-
-  printf(" 4) Backward pawns: ");
+  printf(" 3) Backward pawns: ");
   r = test_backward_pawns(board);
   printf("%s (%i)\n", TEST_PASS(r), r);
 
-  printf(" 5) Passed pawns:   ");
+  printf(" 4) Passed pawns:   ");
   r = test_passed_pawns(board);
   printf("%s (%i)\n", TEST_PASS(r), r);
 

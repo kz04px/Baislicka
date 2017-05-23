@@ -16,7 +16,6 @@ int find_moves_pawn_ep(s_board *board, s_move *move_list)
   // ep
   if(board->ep)
   {
-    int num_moves = 0;
     uint64_t moves = magic_moves_pawns(!board->turn, board->ep) & board->pieces[PAWNS] & board->colour[board->turn];
 
     while(moves)

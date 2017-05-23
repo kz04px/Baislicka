@@ -4,6 +4,7 @@
 #include "hashtable.h"
 #include "uci.h"
 #include "display.h"
+#include "perft.h"
 #include <string.h>
 #include <pthread.h>
 
@@ -165,6 +166,19 @@ void uci_listen()
         settings->time_max = 0;
         search_settings_set(*settings);
         pthread_join(search_thread, NULL);
+      }
+      else if(strncmp(part, "perft", 5) == 0)
+      {
+        part += 6;
+        uint64_t nodes = 0ULL;
+        int depth = atoi(part);
+
+        for(int d = 1; d <= depth; ++d)
+        {
+          nodes = perft_search(board, d);
+          printf("info depth %i nodes %" PRIu64 "\n", d, nodes);
+        }
+        printf("nodes %" PRIu64 "\n", nodes);
       }
       else if(strncmp(part, "setoption", 9) == 0)
       {
