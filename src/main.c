@@ -1,4 +1,8 @@
 #include "defs.h"
+#include "bitboards.h"
+#include "hashtable.h"
+#include "perft.h"
+#include "uci.h"
 #include <string.h>
 
 int main()
@@ -64,8 +68,8 @@ int main()
     if(board == NULL) {return -1;}
 
     perft_suite(board, 5, "perftsuite.epd", 1);
-    //perft(board, 7, START_FEN);
-    //perft_split(board, 6, START_FEN);
+    //perft(board, 7, "startpos");
+    //perft_split(board, 6, "startpos");
     //perft_suite_search(board, 9, "perftsuite_2.epd");
     //perft_movegen(board, "perftsuite.epd");
     //perft_movegen_sides(board, "perftsuite.epd");

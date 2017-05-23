@@ -1,4 +1,7 @@
 #include "defs.h"
+#include "bitboards.h"
+#include "eval.h"
+#include <assert.h>
 
 const int piece_location_bonus[2][6][64] = {{
 {

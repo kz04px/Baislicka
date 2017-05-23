@@ -1,5 +1,13 @@
 #include "defs.h"
+#include "search.h"
+#include "attack.h"
+#include "movegen.h"
+#include "bitboards.h"
+#include "move.h"
+#include "perft.h"
+#include "display.h"
 #include <string.h>
+#include <assert.h>
 
 uint64_t moves_total;
 uint64_t moves_quiet;
@@ -292,7 +300,6 @@ void perft(s_board *board, int max_depth, char *fen)
   assert(board != NULL);
   assert(max_depth > 0);
   assert(fen != NULL);
-
 
   printf("D   Time      NPS     Moves       Captures  EP     Castles Checks\n");
   int d;
@@ -663,8 +670,6 @@ void perft_suite_search(s_board *board, int max_depth, char *filepath)
     s_search_settings settings = {0};
     settings.time_max = 10000000;
     search_settings_set(settings);
-
-    hashtable_clear(hashtable);
 
     int i;
     for(i = 1; i <= max_depth; ++i)

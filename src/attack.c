@@ -1,4 +1,8 @@
 #include "defs.h"
+#include "attack.h"
+#include "bitboards.h"
+#include "eval.h"
+#include <assert.h>
 
 int get_smallest_attacker(s_board *board, int sq, int side)
 {

@@ -1,4 +1,7 @@
 #include "defs.h"
+#include "hashtable.h"
+#include <assert.h>
+
 #define RAND_64 ((uint64_t)rand() | \
                  (uint64_t)rand() << 15 | \
                  (uint64_t)rand() << 30 | \

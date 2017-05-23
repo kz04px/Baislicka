@@ -1,5 +1,13 @@
-#include "defs.h"
+//#include "defs.h"
+#include "search.h"
+#include "attack.h"
+#include "movegen.h"
+#include "bitboards.h"
+#include "move.h"
+#include "hashtable.h"
+#include "eval.h"
 #include <string.h>
+#include <assert.h>
 
 const uint8_t castling_perms[64] = {
 // A  B  C  D  E  F  G  H
@@ -12,8 +20,6 @@ const uint8_t castling_perms[64] = {
   15,15,15,15,15,15,15,15, // 7
    7,15,15,15, 5,15,15,13  // 8
 };
-
-enum {GEN_HASHMOVE, GEN_CAPTURES, GEN_QUIETS};
 
 int is_same_move(s_move move_1, s_move move_2)
 {
@@ -88,139 +94,6 @@ void move_set_piece(s_move *move, uint8_t piece)
 {
   *move &= ~(0x7<<20);
   *move |= (piece & 0x7) << 20;
-}
-
-int next_move(s_board *board, s_move_generator *generator, s_move *move)
-{
-  assert(board);
-  assert(generator);
-  assert(move);
-
-  while(generator->move_num >= generator->num_moves)
-  {
-    generator->move_num = 0;
-    generator->num_moves = 0;
-
-    if(generator->stage == GEN_HASHMOVE)
-    {
-      generator->stage++;
-      if(!is_legal_move(board, &generator->hash_move)) {continue;}
-      generator->moves[0] = generator->hash_move;
-      generator->num_moves = 1;
-      generator->scores[0] = 0;
-    }
-    else if(generator->stage == GEN_CAPTURES)
-    {
-      generator->stage++;
-      generator->num_moves = find_moves_captures(board, &generator->moves[0], board->turn);
-      #ifdef SORT_MOVES
-        int i;
-        for(i = 0; i < generator->num_moves; ++i)
-        {
-          #if defined(CAPTURE_SORT_SEE)
-            generator->scores[i] = 50000 + see_capture(board, generator->moves[i]);
-          #elif defined(CAPTURE_SORT_MVVLVA)
-            generator->scores[i] = 0;
-          #else
-            generator->scores[i] = 0;
-          #endif
-          assert(generator->scores[i] >= 0);
-        }
-
-        // Insert the killer moves if they're legal
-        #ifdef KILLER_MOVES
-          if(is_legal_move(board, &generator->killer_move))
-          {
-            generator->moves[generator->num_moves] = generator->killer_move;
-            generator->scores[generator->num_moves] = 50000;
-            generator->num_moves++;
-          }
-        #endif
-        #ifdef KILLER_MOVES_2
-          if(is_legal_move(board, &generator->killer_move_2))
-          {
-            generator->moves[generator->num_moves] = generator->killer_move_2;
-            generator->scores[generator->num_moves] = 50000;
-            generator->num_moves++;
-          }
-        #endif
-      #endif
-    }
-    else if(generator->stage == GEN_QUIETS)
-    {
-      generator->stage++;
-      generator->num_moves = find_moves_quiet(board, &generator->moves[0], board->turn);
-      int endgame = is_endgame(board);
-      #ifdef SORT_MOVES
-        int i;
-        for(i = 0; i < generator->num_moves; ++i)
-        {
-          #if defined(QUIET_SORT_HISTORY_HEURISTIC)
-            int to = move_get_to(generator->moves[i]);
-            int from = move_get_from(generator->moves[i]);
-            generator->scores[i] = hh_score[from][to] / bf_score[from][to];
-          #elif defined(QUIET_SORT_PST)
-            generator->scores[i] = 500 +
-                                   pst_value(move_get_piece(generator->moves[i]), move_get_to(generator->moves[i]),   endgame) -
-                                   pst_value(move_get_piece(generator->moves[i]), move_get_from(generator->moves[i]), endgame);
-          #elif defined(QUIET_SORT_SEE)
-            generator->scores[i] = 50000 + see_quiet(board, generator->moves[i]);
-          #else
-            generator->scores[i] = 0;
-          #endif
-        }
-      #endif
-    }
-    else
-    {
-      return 0;
-    }
-  }
-
-  int best_move = -1;
-  int best_score = INT_MIN;
-
-  int i;
-  for(i = 0; i < generator->num_moves; ++i)
-  {
-    if(generator->scores[i] > best_score)
-    {
-      best_move = i;
-      best_score = generator->scores[i];
-    }
-  }
-
-  if(best_move == -1)
-  {
-    generator->move_num = 0;
-    generator->num_moves = 0;
-    return next_move(board, generator, move);
-  }
-
-  // Try not to repeat moves
-  if(generator->stage-1 > GEN_HASHMOVE)
-  {
-    if(is_same_move(generator->moves[best_move], generator->hash_move))
-    {
-      generator->scores[best_move] = INT_MIN;
-      generator->move_num++;
-      return next_move(board, generator, move);
-    }
-  }
-  if(generator->stage-1 > GEN_CAPTURES)
-  {
-    if(is_same_move(generator->moves[best_move], generator->killer_move))
-    {
-      generator->scores[best_move] = INT_MIN;
-      generator->move_num++;
-      return next_move(board, generator, move);
-    }
-  }
-
-  *move = generator->moves[best_move];
-  generator->scores[best_move] = INT_MIN;
-  generator->move_num++;
-  return 1;
 }
 
 // SEE (Static Exchange Evaluation)
@@ -1020,4 +893,102 @@ int is_legal_move(s_board *board, s_move *move)
 
   return 0;
   */
+}
+
+int see(int sq, int side, int captured, uint64_t colours[2], uint64_t pieces[6])
+{
+  int value = 0;
+  int smallest_attacker = EMPTY;
+
+  uint64_t attackers = 0;
+
+  // Pawns
+  if((attackers = magic_moves_pawns(1-side, sq) & pieces[PAWNS] & colours[side]))
+  {
+    smallest_attacker = PAWNS;
+  }
+  // Knights
+  else if((attackers = colours[side] & pieces[KNIGHTS] & magic_moves_knight(sq)))
+  {
+    smallest_attacker = KNIGHTS;
+  }
+  // Bishops
+  else if((attackers = colours[side] & pieces[BISHOPS] & magic_moves_bishop(colours[WHITE]|colours[BLACK], sq)))
+  {
+    smallest_attacker = BISHOPS;
+  }
+  // Rooks
+  else if((attackers = colours[side] & pieces[ROOKS] & magic_moves_rook(colours[WHITE]|colours[BLACK], sq)))
+  {
+    smallest_attacker = ROOKS;
+  }
+  // Queens
+  else if((attackers = colours[side] & pieces[QUEENS] & (magic_moves_bishop(colours[WHITE]|colours[BLACK], sq) | magic_moves_rook(colours[WHITE]|colours[BLACK], sq))))
+  {
+    smallest_attacker = QUEENS;
+  }
+  // Kings
+  else if((attackers = colours[side] & pieces[KINGS] & magic_moves_king(sq)))
+  {
+    smallest_attacker = KINGS;
+  }
+  else
+  {
+    // skip if the square isn't attacked anymore by this side
+    return value;
+  }
+
+  int from_sq = __builtin_ctzll(attackers);
+  uint64_t from_bb = (uint64_t)1<<from_sq;
+
+  // Make move
+  pieces[smallest_attacker] ^= from_bb;
+  colours[side] ^= from_bb;
+
+  value = piece_value(captured) - see(sq, 1-side, smallest_attacker, colours, pieces);
+
+  if(value < 0)
+  {
+    value = 0;
+  }
+
+  // Undo move
+  pieces[smallest_attacker] ^= from_bb;
+  colours[side] ^= from_bb;
+
+  return value;
+}
+
+int see_capture(s_board *board, s_move move)
+{
+  uint64_t from_bb = (uint64_t)1<<move_get_from(move);
+
+  // Make move
+  board->pieces[move_get_piece(move)] ^= from_bb;
+  board->colour[board->turn] ^= from_bb;
+
+  int value = piece_value(move_get_captured(move)) - see(move_get_to(move), 1-board->turn, move_get_piece(move), board->colour, board->pieces);
+
+  // Undo move
+  board->pieces[move_get_piece(move)] ^= from_bb;
+  board->colour[board->turn] ^= from_bb;
+
+  return value;
+}
+
+int see_quiet(s_board *board, s_move move)
+{
+  uint64_t from_bb = (uint64_t)1<<move_get_from(move);
+
+  // Make move
+  board->pieces[move_get_piece(move)] ^= from_bb;
+  board->colour[board->turn] ^= from_bb;
+
+  int value = 0 - see(move_get_to(move), 1-board->turn, move_get_piece(move), board->colour, board->pieces);
+
+  // Undo move
+  board->pieces[move_get_piece(move)] ^= from_bb;
+  board->colour[board->turn] ^= from_bb;
+
+  return value;
 }

@@ -1,5 +1,12 @@
 #include "defs.h"
+#include "movegen.h"
+#include "bitboards.h"
+#include "move.h"
+#include "eval.h"
+#include "hashtable.h"
+#include "perft.h"
 #include <string.h>
+#include <assert.h>
 
 int board_flip(s_board *board)
 {
@@ -44,7 +51,7 @@ int test_move_legality(s_board *board, const char *filepath)
   assert(board);
   assert(filepath);
 
-  set_fen(board, START_FEN);
+  set_fen(board, "startpos");
   if(is_legal_move(board, &NO_MOVE)) {return -1;}
 
   FILE *file = fopen(filepath, "r");

@@ -1,4 +1,12 @@
 #include "defs.h"
+#include "search.h"
+#include "attack.h"
+#include "movegen.h"
+#include "bitboards.h"
+#include "move.h"
+#include "eval.h"
+#include "hashtable.h"
+#include <assert.h>
 
 #define R 2
 
@@ -8,22 +16,6 @@ s_search_settings search_settings;
 #if defined(KILLER_MOVES) || defined(KILLER_MOVES_2)
   s_move killer_moves[MAX_DEPTH];
 #endif
-
-void reset_hh_bf()
-{
-  #ifdef QUIET_SORT_HISTORY_HEURISTIC
-    int x;
-    for(x = 0; x < 64; ++x)
-    {
-      int y;
-      for(y = 0; y < 64; ++y)
-      {
-        hh_score[x][y] = 0;
-        bf_score[x][y] = 1;
-      }
-    }
-  #endif
-}
 
 int killers_clear()
 {
@@ -65,104 +57,6 @@ int restore_irreversible(s_irreversible *info, s_board *board)
   board->castling      = info->castling;
 
   return 0;
-}
-
-int see(int sq, int side, int captured, uint64_t colours[2], uint64_t pieces[6])
-{
-  int value = 0;
-  int smallest_attacker = EMPTY;
-
-  uint64_t attackers = 0;
-
-  // Pawns
-  if((attackers = magic_moves_pawns(1-side, sq) & pieces[PAWNS] & colours[side]))
-  {
-    smallest_attacker = PAWNS;
-  }
-  // Knights
-  else if((attackers = colours[side] & pieces[KNIGHTS] & magic_moves_knight(sq)))
-  {
-    smallest_attacker = KNIGHTS;
-  }
-  // Bishops
-  else if((attackers = colours[side] & pieces[BISHOPS] & magic_moves_bishop(colours[WHITE]|colours[BLACK], sq)))
-  {
-    smallest_attacker = BISHOPS;
-  }
-  // Rooks
-  else if((attackers = colours[side] & pieces[ROOKS] & magic_moves_rook(colours[WHITE]|colours[BLACK], sq)))
-  {
-    smallest_attacker = ROOKS;
-  }
-  // Queens
-  else if((attackers = colours[side] & pieces[QUEENS] & (magic_moves_bishop(colours[WHITE]|colours[BLACK], sq) | magic_moves_rook(colours[WHITE]|colours[BLACK], sq))))
-  {
-    smallest_attacker = QUEENS;
-  }
-  // Kings
-  else if((attackers = colours[side] & pieces[KINGS] & magic_moves_king(sq)))
-  {
-    smallest_attacker = KINGS;
-  }
-  else
-  {
-    // skip if the square isn't attacked anymore by this side
-    return value;
-  }
-
-  int from_sq = __builtin_ctzll(attackers);
-  uint64_t from_bb = (uint64_t)1<<from_sq;
-
-  // Make move
-  pieces[smallest_attacker] ^= from_bb;
-  colours[side] ^= from_bb;
-
-  value = piece_value(captured) - see(sq, 1-side, smallest_attacker, colours, pieces);
-
-  if(value < 0)
-  {
-    value = 0;
-  }
-
-  // Undo move
-  pieces[smallest_attacker] ^= from_bb;
-  colours[side] ^= from_bb;
-
-  return value;
-}
-
-int see_capture(s_board *board, s_move move)
-{
-  uint64_t from_bb = (uint64_t)1<<move_get_from(move);
-
-  // Make move
-  board->pieces[move_get_piece(move)] ^= from_bb;
-  board->colour[board->turn] ^= from_bb;
-
-  int value = piece_value(move_get_captured(move)) - see(move_get_to(move), 1-board->turn, move_get_piece(move), board->colour, board->pieces);
-
-  // Undo move
-  board->pieces[move_get_piece(move)] ^= from_bb;
-  board->colour[board->turn] ^= from_bb;
-
-  return value;
-}
-
-int see_quiet(s_board *board, s_move move)
-{
-  uint64_t from_bb = (uint64_t)1<<move_get_from(move);
-
-  // Make move
-  board->pieces[move_get_piece(move)] ^= from_bb;
-  board->colour[board->turn] ^= from_bb;
-
-  int value = 0 - see(move_get_to(move), 1-board->turn, move_get_piece(move), board->colour, board->pieces);
-
-  // Undo move
-  board->pieces[move_get_piece(move)] ^= from_bb;
-  board->colour[board->turn] ^= from_bb;
-
-  return value;
 }
 
 int qsearch(s_board *board, s_search_info *info, int alpha, int beta)
@@ -293,7 +187,7 @@ void *search_root(void *n)
   uint64_t total_nodes = 0;
 
   #ifdef QUIET_SORT_HISTORY_HEURISTIC
-    reset_hh_bf();
+    reset_hh_bf(board);
   #endif
 
   int i;
@@ -742,7 +636,7 @@ int alpha_beta(s_board *board, s_search_info *info, int alpha, int beta, int dep
         #ifdef QUIET_SORT_HISTORY_HEURISTIC
           if(!is_capture_move(move))
           {
-            hh_score[move_get_from(move)][move_get_to(move)] += depth*depth;
+            board->hh_score[move_get_from(move)][move_get_to(move)] += depth*depth;
           }
         #endif
 
@@ -759,7 +653,7 @@ int alpha_beta(s_board *board, s_search_info *info, int alpha, int beta, int dep
       #ifdef QUIET_SORT_HISTORY_HEURISTIC
         if(!is_capture_move(move))
         {
-          bf_score[move_get_from(move)][move_get_to(move)] += 1;
+          board->bf_score[move_get_from(move)][move_get_to(move)] += 1;
         }
       #endif
     }

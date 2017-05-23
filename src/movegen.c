@@ -1,4 +1,10 @@
 #include "defs.h"
+#include "movegen.h"
+#include "attack.h"
+#include "bitboards.h"
+#include "move.h"
+#include "eval.h"
+#include <assert.h>
 
 int find_moves_pawn_ep(s_board *board, s_move *move_list)
 {
@@ -522,7 +528,7 @@ int find_moves_captures(s_board *board, s_move *move_list, int colour)
   assert(move_list != NULL);
   assert(colour == WHITE || colour == BLACK);
 
-  uint64_t allowed = board->colour[1-board->turn];
+  uint64_t allowed = board->colour[1-colour];
 
   int num_moves = 0;
 
@@ -550,7 +556,7 @@ int find_moves_quiet(s_board *board, s_move *move_list, int colour)
   assert(move_list != NULL);
   assert(colour == WHITE || colour == BLACK);
 
-  uint64_t allowed = ~(board->colour[board->turn]|board->colour[!board->turn]);
+  uint64_t allowed = ~(board->colour[colour]|board->colour[1-colour]);
 
   int num_moves = 0;
 
@@ -579,4 +585,137 @@ int find_moves_quiet(s_board *board, s_move *move_list, int colour)
   #endif
 
   return num_moves;
+}
+
+int next_move(s_board *board, s_move_generator *generator, s_move *move)
+{
+  assert(board);
+  assert(generator);
+  assert(move);
+
+  while(generator->move_num >= generator->num_moves)
+  {
+    generator->move_num = 0;
+    generator->num_moves = 0;
+
+    if(generator->stage == GEN_HASHMOVE)
+    {
+      generator->stage++;
+      if(!is_legal_move(board, &generator->hash_move)) {continue;}
+      generator->moves[0] = generator->hash_move;
+      generator->num_moves = 1;
+      generator->scores[0] = 0;
+    }
+    else if(generator->stage == GEN_CAPTURES)
+    {
+      generator->stage++;
+      generator->num_moves = find_moves_captures(board, &generator->moves[0], board->turn);
+      #ifdef SORT_MOVES
+        int i;
+        for(i = 0; i < generator->num_moves; ++i)
+        {
+          #if defined(CAPTURE_SORT_SEE)
+            generator->scores[i] = 50000 + see_capture(board, generator->moves[i]);
+          #elif defined(CAPTURE_SORT_MVVLVA)
+            generator->scores[i] = 0;
+          #else
+            generator->scores[i] = 0;
+          #endif
+          assert(generator->scores[i] >= 0);
+        }
+
+        // Insert the killer moves if they're legal
+        #ifdef KILLER_MOVES
+          if(is_legal_move(board, &generator->killer_move))
+          {
+            generator->moves[generator->num_moves] = generator->killer_move;
+            generator->scores[generator->num_moves] = 50000;
+            generator->num_moves++;
+          }
+        #endif
+        #ifdef KILLER_MOVES_2
+          if(is_legal_move(board, &generator->killer_move_2))
+          {
+            generator->moves[generator->num_moves] = generator->killer_move_2;
+            generator->scores[generator->num_moves] = 50000;
+            generator->num_moves++;
+          }
+        #endif
+      #endif
+    }
+    else if(generator->stage == GEN_QUIETS)
+    {
+      generator->stage++;
+      generator->num_moves = find_moves_quiet(board, &generator->moves[0], board->turn);
+      int endgame = is_endgame(board);
+      #ifdef SORT_MOVES
+        int i;
+        for(i = 0; i < generator->num_moves; ++i)
+        {
+          #if defined(QUIET_SORT_HISTORY_HEURISTIC)
+            int to = move_get_to(generator->moves[i]);
+            int from = move_get_from(generator->moves[i]);
+            generator->scores[i] = board->hh_score[from][to] / board->bf_score[from][to];
+          #elif defined(QUIET_SORT_PST)
+            generator->scores[i] = 500 +
+                                   pst_value(move_get_piece(generator->moves[i]), move_get_to(generator->moves[i]),   endgame) -
+                                   pst_value(move_get_piece(generator->moves[i]), move_get_from(generator->moves[i]), endgame);
+          #elif defined(QUIET_SORT_SEE)
+            generator->scores[i] = 50000 + see_quiet(board, generator->moves[i]);
+          #else
+            generator->scores[i] = 0;
+          #endif
+        }
+      #endif
+    }
+    else
+    {
+      return 0;
+    }
+  }
+
+  int best_move = -1;
+  int best_score = INT_MIN;
+
+  int i;
+  for(i = 0; i < generator->num_moves; ++i)
+  {
+    if(generator->scores[i] > best_score)
+    {
+      best_move = i;
+      best_score = generator->scores[i];
+    }
+  }
+
+  if(best_move == -1)
+  {
+    generator->move_num = 0;
+    generator->num_moves = 0;
+    return next_move(board, generator, move);
+  }
+
+  // Try not to repeat moves
+  if(generator->stage-1 > GEN_HASHMOVE)
+  {
+    if(is_same_move(generator->moves[best_move], generator->hash_move))
+    {
+      generator->scores[best_move] = INT_MIN;
+      generator->move_num++;
+      return next_move(board, generator, move);
+    }
+  }
+  if(generator->stage-1 > GEN_CAPTURES)
+  {
+    if(is_same_move(generator->moves[best_move], generator->killer_move))
+    {
+      generator->scores[best_move] = INT_MIN;
+      generator->move_num++;
+      return next_move(board, generator, move);
+    }
+  }
+
+  *move = generator->moves[best_move];
+  generator->scores[best_move] = INT_MIN;
+  generator->move_num++;
+  return 1;
 }

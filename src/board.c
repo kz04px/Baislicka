@@ -1,7 +1,28 @@
 #include "defs.h"
+#include "hashtable.h"
+#include "board.h"
 #include <string.h>
+#include <assert.h>
+
+#define START_FEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
 const char temp[256] = START_FEN;
+
+void reset_hh_bf(s_board *board)
+{
+  #ifdef QUIET_SORT_HISTORY_HEURISTIC
+    int x;
+    for(x = 0; x < 64; ++x)
+    {
+      int y;
+      for(y = 0; y < 64; ++y)
+      {
+        board->hh_score[x][y] = 0;
+        board->bf_score[x][y] = 1;
+      }
+    }
+  #endif
+}
 
 int set_fen(s_board *board, const char *fen)
 {

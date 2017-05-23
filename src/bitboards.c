@@ -1,4 +1,6 @@
 #include "defs.h"
+#include "bitboards.h"
+#include <assert.h>
 
 uint64_t magic_moves[89524];
 uint64_t pawn_mask[2][64];

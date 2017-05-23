@@ -1,4 +1,9 @@
 #include "defs.h"
+#include "search.h"
+#include "move.h"
+#include "hashtable.h"
+#include "uci.h"
+#include "display.h"
 #include <string.h>
 #include <pthread.h>
 
@@ -16,7 +21,7 @@ void uci_listen()
   data.board = board;
   data.settings = settings;
 
-  set_fen(board, START_FEN);
+  set_fen(board, "startpos");
 
   char message[4096];
   while(exit == 1)
@@ -45,7 +50,7 @@ void uci_listen()
       {
         hashtable_clear(hashtable);
         killers_clear();
-        set_fen(board, START_FEN);
+        set_fen(board, "startpos");
         break;
       }
       else if(strncmp(part, "position", 8) == 0)
@@ -53,7 +58,7 @@ void uci_listen()
         part += 9;
         if(strncmp(part, "startpos", 8) == 0)
         {
-          set_fen(board, START_FEN);
+          set_fen(board, "startpos");
         }
         else if(strncmp(part, "fen", 3) == 0)
         {

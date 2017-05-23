@@ -1,4 +1,9 @@
 #include "defs.h"
+#include "move.h"
+#include "eval.h"
+#include <assert.h>
+
+#define GETBIT(x, n) (((x)>>(n))&1)
 
 void print_move(s_move move)
 {
