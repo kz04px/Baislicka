@@ -10,7 +10,14 @@
 
 void uci_listen()
 {
-  int exit = 1;
+  int exit = 0;
+
+  GUI_Send("id name %s\n", ENGINE_NAME);
+  GUI_Send("id author %s\n", ENGINE_AUTHOR);
+  #ifdef HASHTABLE
+    GUI_Send("option name Hash type spin default %i min %i max %i\n", HASHTABLE_SIZE_DEFAULT, HASHTABLE_SIZE_MIN, HASHTABLE_SIZE_MAX);
+  #endif
+  GUI_Send("uciok\n");
 
   // board & search information
   s_board *board = (s_board*) malloc(1*sizeof(s_board));
@@ -25,7 +32,7 @@ void uci_listen()
   set_fen(board, "startpos");
 
   char message[4096];
-  while(exit == 1)
+  while(!exit)
   {
     char *r = fgets(message, 4096, stdin);
     if(r == NULL)
@@ -39,7 +46,7 @@ void uci_listen()
     {
       if(strncmp(part, "quit", 4) == 0)
       {
-        exit = 0;
+        exit = 1;
         break;
       }
       else if(strncmp(part, "isready", 7) == 0)

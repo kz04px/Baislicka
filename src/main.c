@@ -49,13 +49,6 @@ int main()
   fgets(message, 4096, stdin);
   if(strncmp(message, "uci", 3) == 0)
   {
-    GUI_Send("id name %s\n", ENGINE_NAME);
-    GUI_Send("id author %s\n", ENGINE_AUTHOR);
-    #ifdef HASHTABLE
-      GUI_Send("option name Hash type spin default %i min %i max %i\n", HASHTABLE_SIZE_DEFAULT, HASHTABLE_SIZE_MIN, HASHTABLE_SIZE_MAX);
-    #endif
-    GUI_Send("uciok\n");
-
     uci_listen();
   }
   else if(strncmp(message, "xboard", 6) == 0)
