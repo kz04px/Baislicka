@@ -331,6 +331,26 @@ int alpha_beta(s_board *board, s_search_info *info, int alpha, int beta, int dep
     return eval(board);
   }
 
+  clock_t time_spent = 0;
+  if(info->nodes%4096 == 0)
+  {
+    // Check time
+    time_spent = (clock() - info->time_start) * 1000 / CLOCKS_PER_SEC;
+    if(time_spent >= search_settings.time_max)
+    {
+      return 0;
+    }
+  }
+
+  if(info->nodes%524288 == 0)
+  {
+    // Update GUI on our search
+    if(time_spent > 0)
+    {
+      GUI_Send("info nps %" PRIu64 "\n", 1000*info->nodes/time_spent);
+    }
+  }
+
   int in_check = square_attacked(board, board->pieces[KINGS]&board->colour[board->turn], !board->turn);
 
   if(in_check)
@@ -454,40 +474,31 @@ int alpha_beta(s_board *board, s_search_info *info, int alpha, int beta, int dep
 
     info->nodes++;
     move_num++;
+    info->ply++;
 
-    clock_t time_spent = (clock() - info->time_start) * 1000 / CLOCKS_PER_SEC;
-    if(time_spent < search_settings.time_max)
-    {
-      info->ply++;
+    #ifdef LMR
+      if(move_num < 4 || depth < 3 || in_check || move_get_type(move) == CAPTURE || move_get_type(move) == QUEEN_PROMO || move_get_type(move) == QUEEN_PROMO_CAPTURE)
+      // || square_attacked(board, board->pieces[KINGS]&board->colour[board->turn], board->turn))
+      {
+        score = -alpha_beta(board, info, -beta, -alpha, depth-1, 1, &pv_local);
+      }
+      else
+      {
+        score = -alpha_beta(board, info, -beta, -alpha, depth-2, 1, &pv_local);
 
-      #ifdef LMR
-        if(move_num < 4 || depth < 3 || in_check || move_get_type(move) == CAPTURE || move_get_type(move) == QUEEN_PROMO || move_get_type(move) == QUEEN_PROMO_CAPTURE)
-        // || square_attacked(board, board->pieces[KINGS]&board->colour[board->turn], board->turn))
+        // Re-search if failed high
+        /*
+        if(score > alpha)
         {
           score = -alpha_beta(board, info, -beta, -alpha, depth-1, 1, &pv_local);
         }
-        else
-        {
-          score = -alpha_beta(board, info, -beta, -alpha, depth-2, 1, &pv_local);
+        */
+      }
+    #else
+      score = -alpha_beta(board, info, -beta, -alpha, depth-1, 1, &pv_local);
+    #endif
 
-          // Re-search if failed high
-          /*
-          if(score > alpha)
-          {
-            score = -alpha_beta(board, info, -beta, -alpha, depth-1, 1, &pv_local);
-          }
-          */
-        }
-      #else
-        score = -alpha_beta(board, info, -beta, -alpha, depth-1, 1, &pv_local);
-      #endif
-
-      info->ply--;
-    }
-    else
-    {
-      score = eval(board);
-    }
+    info->ply--;
 
     // Restore old permissions
     restore_irreversible(&permissions, board);
