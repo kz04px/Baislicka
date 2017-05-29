@@ -176,142 +176,11 @@ void *search_root(void *n)
     search_settings.time_max = search_settings.btime/search_settings.movestogo + search_settings.binc;
   }
 
-  int target_depth = 1;
-  char move_string[4096];
-  s_move ponder;
-  s_search_results results;
-
-  s_move bestmove;
-  s_pv *bestmove_pv = NULL;
-  int total_time = 0;
-  uint64_t total_nodes = 0;
-
-  #ifdef QUIET_SORT_HISTORY_HEURISTIC
-    reset_hh_bf(board);
-  #endif
-
-  int i;
-  for(i = 1; i <= target_depth && i < MAX_DEPTH; ++i)
-  {
-    int bestmove_eval;
-
-    #ifdef ASPIRATION_WINDOW
-      if(i < 3)
-      {
-        results = search(board, i, -INF, INF);
-        total_time += results.time_taken;
-        total_nodes += results.nodes;
-      }
-      else
-      {
-        #define NUM_BOUNDS 3
-        const int bounds[NUM_BOUNDS] = {50, 200, INF};
-
-        int n;
-        for(n = 0; n < NUM_BOUNDS; ++n)
-        {
-          results = search(board, i, -bounds[n], bounds[n]);
-          total_time += results.time_taken;
-          total_nodes += results.nodes;
-
-          if(results.out_of_time == 1) {break;}
-
-          int val = results.evals[results.best_move_num];
-          if(-bounds[n] < val && val < bounds[n])
-          {
-            break;
-          }
-        }
-      }
-    #else
-      results = search(board, i, -INF, INF);
-      total_time += results.time_taken;
-      total_nodes += results.nodes;
-    #endif
-
-    if(results.out_of_time == 1) {break;}
-
-    assert(results.best_move_num >= 0);
-    assert(results.best_move_num < results.num_moves);
-
-    bestmove = results.moves[results.best_move_num];
-    bestmove_pv = &results.pvs[results.best_move_num];
-    bestmove_eval = results.evals[results.best_move_num];
-
-    int index = 0;
-    move_string[0] = '\0';
-    int n;
-    for(n = 0; n < bestmove_pv->num_moves; ++n)
-    {
-      move_string[index] = ' ';
-      index++;
-      index += move_to_string(&move_string[index], &bestmove_pv->moves[n]);
-    }
-
-    if(bestmove_eval > INF-MAX_DEPTH)
-    {
-      GUI_Send("info depth %i score mate %i nodes %" PRIu64 " time %i seldepth %i pv%s\n", i, INF-bestmove_eval, total_nodes, total_time, results.seldepth, move_string);
-    }
-    else if(bestmove_eval < -INF+MAX_DEPTH)
-    {
-      GUI_Send("info depth %i score mate %i nodes %" PRIu64 " time %i seldepth %i pv%s\n", i, -bestmove_eval-INF, total_nodes, total_time, results.seldepth, move_string);
-    }
-    else
-    {
-      GUI_Send("info depth %i score cp %i nodes %" PRIu64 " time %i seldepth %i pv%s\n", i, bestmove_eval, total_nodes, total_time, results.seldepth, move_string);
-    }
-
-    if(total_time > 0)
-    {
-      GUI_Send("info nps %" PRIu64 "\n", 1000*total_nodes/total_time);
-    }
-
-    if(bestmove_pv->num_moves > 1)
-    {
-      ponder = bestmove_pv->moves[1];
-    }
-
-    if(bestmove_eval < -INF+MAX_DEPTH || bestmove_eval > INF-MAX_DEPTH)
-    {
-      break;
-    }
-
-    if(4*total_time < search_settings.time_max)
-    {
-      target_depth++;
-    }
-  }
-
-  if(i == 1 && results.out_of_time == 1)
-  {
-    printf("Warning: Didn't complete depth 1 search in time\n");
-    bestmove = results.moves[0];
-  }
-
-  move_to_string(move_string, &bestmove);
-  GUI_Send("bestmove %s\n", move_string);
-
-  return NULL;
-}
-
-s_search_results search(s_board *board, int depth, int alpha, int beta)
-{
-  assert(board != NULL);
-  assert(depth > 0);
-
-  s_search_results results;
-  results.out_of_time = 0;
-  results.time_taken = 0;
-
   int score;
-  int best_score = -INF;
-  s_pv pv_local = {0};
+  s_pv pv = {0};
 
-  results.num_moves = find_moves_captures(board, results.moves, board->turn);
-  #ifdef SORT_MOVES
-    moves_sort_see(board, results.moves, results.num_moves);
-  #endif
-  results.num_moves += find_moves_quiet(board, &results.moves[results.num_moves], board->turn);
+  char move_string[4096];
+  int total_time = 0;
 
   s_search_info *info = malloc(1*sizeof(s_search_info));
   info->ply = 0;
@@ -320,89 +189,110 @@ s_search_results search(s_board *board, int depth, int alpha, int beta)
   info->hashtable_hits = 0;
   info->seldepth = 0;
   #ifndef NDEBUG
-    int i;
-    for(i = 0; i < MAX_MOVES; ++i)
+    for(int i = 0; i < MAX_MOVES; ++i)
     {
       info->num_cutoffs[i] = 0;
     }
   #endif
 
-  // Set old permissions
-  s_irreversible permissions;
-  store_irreversible(&permissions, board);
+  #ifdef QUIET_SORT_HISTORY_HEURISTIC
+    reset_hh_bf(board);
+  #endif
 
-  int m;
-  for(m = 0; m < results.num_moves; ++m)
+  for(int depth = 1; depth < MAX_DEPTH; ++depth)
   {
-    results.pvs[m].num_moves = 0;
-    move_make(board, &results.moves[m]);
+    int depth_score = 0;
+    s_pv depth_pv = {0};
 
-    if(square_attacked(board, board->pieces[KINGS]&board->colour[!board->turn], board->turn))
-    {
-      // Restore old permissions
-      restore_irreversible(&permissions, board);
-
-      move_undo(board, &results.moves[m]);
-      continue;
-    }
-
-    info->nodes++;
-
-    if(is_threefold(board) || is_fifty_move_draw(board))
-    {
-      score = -CONTEMPT_VALUE;
-    }
-    else
-    {
-      clock_t time_spent = (clock() - info->time_start) * 1000 / CLOCKS_PER_SEC;
-      if(time_spent < search_settings.time_max)
+    #ifdef ASPIRATION_WINDOW
+      if(depth < 3)
       {
-        info->ply++;
-
         #ifdef ALPHA_BETA
-          score = -alpha_beta(board, info, alpha, beta, depth-1, 1, &pv_local);
+          depth_score = alpha_beta(board, info, -INF, INF, depth, 1, &depth_pv);
         #elif defined(PVS)
-          score = -pvSearch(board, info, alpha, beta, depth-1, 1, &pv_local);
+          depth_score = pvSearch(board, info, -INF, INF, depth, 1, &depth_pv);
         #endif
-
-        info->ply--;
       }
       else
       {
-        score = eval(board);
-        results.out_of_time = 1;
+        #define NUM_BOUNDS 3
+        const int bounds[NUM_BOUNDS] = {50, 200, INF};
+
+        for(int n = 0; n < NUM_BOUNDS; ++n)
+        {
+          #ifdef ALPHA_BETA
+            depth_score = alpha_beta(board, info, -bounds[n], bounds[n], depth, 1, &depth_pv);
+          #elif defined(PVS)
+            depth_score = pvSearch(board, info, -bounds[n], bounds[n], depth, 1, &depth_pv);
+          #endif
+
+          if(-bounds[n] < depth_score && depth_score < bounds[n])
+          {
+            break;
+          }
+        }
       }
+    #else
+      #ifdef ALPHA_BETA
+        depth_score = alpha_beta(board, info, -INF, INF, depth, 1, &depth_pv);
+      #elif defined(PVS)
+        depth_score = pvSearch(board, info, -INF, INF, depth, 1, &depth_pv);
+      #endif
+    #endif
+
+    // Check time
+    clock_t time_spent = 0;
+    time_spent = (clock() - info->time_start) * 1000 / CLOCKS_PER_SEC;
+    if(time_spent >= search_settings.time_max)
+    {
+      break;
     }
 
-    // Restore old permissions
-    restore_irreversible(&permissions, board);
+    // Updates
+    score = depth_score;
+    pv = depth_pv;
+    total_time += time_spent;
 
-    move_undo(board, &results.moves[m]);
-
-    results.evals[m] = score;
-
-    if(score > best_score)
+    int index = 0;
+    move_string[0] = '\0';
+    for(int n = 0; n < depth_pv.num_moves; ++n)
     {
-      best_score = score;
-      results.best_move_num = m;
+      move_string[index] = ' ';
+      index++;
+      index += move_to_string(&move_string[index], &depth_pv.moves[n]);
+    }
 
-      results.pvs[m].moves[0] = results.moves[m];
-      int i;
-      for(i = 0; i < pv_local.num_moves && i < MAX_DEPTH-1; ++i)
-      {
-        results.pvs[m].moves[i+1] = pv_local.moves[i];
-      }
-      results.pvs[m].num_moves = pv_local.num_moves + 1;
+    if(score > INF-MAX_DEPTH)
+    {
+      GUI_Send("info depth %i score mate %i nodes %" PRIu64 " time %i seldepth %i pv%s\n", depth, INF-score, info->nodes, total_time, info->seldepth, move_string);
+    }
+    else if(score < -INF+MAX_DEPTH)
+    {
+      GUI_Send("info depth %i score mate %i nodes %" PRIu64 " time %i seldepth %i pv%s\n", depth, -score-INF, info->nodes, total_time, info->seldepth, move_string);
+    }
+    else
+    {
+      GUI_Send("info depth %i score cp %i nodes %" PRIu64 " time %i seldepth %i pv%s\n", depth, score, info->nodes, total_time, info->seldepth, move_string);
+    }
+
+    if(score < -INF+MAX_DEPTH || score > INF-MAX_DEPTH)
+    {
+      break;
+    }
+
+    if(4*total_time >= search_settings.time_max)
+    {
+      break;
     }
   }
 
   #ifndef NDEBUG
     int total_cutoffs = 0;
-    for(i = 0; i < MAX_MOVES; ++i)
+    for(int i = 0; i < MAX_MOVES; ++i)
     {
       total_cutoffs += info->num_cutoffs[i];
     }
-    for(i = 0; i < 8; ++i)
+    for(int i = 0; i < 8; ++i)
     {
       if(total_cutoffs == 0)
       {
@@ -414,11 +304,11 @@ s_search_results search(s_board *board, int depth, int alpha, int beta)
       }
     }
   #endif
-  results.nodes = info->nodes;
-  results.seldepth = info->seldepth;
-  results.time_taken = (clock() - info->time_start) * 1000 / CLOCKS_PER_SEC;
 
-  return results;
+  move_to_string(move_string, &pv.moves[0]);
+  GUI_Send("bestmove %s\n", move_string);
+
+  return NULL;
 }
 
 int alpha_beta(s_board *board, s_search_info *info, int alpha, int beta, int depth, int null_move, s_pv *pv)
