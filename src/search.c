@@ -712,7 +712,6 @@ int pvSearch(s_board *board, s_search_info *info, int alpha, int beta, int depth
   pv->num_moves = 0;
 
   #ifdef HASHTABLE
-    int flag = -1;
     int alpha_original = alpha;
 
     s_hashtable_entry entry = *hashtable_poll(hashtable, board->key);
@@ -830,8 +829,7 @@ int pvSearch(s_board *board, s_search_info *info, int alpha, int beta, int depth
         #endif
 
         #ifdef HASHTABLE
-          flag = LOWERBOUND;
-          hashtable_add(hashtable, flag, board->key, depth, eval_to_tt(best_score, info->ply), move);
+          hashtable_add(hashtable, LOWERBOUND, board->key, depth, eval_to_tt(best_score, info->ply), move);
         #endif
 
         return best_score;
@@ -965,18 +963,15 @@ int pvSearch(s_board *board, s_search_info *info, int alpha, int beta, int depth
   }
 
   #ifdef HASHTABLE
-    if(flag == -1)
+    int flag;
+    if(best_score == alpha_original)
     {
-      if(best_score == alpha_original)
-      {
-        flag = UPPERBOUND;
-      }
-      else
-      {
-        flag = EXACT;
-      }
+      flag = UPPERBOUND;
     }
-
+    else
+    {
+      flag = EXACT;
+    }
     hashtable_add(hashtable, flag, board->key, depth, eval_to_tt(best_score, info->ply), best_move);
   #endif
 
