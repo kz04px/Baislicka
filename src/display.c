@@ -240,7 +240,7 @@ void display_board(s_board *board)
   printf("White king safety: %i\n", king_safety(board, __builtin_ctzll(board->pieces[KINGS]&board->colour[WHITE]), WHITE));
   printf("Black king safety: %i\n", -king_safety(board, __builtin_ctzll(board->pieces[KINGS]&board->colour[BLACK]), BLACK));
 
-  printf("Eval: %i\n", eval(board));
+  printf("Eval: %i\n", evaluate(board));
 
   printf("Castling: ");
   if(board->castling & wKSC) {printf("K");}

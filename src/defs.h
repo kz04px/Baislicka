@@ -18,8 +18,8 @@
 #define CONTEMPT_VALUE 0
 #define HASHTABLE_SIZE_DEFAULT 128
 
-#define ALPHA_BETA
-//#define PVS
+//#define ALPHA_BETA
+#define PVS
 
 #define HASHTABLE
 #define SORT_MOVES
@@ -31,6 +31,8 @@
 #define LMR
 #define KING_SAFETY
 #define PIECE_MOBILITY
+//#define FUTILITY_PRUNING
+//#define NULL_MOVE_REDUCTIONS
 
 #define CAPTURE_SORT_SEE
 //#define CAPTURE_SORT_MVVLVA

@@ -324,7 +324,7 @@ int insufficient_material(s_board *board)
   return 1;
 }
 
-int eval(s_board *board)
+int evaluate(s_board *board)
 {
   int endgame = is_endgame(board);
 

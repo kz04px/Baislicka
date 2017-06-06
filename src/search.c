@@ -61,7 +61,7 @@ int restore_irreversible(s_irreversible *info, s_board *board)
 
 int qsearch(s_board *board, s_search_info *info, int alpha, int beta)
 {
-  int stand_pat = eval(board);
+  int stand_pat = evaluate(board);
 
   if(info->ply > info->seldepth)
   {
@@ -328,7 +328,7 @@ int alpha_beta(s_board *board, s_search_info *info, int alpha, int beta, int dep
   // Stop search at maximum depth
   if(info->ply >= MAX_DEPTH)
   {
-    return eval(board);
+    return evaluate(board);
   }
 
   clock_t time_spent = 0;
@@ -363,7 +363,7 @@ int alpha_beta(s_board *board, s_search_info *info, int alpha, int beta, int dep
     #ifdef QUIESCENCE_SEARCH
       return qsearch(board, info, alpha, beta);
     #else
-      return eval(board);
+      return evaluate(board);
     #endif
   }
 
@@ -416,6 +416,18 @@ int alpha_beta(s_board *board, s_search_info *info, int alpha, int beta, int dep
     }
   #endif
 
+  #ifdef FUTILITY_PRUNING
+    if(depth == 1 && !in_check && !is_endgame(board))
+    {
+      int static_eval = evaluate(board);
+      if(static_eval + 350 < alpha)
+      {
+        //return static_eval;
+        return qsearch(board, info, alpha, beta);
+      }
+    }
+  #endif
+
   // Set old permissions
   s_irreversible permissions;
   store_irreversible(&permissions, board);
@@ -439,6 +451,31 @@ int alpha_beta(s_board *board, s_search_info *info, int alpha, int beta, int dep
       if(score >= beta)
       {
         return score;
+      }
+    }
+  #endif
+  #ifdef NULL_MOVE_REDUCTIONS
+    if(null_move && !in_check)
+    {
+      int new_r = depth > 6 ? 4 : 3;
+
+      // Make nullmove
+      null_make(board);
+
+      info->ply++;
+      score = -alpha_beta(board, info, -beta, -beta+1, depth-1-new_r, 0, &pv_local);
+      info->ply--;
+
+      // Unmake nullmove
+      null_undo(board);
+
+      if(score >= beta)
+      {
+        depth -= 4;
+        if(depth <= 0)
+        {
+          return qsearch(board, info, alpha, beta);
+        }
       }
     }
   #endif
@@ -619,7 +656,7 @@ int pvSearch(s_board *board, s_search_info *info, int alpha, int beta, int depth
   // Stop search at maximum depth
   if(info->ply >= MAX_DEPTH)
   {
-    return eval(board);
+    return evaluate(board);
   }
 
   int in_check = square_attacked(board, board->pieces[KINGS]&board->colour[board->turn], !board->turn);
@@ -634,7 +671,7 @@ int pvSearch(s_board *board, s_search_info *info, int alpha, int beta, int depth
     #ifdef QUIESCENCE_SEARCH
       return qsearch(board, info, alpha, beta);
     #else
-      return eval(board);
+      return evaluate(board);
     #endif
   }
 
@@ -834,17 +871,39 @@ int pvSearch(s_board *board, s_search_info *info, int alpha, int beta, int depth
     move_num++;
     info->nodes++;
     info->ply++;
-    score = -pvSearch(board, info, -alpha-1, -alpha, depth - 1, 1, &pv_local);
 
-    // Re-search
-    if(score > alpha && score < beta)
-    {
-      score = -pvSearch(board, info, -beta, -alpha, depth - 1, 1, &pv_local);
-      if(score > alpha)
+    #ifdef LMR
+      if(move_num < 4 || depth < 3 || in_check || move_get_type(move) == CAPTURE || move_get_type(move) == QUEEN_PROMO || move_get_type(move) == QUEEN_PROMO_CAPTURE)
+      // || square_attacked(board, board->pieces[KINGS]&board->colour[board->turn], board->turn))
       {
-        alpha = score;
+        score = -pvSearch(board, info, -alpha-1, -alpha, depth - 1, 1, &pv_local);
       }
-    }
+      else
+      {
+        score = -pvSearch(board, info, -alpha-1, -alpha, depth - 2, 1, &pv_local);
+      }
+
+      // Re-search
+      if(score > alpha && score < beta)
+      {
+        score = -pvSearch(board, info, -beta, -alpha, depth - 1, 1, &pv_local);
+        if(score > alpha)
+        {
+          alpha = score;
+        }
+      }
+    #else
+      score = -pvSearch(board, info, -alpha-1, -alpha, depth - 1, 1, &pv_local);
+
+      if(score > alpha && score < beta)
+      {
+        score = -pvSearch(board, info, -beta, -alpha, depth - 1, 1, &pv_local);
+        if(score > alpha)
+        {
+          alpha = score;
+        }
+      }
+    #endif
     info->ply--;
 
     // Restore old permissions

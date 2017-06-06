@@ -102,11 +102,11 @@ int test_eval_mirroring(s_board *board, const char *filepath)
     int r = set_fen(board, line);
     if(r) {continue;}
 
-    int eval_normal = eval(board);
+    int eval_normal = evaluate(board);
 
     board_flip(board);
 
-    int eval_mirror = eval(board);
+    int eval_mirror = evaluate(board);
 
     if(eval_normal != eval_mirror) {fclose(file); return -2;}
   }
