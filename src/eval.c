@@ -159,6 +159,7 @@ const int knight_pair_value = 15;
 const int doubled_pawn_value  = -10;
 const int isolated_pawn_value = -20;
 const int backward_pawn_value = -10;
+const int pawn_chain_value = 10;
 
 const int open_file_value = 25;
 
@@ -418,6 +419,13 @@ int evaluate(s_board *board)
             score += backward_pawn_value;
           }
         #endif
+
+        #ifdef PAWN_CHAINS
+        if(board->colour[WHITE] & board->pieces[PAWNS] & magic_moves_pawns(BLACK, sq))
+        {
+          score += pawn_chain_value;
+        }
+        #endif
       }
 
       score += piece_values[piece_type];
@@ -452,6 +460,13 @@ int evaluate(s_board *board)
           {
             score -= backward_pawn_value;
           }
+        #endif
+
+        #ifdef PAWN_CHAINS
+        if(board->colour[BLACK] & board->pieces[PAWNS] & magic_moves_pawns(WHITE, sq))
+        {
+          score -= pawn_chain_value;
+        }
         #endif
       }
 

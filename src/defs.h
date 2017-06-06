@@ -27,10 +27,7 @@
 #define NULL_MOVE
 #define KILLER_MOVES
 #define ASPIRATION_WINDOW
-#define TAPERED_EVAL
 #define LMR
-#define KING_SAFETY
-#define PIECE_MOBILITY
 //#define FUTILITY_PRUNING
 //#define NULL_MOVE_REDUCTIONS
 
@@ -41,6 +38,10 @@
 #define QUIET_SORT_SEE
 //#define QUIET_SORT_HISTORY_HEURISTIC
 
+#define TAPERED_EVAL
+#define KING_SAFETY
+#define PIECE_MOBILITY
+#define PAWN_CHAINS
 //#define DELTA_PRUNING
 //#define PASSED_PAWN_EVAL
 //#define BACKWARD_PAWN_EVAL
