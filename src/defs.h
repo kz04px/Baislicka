@@ -21,16 +21,6 @@
 //#define ALPHA_BETA
 #define PVS
 
-#define HASHTABLE
-#define SORT_MOVES
-#define QUIESCENCE_SEARCH
-#define NULL_MOVE
-#define KILLER_MOVES
-#define ASPIRATION_WINDOW
-#define LMR
-//#define FUTILITY_PRUNING
-//#define NULL_MOVE_REDUCTIONS
-
 #define CAPTURE_SORT_SEE
 //#define CAPTURE_SORT_MVVLVA
 
@@ -38,13 +28,33 @@
 #define QUIET_SORT_SEE
 //#define QUIET_SORT_HISTORY_HEURISTIC
 
+#define SORT_MOVES
+
+// Search
+#define HASHTABLE
+#define QUIESCENCE_SEARCH
+#define NULL_MOVE
+#define ASPIRATION_WINDOW
+#define LMR
+//#define FUTILITY_PRUNING
+//#define NULL_MOVE_REDUCTIONS
+//#define IID
+//#define DELTA_PRUNING
+
+// Move sorting
+#define KILLER_MOVES
+//#define KILLER_MOVES_2
+
+// Eval
 #define TAPERED_EVAL
 #define KING_SAFETY
 #define PIECE_MOBILITY
 #define PAWN_CHAINS
-//#define DELTA_PRUNING
 //#define PASSED_PAWN_EVAL
 //#define BACKWARD_PAWN_EVAL
-//#define KILLER_MOVES_2
+//#define PAWN_BLOCKING
+//#define KNIGHT_OUTPOSTS
+//#define PIECE_OPEN_SCALING
+//#define PINNED_PIECE_EVAL
 
 #endif // DEFS_H_INCLUDED

@@ -9,6 +9,9 @@ uint64_t bishop_mask[64];
 uint64_t rook_mask[64];
 uint64_t king_mask[64];
 
+uint64_t passed_pawn_blockers[2][64];
+uint64_t outpost_attackers[2][64];
+
 const uint64_t files[8] = {U64_FILE_A, U64_FILE_B, U64_FILE_C, U64_FILE_D, U64_FILE_E, U64_FILE_F, U64_FILE_G, U64_FILE_H};
 const uint64_t adj_files[8] = {U64_FILE_B, U64_FILE_A|U64_FILE_C, U64_FILE_B|U64_FILE_D, U64_FILE_C|U64_FILE_E,
                                U64_FILE_D|U64_FILE_F, U64_FILE_E|U64_FILE_G, U64_FILE_F|U64_FILE_H, U64_FILE_G};
@@ -88,8 +91,6 @@ const uint64_t *rook_offsets[64] = {
   magic_moves+45811, magic_moves+62898, magic_moves+45796, magic_moves+66994,
   magic_moves+67204, magic_moves+32448, magic_moves+62946, magic_moves+17005
 };
-
-uint64_t passed_pawn_blockers[2][64] = {0};
 
 uint64_t permute(uint64_t set, uint64_t subset)
 {
@@ -301,6 +302,11 @@ uint64_t is_passed_pawn(int side, int sq, uint64_t blockers)
   return !(passed_pawn_blockers[side][sq] & blockers);
 }
 
+uint64_t is_outpost(int side, int sq, uint64_t enemy_pawns)
+{
+  return !(outpost_attackers[side][sq] & enemy_pawns);
+}
+
 uint64_t is_backward_pawn_white(int sq, uint64_t friendly, uint64_t enemy)
 {
   if(!(magic_moves_pawns(WHITE, sq+8) & enemy)) {return 0;}
@@ -378,6 +384,23 @@ void bitboards_init()
     {
       passed_pawn_blockers[WHITE][sq] = (~U64_RANK_8)&((get_file(f) | get_adj_files(f))<<(r*8+8));
       passed_pawn_blockers[BLACK][sq] = (~U64_RANK_1)&((get_file(f) | get_adj_files(f))>>((7-r)*8+8));
+    }
+
+    // Calculate pawns that can attack a square
+    if(r == 0)
+    {
+      outpost_attackers[WHITE][sq] = get_adj_files(f)<<(r*8+8);
+      outpost_attackers[BLACK][sq] = 0;
+    }
+    else if(r == 7)
+    {
+      outpost_attackers[WHITE][sq] = 0;
+      outpost_attackers[BLACK][sq] = get_adj_files(f)>>((7-r)*8+8);
+    }
+    else
+    {
+      outpost_attackers[WHITE][sq] = get_adj_files(f)<<(r*8+8);
+      outpost_attackers[BLACK][sq] = get_adj_files(f)>>((7-r)*8+8);
     }
 
     // Knights
@@ -543,6 +566,8 @@ int error_check(s_board *board)
   if(__builtin_popcountll(board->pieces[ROOKS]) > 10) {return 22;}
   if(__builtin_popcountll(board->pieces[QUEENS]) > 10) {return 23;}
   if(__builtin_popcountll(board->pieces[KINGS]) != 2) {return 24;}
+
+  if((U64_RANK_1 | U64_RANK_8) & board->pieces[PAWNS]) {return 25;}
 
   return 0;
 }

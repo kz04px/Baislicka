@@ -1,6 +1,7 @@
 #include "defs.h"
 #include "bitboards.h"
 #include "eval.h"
+#include "attack.h"
 #include <assert.h>
 
 const int piece_location_bonus[2][6][64] = {{
@@ -140,28 +141,34 @@ const int piece_location_bonus[2][6][64] = {{
 }};
 
 const int king_safety_table[100] = {
-   0,   0,   0,   1,   1,   2,   3,   4,   5,   6,
-   8,  10,  13,  16,  20,  25,  30,  36,  42,  48,
-  55,  62,  70,  80,  90, 100, 110, 120, 130, 140,
- 150, 160, 170, 180, 190, 200, 210, 220, 230, 240,
- 250, 260, 270, 280, 290, 300, 310, 320, 330, 340,
- 350, 360, 370, 380, 390, 400, 410, 420, 430, 440,
- 450, 460, 470, 480, 490, 500, 510, 520, 530, 540,
- 550, 560, 570, 580, 590, 600, 610, 620, 630, 640,
- 650, 650, 650, 650, 650, 650, 650, 650, 650, 650,
- 650, 650, 650, 650, 650, 650, 650, 650, 650, 650
+   0,   0,   1,   2,   3,   5,   7,   9,  12,  15,
+  18,  22,  26,  30,  35,  39,  44,  50,  56,  62,
+  68,  75,  82,  85,  89,  97, 105, 113, 122, 131,
+ 140, 150, 169, 180, 191, 202, 213, 225, 237, 248,
+ 260, 272, 283, 295, 307, 319, 330, 342, 354, 366,
+ 377, 389, 401, 412, 424, 436, 448, 459, 471, 483,
+ 494, 500, 500, 500, 500, 500, 500, 500, 500, 500,
+ 500, 500, 500, 500, 500, 500, 500, 500, 500, 500,
+ 500, 500, 500, 500, 500, 500, 500, 500, 500, 500,
+ 500, 500, 500, 500, 500, 500, 500, 500, 500, 500
 };
 
 const int piece_values[6] = {100, 320, 330, 500, 900, 20000};
 const int bishop_pair_value = 25;
 const int knight_pair_value = 15;
 
-const int doubled_pawn_value  = -10;
-const int isolated_pawn_value = -20;
-const int backward_pawn_value = -10;
-const int pawn_chain_value = 10;
+const int doubled_pawn_value   = -10;
+const int isolated_pawn_value  = -20;
+const int backward_pawn_value  = -10;
+const int pawn_chain_value     =  10;
+const int passed_pawn_value[8] = {0, 10, 10, 15, 25, 40, 60, 0};
 
 const int open_file_value = 25;
+const int knight_outpost_value = 20;
+
+const int knight_open_value[9] = {0, 0, 0, 2, 4, 6, 8, 10, 12};
+const int bishop_open_value[9] = {12, 10, 8, 6, 4, 2, 0, 0, 0};
+const int rook_open_value[9]   = {12, 10, 8, 6, 4, 2, 0, 0, 0};
 
 int king_safety(s_board *board, int sq, int side)
 {
@@ -171,22 +178,48 @@ int king_safety(s_board *board, int sq, int side)
   assert(side == WHITE || side == BLACK);
 
   int eval = 0;
-  uint64_t surrounding = magic_moves_king(sq);
+  const uint64_t surrounding = magic_moves_king(sq);
 
   // Positive: Nearby friendly pieces
-  eval += 5*__builtin_popcountll(surrounding&board->colour[side]);
-  //eval -= 5*__builtin_popcountll(surrounding&board->colour[1-side]);
+  eval += 5*__builtin_popcountll(surrounding & board->colour[side]);
+
+  // Negative: Nearby enemy pieces
+  //eval -= 5*__builtin_popcountll(surrounding & board->colour[!side]);
+
+  /*
+  // Positive: Friendly rooks and queens on the same lines
+  eval += 5*__builtin_popcountll(magic_moves_rook(0ULL, sq) & (board->colour[side] & (board->pieces[ROOKS] | board->pieces[QUEENS])));
+
+  // Negative: Enemy rooks and queens on the same lines
+  eval -= 5*__builtin_popcountll(magic_moves_rook(0ULL, sq) & (board->colour[!side] & (board->pieces[ROOKS] | board->pieces[QUEENS])));
+  */
+
+  // Positive: Defending nearby squares
+  /*
+  int count = 0;
+  uint64_t copy = surrounding;
+  while(copy)
+  {
+    uint64_t pos = copy & ~(copy-1);
+
+    count += count_attackers(board, pos, side);
+
+    copy ^= pos;
+  }
+  eval += king_safety_table[count];
+  */
 
   // Negative: Opponent attacking nearby squares
   /*
   int count = 0;
-  while(surrounding)
+  uint64_t copy = surrounding;
+  while(copy)
   {
-    uint64_t pos = surrounding & ~(surrounding-1);
+    uint64_t pos = copy & ~(copy-1);
 
-    count += count_attackers(board, pos, 1-side);
+    count += count_attackers(board, pos, !side);
 
-    surrounding ^= pos;
+    copy ^= pos;
   }
   eval -= king_safety_table[count];
   */
@@ -279,7 +312,6 @@ int is_fifty_move_draw(s_board *board)
 int is_threefold(s_board *board)
 {
   assert(board != NULL);
-
 
   if(board->num_halfmoves < 8)
   {
@@ -385,6 +417,37 @@ int evaluate(s_board *board)
     }
   }
 
+  /*
+  uint64_t white_pawn_blockers = ((board->colour[WHITE] & board->pieces[PAWNS])<<8) & board->colour[WHITE];
+  uint64_t black_pawn_blockers = ((board->colour[BLACK] & board->pieces[PAWNS])>>8) & board->colour[BLACK];
+
+  score -= 10*__builtin_popcountll(white_pawn_blockers);
+  score += 10*__builtin_popcountll(black_pawn_blockers);
+  */
+
+  #ifdef PAWN_BLOCKING
+    if(U64_D2 & (board->colour[WHITE] & board->pieces[PAWNS]) && U64_D3 & (board->colour[WHITE] & ~board->pieces[PAWNS]))
+    {
+      score -= 20;
+    }
+    if(U64_E2 & (board->colour[WHITE] & board->pieces[PAWNS]) && U64_E3 & (board->colour[WHITE] & ~board->pieces[PAWNS]))
+    {
+      score -= 20;
+    }
+
+    if(U64_D7 & (board->colour[BLACK] & board->pieces[PAWNS]) && U64_D6 & (board->colour[BLACK] & ~board->pieces[PAWNS]))
+    {
+      score += 20;
+    }
+    if(U64_E7 & (board->colour[BLACK] & board->pieces[PAWNS]) && U64_E6 & (board->colour[BLACK] & ~board->pieces[PAWNS]))
+    {
+      score += 20;
+    }
+  #endif
+
+  // Piece in the middle majority
+  //score += 20*(__builtin_popcountll(U64_CENTER & board->colour[WHITE]) - __builtin_popcountll(U64_CENTER & board->colour[BLACK]));
+
   int sq;
 
   #ifdef TAPERED_EVAL
@@ -406,10 +469,24 @@ int evaluate(s_board *board)
       if(piece_type == PAWNS)
       {
         #ifdef PASSED_PAWN_EVAL
-          if(is_passed_pawn(WHITE, sq, board->pieces[PAWNS]|board->colour[BLACK]))
+          if(is_passed_pawn(WHITE, sq, board->colour[BLACK] & board->pieces[PAWNS]))
           {
-            opening_score += piece_location_bonus[0][piece_type][sq];
-            endgame_score += piece_location_bonus[1][piece_type][sq];
+            const int rank = SQ_TO_RANK(sq);
+            opening_score += passed_pawn_value[rank]>>1;
+            endgame_score += passed_pawn_value[rank];
+
+            /*
+            // Check if not isolated
+            const int file = SQ_TO_FILE(sq);
+            if(get_adj_files(file) & board->colour[WHITE] & board->pieces[PAWNS])
+            {
+              opening_score += 20;
+              endgame_score += 20;
+            }
+            */
+
+            //opening_score += piece_location_bonus[0][PAWNS][sq];
+            //endgame_score += piece_location_bonus[1][PAWNS][sq];
           }
         #endif
 
@@ -448,10 +525,24 @@ int evaluate(s_board *board)
       if(piece_type == PAWNS)
       {
         #ifdef PASSED_PAWN_EVAL
-          if(is_passed_pawn(BLACK, sq, board->pieces[PAWNS]|board->colour[WHITE]))
+          if(is_passed_pawn(BLACK, sq, board->colour[WHITE] & board->pieces[PAWNS]))
           {
-            opening_score -= piece_location_bonus[0][piece_type][sq^56];
-            endgame_score -= piece_location_bonus[1][piece_type][sq^56];
+            const int rank = 7 - SQ_TO_RANK(sq);
+            opening_score -= passed_pawn_value[rank]>>1;
+            endgame_score -= passed_pawn_value[rank];
+
+            /*
+            // Check if not isolated
+            const int file = SQ_TO_FILE(sq);
+            if(get_adj_files(file) & board->colour[BLACK] & board->pieces[PAWNS])
+            {
+              opening_score -= 20;
+              endgame_score -= 20;
+            }
+            */
+
+            //opening_score -= piece_location_bonus[0][PAWNS][sq^56];
+            //endgame_score -= piece_location_bonus[1][PAWNS][sq^56];
           }
         #endif
 
@@ -481,6 +572,72 @@ int evaluate(s_board *board)
       copy &= copy-1;
     }
   }
+
+  #ifdef KNIGHT_OUTPOSTS
+    // White
+    uint64_t white_knights = U64_CENTER & board->colour[WHITE] & board->pieces[KNIGHTS]; // (board->colour[WHITE] & ~board->pieces[PAWNS])
+    while(white_knights)
+    {
+      sq = __builtin_ctzll(white_knights);
+
+      if(magic_moves_pawns(BLACK, sq) & (board->colour[WHITE] & board->pieces[PAWNS]) &&
+         is_outpost(WHITE, sq, board->colour[BLACK] & board->pieces[PAWNS]))
+      {
+        score += knight_outpost_value;
+      }
+
+      white_knights &= white_knights-1;
+    }
+
+    // Black
+    uint64_t black_knights = U64_CENTER & board->colour[BLACK] & board->pieces[KNIGHTS];
+    while(black_knights)
+    {
+      sq = __builtin_ctzll(black_knights);
+
+      if(magic_moves_pawns(WHITE, sq) & (board->colour[BLACK] & board->pieces[PAWNS]) &&
+         is_outpost(BLACK, sq, board->colour[WHITE] & board->pieces[PAWNS]))
+      {
+        score -= knight_outpost_value;
+      }
+
+      black_knights &= black_knights-1;
+    }
+  #endif
+
+  #ifdef PINNED_PIECE_EVAL
+    sq = __builtin_ctzll(board->pieces[KINGS] & board->colour[WHITE]);
+    uint64_t white_pinned = pinned_pieces_white(board, sq);// & (board->colour[WHITE] & ~board->pieces[PAWNS]);
+    assert(__builtin_popcountll(white_pinned) <= 8);
+    score -= 20*__builtin_popcountll(white_pinned);
+
+    sq = __builtin_ctzll(board->pieces[KINGS] & board->colour[BLACK]);
+    uint64_t black_pinned = pinned_pieces_black(board, sq);// & (board->colour[BLACK] & ~board->pieces[PAWNS]);
+    assert(__builtin_popcountll(black_pinned) <= 8);
+    score += 20*__builtin_popcountll(black_pinned);
+  #endif
+
+  #ifdef PIECE_OPEN_SCALING
+    // White
+    const int num_white_pawns   = __builtin_popcountll(board->colour[WHITE] & board->pieces[PAWNS]);
+    const int num_white_knights = __builtin_popcountll(board->colour[WHITE] & board->pieces[KNIGHTS]);
+    const int num_white_bishops = __builtin_popcountll(board->colour[WHITE] & board->pieces[BISHOPS]);
+    const int num_white_rooks   = __builtin_popcountll(board->colour[WHITE] & board->pieces[ROOKS]);
+
+    score += num_white_knights*bishop_open_value[num_white_pawns];
+    score += num_white_bishops*bishop_open_value[num_white_pawns];
+    score += num_white_rooks*bishop_open_value[num_white_pawns];
+
+    // Black
+    const int num_black_pawns   = __builtin_popcountll(board->colour[BLACK] & board->pieces[PAWNS]);
+    const int num_black_knights = __builtin_popcountll(board->colour[BLACK] & board->pieces[KNIGHTS]);
+    const int num_black_bishops = __builtin_popcountll(board->colour[BLACK] & board->pieces[BISHOPS]);
+    const int num_black_rooks   = __builtin_popcountll(board->colour[BLACK] & board->pieces[ROOKS]);
+
+    score -= num_black_knights*bishop_open_value[num_black_pawns];
+    score -= num_black_bishops*bishop_open_value[num_black_pawns];
+    score -= num_black_rooks*bishop_open_value[num_black_pawns];
+  #endif
 
   #ifdef TAPERED_EVAL
     int knight_phase = 1;

@@ -76,7 +76,7 @@ int qsearch(s_board *board, s_search_info *info, int alpha, int beta)
   #ifdef DELTA_PRUNING
     const int safety = 900; // The value of a queen
 
-    if(stand_pat < alpha - safety)
+    if(stand_pat < alpha - safety && !is_endgame(board))
     {
       return alpha;
     }
@@ -454,6 +454,7 @@ int alpha_beta(s_board *board, s_search_info *info, int alpha, int beta, int dep
       }
     }
   #endif
+
   #ifdef NULL_MOVE_REDUCTIONS
     if(null_move && !in_check)
     {
@@ -745,6 +746,27 @@ int pvSearch(s_board *board, s_search_info *info, int alpha, int beta, int depth
 
   int pvnode = (beta - alpha > 1);
 
+  #ifdef FUTILITY_PRUNING
+    if(!pvnode && null_move && depth == 1 && !in_check && !is_endgame(board))
+    {
+      int static_eval = evaluate(board);
+      if(static_eval - 350 >= beta)
+      {
+        return static_eval - 350;
+        //return qsearch(board, info, alpha, beta);
+      }
+
+      /*
+      int static_eval = evaluate(board);
+      if(static_eval + 350 < alpha)
+      {
+        //return static_eval;
+        return qsearch(board, info, alpha, beta);
+      }
+      */
+    }
+  #endif
+
   // Set old permissions
   s_irreversible permissions;
   store_irreversible(&permissions, board);
@@ -772,6 +794,40 @@ int pvSearch(s_board *board, s_search_info *info, int alpha, int beta, int depth
       {
         return score;
       }
+    }
+  #endif
+
+  #ifdef NULL_MOVE_REDUCTIONS
+    if(null_move && !in_check && depth > 4)
+    {
+      int new_r = depth > 6 ? 4 : 3;
+
+      // Make nullmove
+      null_make(board);
+
+      info->ply++;
+      score = -pvSearch(board, info, -beta, -beta+1, depth-1-new_r, 0, &pv_local);
+      info->ply--;
+
+      // Unmake nullmove
+      null_undo(board);
+
+      if(score >= beta)
+      {
+        depth -= 4;
+        if(depth <= 0)
+        {
+          return qsearch(board, info, alpha, beta);
+        }
+      }
+    }
+  #endif
+
+  #ifdef IID
+    if(pvnode && gen.hash_move == NO_MOVE && depth > 3)
+    {
+      score = -pvSearch(board, info, alpha, beta, depth - 3, 1, &pv_local);
+      gen.hash_move = pv_local.moves[0];
     }
   #endif
 

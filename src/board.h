@@ -96,6 +96,9 @@
 #define U64_G8 (U64_FILE_G & U64_RANK_8)
 #define U64_H8 (U64_FILE_H & U64_RANK_8)
 
+#define U64_CENTER ((U64_FILE_C | U64_FILE_D | U64_FILE_E | U64_FILE_F) & (U64_RANK_3 | U64_RANK_4 | U64_RANK_5 | U64_RANK_6))
+#define U64_EDGE   ((U64_FILE_A | U64_FILE_B | U64_FILE_G | U64_FILE_H) | (U64_RANK_1 | U64_RANK_2 | U64_RANK_7 | U64_RANK_8))
+
 #define wKSC 1
 #define bKSC 2
 #define wQSC 4

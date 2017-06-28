@@ -107,91 +107,140 @@ int main()
     #endif
     printf("\n");
 
+    printf("Search:\n");
     #ifdef QUIESCENCE_SEARCH
-      printf("Enabled  - Quiescence search\n");
+      printf("  Enabled  - Quiescence search\n");
     #else
-      printf("Disabled - Quiescence search\n");
+      printf("  Disabled - Quiescence search\n");
     #endif
 
     #ifdef HASHTABLE
-      printf("Enabled  - Transposition table\n");
+      printf("  Enabled  - Transposition table\n");
     #else
-      printf("Disabled - Transposition table\n");
+      printf("  Disabled - Transposition table\n");
     #endif
 
     #ifdef NULL_MOVE
-      printf("Enabled  - Null move pruning\n");
+      printf("  Enabled  - Null move pruning\n");
     #else
-      printf("Disabled - Null move pruning\n");
-    #endif
-
-    #ifdef KILLER_MOVES
-      printf("Enabled  - Killer move heuristic\n");
-    #else
-      printf("Disabled - Killer move heuristic\n");
-    #endif
-
-    #ifdef SORT_MOVES
-      printf("Enabled  - Move sorting\n");
-    #else
-      printf("Disabled - Move sorting\n");
+      printf("  Disabled - Null move pruning\n");
     #endif
 
     #ifdef ASPIRATION_WINDOW
-      printf("Enabled  - Aspiration windows\n");
+      printf("  Enabled  - Aspiration windows\n");
     #else
-      printf("Disabled - Aspiration windows\n");
+      printf("  Disabled - Aspiration windows\n");
     #endif
 
     #ifdef LMR
-      printf("Enabled  - Late Move Reductions\n");
+      printf("  Enabled  - Late Move Reductions\n");
     #else
-      printf("Disabled - Late Move Reductions\n");
+      printf("  Disabled - Late Move Reductions\n");
     #endif
 
     #ifdef DELTA_PRUNING
-      printf("Enabled  - Delta Pruning\n");
+      printf("  Enabled  - Delta Pruning\n");
     #else
-      printf("Disabled - Delta Pruning\n");
+      printf("  Disabled - Delta Pruning\n");
     #endif
 
-    #ifdef TAPERED_EVAL
-      printf("Enabled  - Tapered eval\n");
+    #ifdef FUTILITY_PRUNING
+      printf("  Enabled  - Futility Pruning\n");
     #else
-      printf("Disabled - Tapered eval\n");
+      printf("  Disabled - Futility Pruning\n");
     #endif
 
-    #ifdef PASSED_PAWN_EVAL
-      printf("Enabled  - Passed pawn eval\n");
+    #ifdef IID
+      printf("  Enabled  - Internal Iterative Deepening\n");
     #else
-      printf("Disabled - Passed pawn eval\n");
+      printf("  Disabled - Internal Iterative Deepening\n");
+    #endif
+    printf("\n");
+
+
+    printf("Move ordering:\n");
+    #ifdef SORT_MOVES
+      printf("  Enabled  - Move sorting\n");
+    #else
+      printf("  Disabled - Move sorting\n");
     #endif
 
-    #ifdef BACKWARD_PAWN_EVAL
-      printf("Enabled  - Backward pawn eval\n");
+    #ifdef KILLER_MOVES
+      printf("  Enabled  - Killer move heuristic\n");
     #else
-      printf("Disabled - Backward pawn eval\n");
-    #endif
-
-    #ifdef KING_SAFETY
-      printf("Enabled  - King safety eval\n");
-    #else
-      printf("Disabled - King safety eval\n");
+      printf("  Disabled - Killer move heuristic\n");
     #endif
 
     #ifdef KILLER_MOVES_2
-      printf("Enabled  - Second killer move\n");
+      printf("  Enabled  - Second killer move\n");
     #else
-      printf("Disabled - Second killer move\n");
+      printf("  Disabled - Second killer move\n");
+    #endif
+    printf("\n");
+
+
+    printf("Eval:\n");
+    #ifdef TAPERED_EVAL
+      printf("  Enabled  - Tapered eval\n");
+    #else
+      printf("  Disabled - Tapered eval\n");
+    #endif
+
+    #ifdef PASSED_PAWN_EVAL
+      printf("  Enabled  - Passed pawn eval\n");
+    #else
+      printf("  Disabled - Passed pawn eval\n");
+    #endif
+
+    #ifdef BACKWARD_PAWN_EVAL
+      printf("  Enabled  - Backward pawn eval\n");
+    #else
+      printf("  Disabled - Backward pawn eval\n");
+    #endif
+
+    #ifdef KING_SAFETY
+      printf("  Enabled  - King safety eval\n");
+    #else
+      printf("  Disabled - King safety eval\n");
     #endif
 
     #ifdef PIECE_MOBILITY
-      printf("Enabled  - Piece mobility\n");
+      printf("  Enabled  - Piece mobility\n");
     #else
-      printf("Disabled - Piece mobility\n");
+      printf("  Disabled - Piece mobility\n");
     #endif
 
+    #ifdef PAWN_CHAINS
+      printf("  Enabled  - Pawn chains\n");
+    #else
+      printf("  Disabled - Pawn chains\n");
+    #endif
+
+    #ifdef PAWN_BLOCKING
+      printf("  Enabled  - Pawn blocking\n");
+    #else
+      printf("  Disabled - Pawn blocking\n");
+    #endif
+
+    #ifdef KNIGHT_OUTPOSTS
+      printf("  Enabled  - Knight outposts\n");
+    #else
+      printf("  Disabled - Knight outposts\n");
+    #endif
+
+    #ifdef PIECE_OPEN_SCALING
+      printf("  Enabled  - Piece open scaling\n");
+    #else
+      printf("  Disabled - Piece open scaling\n");
+    #endif
+
+    #ifdef PINNED_PIECE_EVAL
+      printf("  Enabled  - Pinned pieces\n");
+    #else
+      printf("  Disabled - Pinned pieces\n");
+    #endif
     printf("\n");
+
     getchar();
   }
   else

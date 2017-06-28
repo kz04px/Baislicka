@@ -18,6 +18,7 @@ int error_check(s_board *board);
 uint64_t get_file(int file);
 uint64_t get_adj_files(int file);
 uint64_t is_passed_pawn(int side, int sq, uint64_t blockers);
+uint64_t is_outpost(int side, int sq, uint64_t enemy_pawns);
 uint64_t is_backward_pawn_white(int sq, uint64_t friendly, uint64_t enemy);
 uint64_t is_backward_pawn_black(int sq, uint64_t friendly, uint64_t enemy);
 
