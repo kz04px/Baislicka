@@ -147,5 +147,7 @@ typedef struct
 
 void reset_hh_bf(s_board *board);
 int set_fen(s_board *board, const char *fen);
+int store_irreversible(s_irreversible *info, s_board *board);
+int restore_irreversible(s_irreversible *info, s_board *board);
 
 #endif

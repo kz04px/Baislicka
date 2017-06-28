@@ -1,6 +1,8 @@
 #include "defs.h"
 #include "move.h"
 #include "eval.h"
+#include "attack.h"
+#include "movegen.h"
 #include <assert.h>
 
 #define GETBIT(x, n) (((x)>>(n))&1)
@@ -120,17 +122,42 @@ void print_move(s_move move)
   printf("\n");
 }
 
-void print_moves(s_move *moves, int num_moves)
+void print_moves(s_board *board)
 {
-  assert(moves != NULL);
+  assert(board != NULL);
 
-  int i;
-  for(i = 0; i < num_moves; ++i)
+  // Set old permissions
+  s_irreversible permissions;
+  store_irreversible(&permissions, board);
+
+  s_move moves[MAX_MOVES];
+  int num_moves = find_moves_all(board, &moves[0], board->turn);
+
+  printf("Moves:\n");
+
+  for(int m = 0; m < num_moves; ++m)
   {
-    if(i+1 < 10) {printf(" ");}
-    printf("%i: ", i+1);
+    move_make(board, &moves[m]);
 
-    print_move(moves[i]);
+    if(square_attacked(board, board->pieces[KINGS]&board->colour[!board->turn], board->turn))
+    {
+      // Restore old permissions
+      restore_irreversible(&permissions, board);
+
+      move_undo(board, &moves[m]);
+      continue;
+    }
+
+    //print_move(moves[m]);
+    char move_string[5];
+    move_to_string(move_string, &moves[m]);
+    
+    printf("  %i)  %s  (3fold:%i)  (50moves:%i)  (Type:%i)\n", m, move_string, is_threefold(board), is_fifty_move_draw(board), move_get_type(moves[m]));
+
+    // Restore old permissions
+    restore_irreversible(&permissions, board);
+
+    move_undo(board, &moves[m]);
   }
 }
 
@@ -148,6 +175,8 @@ void print_u64(uint64_t board)
 
 void display_board(s_board *board)
 {
+  assert(board != NULL);
+
   int i;
   for(i = A8; i >= A1; ++i)
   {

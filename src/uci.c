@@ -93,6 +93,7 @@ void uci_listen()
       {
         display_board(board);
         display_history(board);
+        print_moves(board);
       }
       else if(strncmp(part, "go", 2) == 0)
       {

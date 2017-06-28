@@ -461,8 +461,6 @@ void move_make(s_board *board, s_move *move)
       board->pieces[ROOKS] ^= ksc_rook[board->turn];
       board->colour[board->turn] ^= (ksc_king[board->turn] | ksc_rook[board->turn]);
 
-      board->num_halfmoves = 0;
-
       #ifdef HASHTABLE
         board->key ^= key_ksc[board->turn];
       #endif
@@ -471,8 +469,6 @@ void move_make(s_board *board, s_move *move)
       board->pieces[KINGS] ^= qsc_king[board->turn];
       board->pieces[ROOKS] ^= qsc_rook[board->turn];
       board->colour[board->turn] ^= (qsc_king[board->turn] | qsc_rook[board->turn]);
-
-      board->num_halfmoves = 0;
 
       #ifdef HASHTABLE
         board->key ^= key_qsc[board->turn];

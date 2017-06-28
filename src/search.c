@@ -29,36 +29,6 @@ int killers_clear()
   return 0;
 }
 
-int store_irreversible(s_irreversible *info, s_board *board)
-{
-  assert(board);
-  assert(info);
-
-  #ifdef HASHTABLE
-    info->key         = board->key;
-  #endif
-  info->num_halfmoves = board->num_halfmoves;
-  info->ep            = board->ep;
-  info->castling      = board->castling;
-
-  return 0;
-}
-
-int restore_irreversible(s_irreversible *info, s_board *board)
-{
-  assert(board);
-  assert(info);
-
-  #ifdef HASHTABLE
-    board->key         = info->key;
-  #endif
-  board->num_halfmoves = info->num_halfmoves;
-  board->ep            = info->ep;
-  board->castling      = info->castling;
-
-  return 0;
-}
-
 int qsearch(s_board *board, s_search_info *info, int alpha, int beta)
 {
   int stand_pat = evaluate(board);
