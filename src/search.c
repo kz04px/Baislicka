@@ -136,14 +136,30 @@ void *search_root(void *n)
   board = (*(s_thread_data*)n).board;
 
   assert(board != NULL);
+  int target_depth = MAX_DEPTH;
 
-  if(board->turn == WHITE)
+  // Depth limited search
+  if(search_settings.depth != 0)
   {
-    search_settings.time_max = search_settings.wtime/search_settings.movestogo + search_settings.winc;
+    search_settings.time_max = INT_MAX;
+    target_depth = search_settings.depth;
   }
+  // Movetime limited search
+  else if(search_settings.movetime != 0)
+  {
+    search_settings.time_max = search_settings.movetime;
+  }
+  // Regular search
   else
   {
-    search_settings.time_max = search_settings.btime/search_settings.movestogo + search_settings.binc;
+    if(board->turn == WHITE)
+    {
+      search_settings.time_max = search_settings.wtime/search_settings.movestogo + search_settings.winc;
+    }
+    else
+    {
+      search_settings.time_max = search_settings.btime/search_settings.movestogo + search_settings.binc;
+    }
   }
 
   int score;
@@ -169,7 +185,7 @@ void *search_root(void *n)
     reset_hh_bf(board);
   #endif
 
-  for(int depth = 1; depth < MAX_DEPTH; ++depth)
+  for(int depth = 1; depth <= target_depth; ++depth)
   {
     int depth_score = 0;
     s_pv depth_pv = {0};
@@ -210,10 +226,13 @@ void *search_root(void *n)
       #endif
     #endif
 
-    // Check time
     clock_t time_spent = 0;
-    time_spent = (clock() - info->time_start) * 1000 / CLOCKS_PER_SEC;
-    if(time_spent >= search_settings.time_max)
+    time_spent = (double)(clock() - info->time_start) * 1000.0 / CLOCKS_PER_SEC;
+
+    total_time += time_spent;
+
+    // Ignore the result if we ran out of time
+    if(total_time >= search_settings.time_max)
     {
       break;
     }
@@ -221,7 +240,6 @@ void *search_root(void *n)
     // Updates
     score = depth_score;
     pv = depth_pv;
-    total_time += time_spent;
 
     int index = 0;
     move_string[0] = '\0';
@@ -245,12 +263,14 @@ void *search_root(void *n)
       GUI_Send("info depth %i score cp %i nodes %" PRIu64 " time %i seldepth %i pv%s\n", depth, score, info->nodes, total_time, info->seldepth, move_string);
     }
 
+    // Stop searching if we found a checkmate
     if(score < -INF+MAX_DEPTH || score > INF-MAX_DEPTH)
     {
       break;
     }
 
-    if(4*total_time >= search_settings.time_max)
+    // Try and predict if we'll finish the next search iteration
+    if(search_settings.movetime == 0 && search_settings.depth == 0 && total_time + 4*time_spent >= search_settings.time_max)
     {
       break;
     }
@@ -647,14 +667,12 @@ int pvSearch(s_board *board, s_search_info *info, int alpha, int beta, int depth
   }
 
   clock_t time_spent = 0;
-  if(info->nodes%4096 == 0)
+  time_spent = (clock() - info->time_start) * 1000 / CLOCKS_PER_SEC;
+
+  // Check time
+  if(time_spent >= search_settings.time_max)
   {
-    // Check time
-    time_spent = (clock() - info->time_start) * 1000 / CLOCKS_PER_SEC;
-    if(time_spent >= search_settings.time_max)
-    {
-      return 0;
-    }
+    return 0;
   }
 
   if(info->nodes%524288 == 0)

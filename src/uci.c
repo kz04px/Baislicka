@@ -110,18 +110,21 @@ void uci_listen()
         settings->winc = 0;
         settings->binc = 0;
         settings->movestogo = 20;
+        settings->depth = 0;
+        settings->movetime = 0;
+        // Not implemented yet
+        settings->nodes = 0;
+        settings->mate = 0;
 
         // This is a bit ugly
         while(part[1] != '\0')
         {
           if(strncmp(part, "infinite", 8) == 0)
           {
-            settings->wtime = INT_MAX;
-            settings->btime = INT_MAX;
+            settings->depth = MAX_DEPTH;
             break;
           }
-
-          if(strncmp(part, "wtime", 5) == 0)
+          else if(strncmp(part, "wtime", 5) == 0)
           {
             part += 6;
             settings->wtime = atoi(part);
@@ -146,14 +149,19 @@ void uci_listen()
             part += 10;
             settings->movestogo = atoi(part);
           }
+          else if(strncmp(part, "depth", 5) == 0)
+          {
+            part += 6;
+            settings->depth = atoi(part);
+          }
+          else if(strncmp(part, "movetime", 8) == 0)
+          {
+            part += 9;
+            settings->movetime = atoi(part);
+          }
 
           part++;
         }
-
-        settings->depth = -1;
-        settings->nodes = -1;
-        settings->mate = -1;
-        settings->movetime = -1;
 
         if(settings->movestogo == 1)
         {
