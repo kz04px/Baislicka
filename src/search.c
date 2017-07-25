@@ -19,6 +19,15 @@ int search_settings_set(s_search_settings settings)
   return 0;
 }
 
+int reduction(const int move_num, const int depth, const int in_check, const int move_type)
+{
+  if(move_num < 4 || depth < 3 || in_check || move_type == CAPTURE || move_type == QUEEN_PROMO || move_type == QUEEN_PROMO_CAPTURE)
+  {
+    return 0;
+  }
+  return 1;
+}
+
 void *search_root(void *n)
 {
   assert(n != NULL);
@@ -295,6 +304,7 @@ int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int
 
   int in_check = square_attacked(board, board->pieces[KINGS]&board->colour[board->turn], !board->turn);
 
+  // Check extensions
   if(in_check)
   {
     depth++;
@@ -553,15 +563,8 @@ int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int
     info->nodes++;
 
     #ifdef LMR
-      if(move_num < 4 || depth < 3 || in_check || move_get_type(move) == CAPTURE || move_get_type(move) == QUEEN_PROMO || move_get_type(move) == QUEEN_PROMO_CAPTURE)
-      // || square_attacked(board, board->pieces[KINGS]&board->colour[board->turn], board->turn))
-      {
-        score = -pvSearch(info, stack+1, board, -alpha-1, -alpha, depth - 1);
-      }
-      else
-      {
-        score = -pvSearch(info, stack+1, board, -alpha-1, -alpha, depth - 2);
-      }
+      int r = reduction(move_num, depth, in_check, move_get_type(move));
+      score = -pvSearch(info, stack+1, board, -alpha-1, -alpha, depth - 1 - r);
 
       // Re-search
       if(score > alpha && score < beta)

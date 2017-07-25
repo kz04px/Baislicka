@@ -266,8 +266,8 @@ void display_board(s_board *board)
   printf("is 50move:  %i\n", is_fifty_move_draw(board));
   printf("is endgame: %i\n", is_endgame(board));
 
-  printf("White king safety: %i\n", king_safety(board, __builtin_ctzll(board->pieces[KINGS]&board->colour[WHITE]), WHITE));
-  printf("Black king safety: %i\n", -king_safety(board, __builtin_ctzll(board->pieces[KINGS]&board->colour[BLACK]), BLACK));
+  printf("White king safety: %i\n", king_safety(board, WHITE));
+  printf("Black king safety: %i\n", -king_safety(board, BLACK));
 
   printf("Eval: %i\n", evaluate(board));
 

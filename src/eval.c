@@ -169,15 +169,33 @@ const int knight_outpost_value = 20;
 const int knight_open_value[9] = {0, 0, 0, 2, 4, 6, 8, 10, 12};
 const int bishop_open_value[9] = {12, 10, 8, 6, 4, 2, 0, 0, 0};
 const int rook_open_value[9]   = {12, 10, 8, 6, 4, 2, 0, 0, 0};
+    
+int get_phase(const int num_knights, const int num_bishops, const int num_rooks, const int num_queens)
+{
+  const int knight_phase = 1;
+  const int bishop_phase = 1;
+  const int rook_phase   = 2;
+  const int queen_phase  = 4;
 
-int king_safety(s_board *board, int sq, int side)
+  const int total_phase = knight_phase*4 + bishop_phase*4 + rook_phase*4 + queen_phase*2;
+
+  int phase = total_phase;
+
+  phase -= knight_phase * num_knights;
+  phase -= bishop_phase * num_bishops;
+  phase -= rook_phase   * num_rooks;
+  phase -= queen_phase  * num_queens;
+
+  return (phase * 256 + (total_phase / 2)) / total_phase;
+}
+
+int king_safety(s_board *board, int side)
 {
   assert(board != NULL);
-  assert(sq >= 0);
-  assert(sq < 64);
   assert(side == WHITE || side == BLACK);
 
   int eval = 0;
+  int sq = __builtin_ctzll(board->pieces[KINGS] & board->colour[side]);
   const uint64_t surrounding = magic_moves_king(sq);
 
   // Positive: Nearby friendly pieces
@@ -279,6 +297,13 @@ int piece_value(int piece)
   return piece_values[piece];
 }
 
+int dist(const int sq_1, const int sq_2)
+{
+  int file_dif = abs(SQ_TO_FILE(sq_1) - SQ_TO_FILE(sq_2));
+  int rank_dif = abs(SQ_TO_RANK(sq_1) - SQ_TO_RANK(sq_2));
+  return (file_dif >= rank_dif) ? file_dif : rank_dif;
+}
+
 int pst_value(int piece, int sq, int endgame)
 {
   assert(sq >= 0);
@@ -322,8 +347,7 @@ int is_threefold(s_board *board)
 
   int lim = (board->num_halfmoves+1 < board->history_size) ? board->num_halfmoves+1 : board->history_size;
 
-  int i;
-  for(i = 1; i <= lim; ++i)
+  for(int i = 1; i <= lim; ++i)
   {
     assert(board->history_size-i >= 0);
 
@@ -370,6 +394,34 @@ int evaluate(s_board *board)
 
   int score = 0;
 
+  // Piece counts
+  const int num_wP = __builtin_popcountll(board->colour[WHITE] & board->pieces[PAWNS]);
+  const int num_wN = __builtin_popcountll(board->colour[WHITE] & board->pieces[KNIGHTS]);
+  const int num_wB = __builtin_popcountll(board->colour[WHITE] & board->pieces[BISHOPS]);
+  const int num_wR = __builtin_popcountll(board->colour[WHITE] & board->pieces[ROOKS]);
+  const int num_wQ = __builtin_popcountll(board->colour[WHITE] & board->pieces[QUEENS]);
+
+  const int num_bP = __builtin_popcountll(board->colour[BLACK] & board->pieces[PAWNS]);
+  const int num_bN = __builtin_popcountll(board->colour[BLACK] & board->pieces[KNIGHTS]);
+  const int num_bB = __builtin_popcountll(board->colour[BLACK] & board->pieces[BISHOPS]);
+  const int num_bR = __builtin_popcountll(board->colour[BLACK] & board->pieces[ROOKS]);
+  const int num_bQ = __builtin_popcountll(board->colour[BLACK] & board->pieces[QUEENS]);
+
+  // Piece values
+  int white_pieces = num_wP*piece_values[PAWNS]   +
+                     num_wN*piece_values[KNIGHTS] +
+                     num_wB*piece_values[BISHOPS] +
+                     num_wR*piece_values[ROOKS]   +
+                     num_wQ*piece_values[QUEENS];
+
+  int black_pieces = num_bP*piece_values[PAWNS]   +
+                     num_bN*piece_values[KNIGHTS] +
+                     num_bB*piece_values[BISHOPS] +
+                     num_bR*piece_values[ROOKS]   +
+                     num_bQ*piece_values[QUEENS];
+
+  score += white_pieces - black_pieces;
+
   // Side to move
   if(board->turn == WHITE)
   {
@@ -381,16 +433,14 @@ int evaluate(s_board *board)
   }
 
   // Piece pairs
-  if((board->pieces[BISHOPS] & board->colour[WHITE]) & ((board->pieces[BISHOPS] & board->colour[WHITE])-1)) {score += bishop_pair_value;}
-  if((board->pieces[BISHOPS] & board->colour[BLACK]) & ((board->pieces[BISHOPS] & board->colour[BLACK])-1)) {score -= bishop_pair_value;}
-  if((board->pieces[KNIGHTS] & board->colour[WHITE]) & ((board->pieces[KNIGHTS] & board->colour[WHITE])-1)) {score += knight_pair_value;}
-  if((board->pieces[KNIGHTS] & board->colour[BLACK]) & ((board->pieces[KNIGHTS] & board->colour[BLACK])-1)) {score -= knight_pair_value;}
+  if(num_wB >= 2) {score += bishop_pair_value;}
+  if(num_bB >= 2) {score -= bishop_pair_value;}
+  if(num_wN >= 2) {score += knight_pair_value;}
+  if(num_bN >= 2) {score -= knight_pair_value;}
 
-  int colour;
-  for(colour = WHITE; colour <= BLACK; ++colour)
+  for(int colour = WHITE; colour <= BLACK; ++colour)
   {
-    int i;
-    for(i = 0; i <= 7; ++i)
+    for(int i = 0; i <= 7; ++i)
     {
       uint64_t file;
 
@@ -498,14 +548,13 @@ int evaluate(s_board *board)
         #endif
 
         #ifdef PAWN_CHAINS
-        if(board->colour[WHITE] & board->pieces[PAWNS] & magic_moves_pawns(BLACK, sq))
-        {
-          score += pawn_chain_value;
-        }
+          if(board->colour[WHITE] & board->pieces[PAWNS] & magic_moves_pawns(BLACK, sq))
+          {
+            score += pawn_chain_value;
+          }
         #endif
       }
 
-      score += piece_values[piece_type];
       #ifdef TAPERED_EVAL
         opening_score += piece_location_bonus[0][piece_type][sq];
         endgame_score += piece_location_bonus[1][piece_type][sq];
@@ -554,14 +603,13 @@ int evaluate(s_board *board)
         #endif
 
         #ifdef PAWN_CHAINS
-        if(board->colour[BLACK] & board->pieces[PAWNS] & magic_moves_pawns(WHITE, sq))
-        {
-          score -= pawn_chain_value;
-        }
+          if(board->colour[BLACK] & board->pieces[PAWNS] & magic_moves_pawns(WHITE, sq))
+          {
+            score -= pawn_chain_value;
+          }
         #endif
       }
 
-      score -= piece_values[piece_type];
       #ifdef TAPERED_EVAL
         opening_score -= piece_location_bonus[0][piece_type][sq^56];
         endgame_score -= piece_location_bonus[1][piece_type][sq^56];
@@ -619,56 +667,25 @@ int evaluate(s_board *board)
 
   #ifdef PIECE_OPEN_SCALING
     // White
-    const int num_white_pawns   = __builtin_popcountll(board->colour[WHITE] & board->pieces[PAWNS]);
-    const int num_white_knights = __builtin_popcountll(board->colour[WHITE] & board->pieces[KNIGHTS]);
-    const int num_white_bishops = __builtin_popcountll(board->colour[WHITE] & board->pieces[BISHOPS]);
-    const int num_white_rooks   = __builtin_popcountll(board->colour[WHITE] & board->pieces[ROOKS]);
-
-    score += num_white_knights*bishop_open_value[num_white_pawns];
-    score += num_white_bishops*bishop_open_value[num_white_pawns];
-    score += num_white_rooks*bishop_open_value[num_white_pawns];
+    score += num_wN*bishop_open_value[num_wP];
+    score += num_wB*bishop_open_value[num_wP];
+    score += num_wR*bishop_open_value[num_wP];
 
     // Black
-    const int num_black_pawns   = __builtin_popcountll(board->colour[BLACK] & board->pieces[PAWNS]);
-    const int num_black_knights = __builtin_popcountll(board->colour[BLACK] & board->pieces[KNIGHTS]);
-    const int num_black_bishops = __builtin_popcountll(board->colour[BLACK] & board->pieces[BISHOPS]);
-    const int num_black_rooks   = __builtin_popcountll(board->colour[BLACK] & board->pieces[ROOKS]);
-
-    score -= num_black_knights*bishop_open_value[num_black_pawns];
-    score -= num_black_bishops*bishop_open_value[num_black_pawns];
-    score -= num_black_rooks*bishop_open_value[num_black_pawns];
+    score -= num_bN*bishop_open_value[num_bP];
+    score -= num_bB*bishop_open_value[num_bP];
+    score -= num_bR*bishop_open_value[num_bP];
   #endif
 
   #ifdef TAPERED_EVAL
-    int knight_phase = 1;
-    int bishop_phase = 1;
-    int rook_phase   = 2;
-    int queen_phase  = 4;
-
-    int total_phase = knight_phase*4 + bishop_phase*4 + rook_phase*4 + queen_phase*2;
-
-    int phase = total_phase;
-
-    phase -= knight_phase * __builtin_popcountll(board->pieces[KNIGHTS]);
-    phase -= bishop_phase * __builtin_popcountll(board->pieces[BISHOPS]);
-    phase -= rook_phase   * __builtin_popcountll(board->pieces[ROOKS]);
-    phase -= queen_phase  * __builtin_popcountll(board->pieces[QUEENS]);
-
-    phase = (phase * 256 + (total_phase / 2)) / total_phase;
-
+    int phase = get_phase(num_wN + num_bN, num_wB + num_bB, num_wR + num_bR, num_wQ + num_bQ);
     score += ((opening_score * (256 - phase)) + (endgame_score * phase)) / 256;
   #endif
 
-  // White King
-  sq = __builtin_ctzll(board->pieces[KINGS]&board->colour[WHITE]);
   #ifdef KING_SAFETY
-    score += king_safety(board, sq, WHITE);
-  #endif
-
-  // Black King
-  sq = __builtin_ctzll(board->pieces[KINGS]&board->colour[BLACK]);
-  #ifdef KING_SAFETY
-    score -= king_safety(board, sq, BLACK);
+    // White King
+    score += king_safety(board, WHITE);
+    score -= king_safety(board, BLACK);
   #endif
 
   // Piece mobility
@@ -677,12 +694,10 @@ int evaluate(s_board *board)
     score -= piece_mobility(board, BLACK);
   #endif
 
-  if(board->turn == WHITE)
+  if(board->turn == BLACK)
   {
-    return score;
+    score = -score;
   }
-  else
-  {
-    return -score;
-  }
+
+  return score;
 }
