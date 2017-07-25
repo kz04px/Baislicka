@@ -13,6 +13,15 @@ typedef struct
 typedef struct
 {
   int ply;
+  int null_move;
+  s_pv pv;
+  #if defined(KILLER_MOVES) || defined(KILLER_MOVES_2)
+    s_move killer_move;
+  #endif
+} s_stack;
+
+typedef struct
+{
   int seldepth;
   clock_t time_start;
   uint64_t nodes;
@@ -46,8 +55,6 @@ int search_settings_set(s_search_settings settings);
 int store_irreversible(s_irreversible *info, s_board *board);
 int restore_irreversible(s_irreversible *info, s_board *board);
 void *search_root(void *n);
-int alpha_beta(s_board *board, s_search_info *info, int alpha, int beta, int depth, int null_move, s_pv *pv);
-int pvSearch(s_board *board, s_search_info *info, int alpha, int beta, int depth, int null_move, s_pv *pv);
-int killers_clear();
+int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int beta, int depth);
 
 #endif

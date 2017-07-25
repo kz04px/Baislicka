@@ -57,7 +57,6 @@ void uci_listen()
       else if(strncmp(part, "ucinewgame", 10) == 0)
       {
         hashtable_clear(hashtable);
-        killers_clear();
         set_fen(board, "startpos");
         break;
       }
