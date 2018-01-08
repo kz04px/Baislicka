@@ -5,6 +5,7 @@
 #include "move.h"
 #include "eval.h"
 #include <assert.h>
+#include <limits.h>
 
 int find_moves_pawn_ep(s_board *board, s_move *move_list)
 {

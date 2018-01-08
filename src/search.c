@@ -7,6 +7,7 @@
 #include "eval.h"
 #include "hashtable.h"
 #include <assert.h>
+#include <limits.h>
 
 #define R 2
 

@@ -4,7 +4,7 @@ RELEASE_FLAGS = $(FLAGS) -O3 -DNDEBUG
 DEBUG_FLAGS   = $(FLAGS) -g -gdwarf-2 -Wall -Wextra
 
 LINKER  = gcc
-LFLAGS  = 
+LFLAGS  = -pthread
 
 EXEC    = baislicka
 SRCDIR  = src
