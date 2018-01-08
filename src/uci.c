@@ -7,6 +7,7 @@
 #include "perft.h"
 #include <string.h>
 #include <pthread.h>
+#include <time.h>
 
 void uci_listen()
 {
@@ -190,8 +191,11 @@ void uci_listen()
 
         for(int d = 1; d <= depth; ++d)
         {
+          clock_t start = clock();
           nodes = perft_search(board, d);
-          printf("info depth %i nodes %" PRIu64 "\n", d, nodes);
+          clock_t end = clock();
+          clock_t time_taken = 1000*(end-start)/CLOCKS_PER_SEC;
+          printf("info depth %i nodes %" PRIu64 " time %i\n", d, nodes, (int)time_taken);
         }
         printf("nodes %" PRIu64 "\n", nodes);
       }
