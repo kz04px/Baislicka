@@ -1,6 +1,6 @@
 CXX           = gcc
 FLAGS         = -Wall -Wextra -static -pthread
-RELEASE_FLAGS = $(FLAGS) -O3 -DNDEBUG
+RELEASE_FLAGS = $(FLAGS) -O3 -DNDEBUG -flto
 DEBUG_FLAGS   = $(FLAGS) -g -gdwarf-2 -Wall -Wextra
 
 LINKER  = gcc
