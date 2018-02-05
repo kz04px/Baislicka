@@ -713,19 +713,19 @@ int move_to_string(char *string, s_move *move)
     {
       case QUEEN_PROMO:
       case QUEEN_PROMO_CAPTURE:
-        string[4] = 'Q';
+        string[4] = 'q';
         break;
       case ROOK_PROMO:
       case ROOK_PROMO_CAPTURE:
-        string[4] = 'R';
+        string[4] = 'r';
         break;
       case BISHOP_PROMO:
       case BISHOP_PROMO_CAPTURE:
-        string[4] = 'B';
+        string[4] = 'b';
         break;
       case KNIGHT_PROMO:
       case KNIGHT_PROMO_CAPTURE:
-        string[4] = 'N';
+        string[4] = 'n';
         break;
     }
     string[5] = '\0';
