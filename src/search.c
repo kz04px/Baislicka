@@ -28,6 +28,8 @@ int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int
     assert(beta >= alpha);
     assert(depth >= 0);
 
+    stack->pv.num_moves = 0;
+
     // Evaluate draws
     if(is_threefold(board) || is_fifty_move_draw(board))
     {
