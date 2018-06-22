@@ -103,8 +103,8 @@ void* search_root(void *n)
 
         total_time += time_spent;
 
-        // Ignore the result if we ran out of time
-        if(total_time >= info.time_max)
+        // Ignore the result if we had to stop
+        if(total_time >= info.time_max || *info.stop != 0)
         {
             break;
         }
