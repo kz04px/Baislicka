@@ -86,9 +86,9 @@ int qsearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int 
 
         if(score >= beta)
         {
-    #ifndef NDEBUG
+#ifndef NDEBUG
             info->num_cutoffs[m]++;
-    #endif
+#endif
         return beta;
         }
 

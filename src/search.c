@@ -134,11 +134,11 @@ int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int
             }
         }
     }
-    #endif
+#endif
 
     int pvnode = (beta - alpha > 1);
 
-    #ifdef FUTILITY_PRUNING
+#ifdef FUTILITY_PRUNING
     if(!pvnode && stack->null_move && depth == 1 && !in_check && !is_endgame(board))
     {
         int static_eval = evaluate(board);
@@ -157,7 +157,7 @@ int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int
         }
         */
     }
-    #endif
+#endif
 
     // Set old permissions
     s_irreversible permissions;
