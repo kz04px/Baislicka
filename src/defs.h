@@ -8,7 +8,7 @@
 #define ENGINE_VERSION "1.0"
 #define ENGINE_AUTHOR "kz04px"
 #define MAX_MOVES 256
-#define MAX_DEPTH 64
+#define MAX_DEPTH 128
 #define SQ_TO_FILE(x) (x%8)
 #define SQ_TO_RANK(x) (x/8)
 #define SQ_TO_FILE_CHAR(x) (SQ_TO_FILE(x)+'a')
