@@ -13,7 +13,6 @@
 #define SQ_TO_RANK(x) (x/8)
 #define SQ_TO_FILE_CHAR(x) (SQ_TO_FILE(x)+'a')
 #define SQ_TO_RANK_CHAR(x) (SQ_TO_RANK(x)+'1')
-#define GUI_Send(...); printf(__VA_ARGS__); fflush(stdout);
 #define INF 1000000
 #define CONTEMPT_VALUE 0
 #define HASHTABLE_SIZE_DEFAULT 128

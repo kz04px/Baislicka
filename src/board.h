@@ -1,9 +1,8 @@
 #ifndef BOARD_H_INCLUDED
 #define BOARD_H_INCLUDED
 
-#include "defs.h"
-
 #include <inttypes.h>
+#include "defs.h"
 
 #define HISTORY_SIZE_MAX 1024
 
@@ -118,31 +117,31 @@ enum {PAWNS, KNIGHTS, BISHOPS, ROOKS, QUEENS, KINGS, EMPTY};
 
 typedef struct
 {
-  int turn;
-  uint8_t castling;
-  uint8_t ep;
-  uint64_t pieces[6];
-  uint64_t colour[2];
-  #ifdef HASHTABLE
+    int turn;
+    uint8_t castling;
+    uint8_t ep;
+    uint64_t pieces[6];
+    uint64_t colour[2];
+#ifdef HASHTABLE
     uint64_t key;
-  #endif
-  uint8_t num_halfmoves;
-  int history_size;
-  uint64_t key_history[HISTORY_SIZE_MAX];
-  #ifdef QUIET_SORT_HISTORY_HEURISTIC
+#endif
+    uint8_t num_halfmoves;
+    int history_size;
+    uint64_t key_history[HISTORY_SIZE_MAX];
+#ifdef QUIET_SORT_HISTORY_HEURISTIC
     unsigned int hh_score[64][64];
     unsigned int bf_score[64][64];
-  #endif
+#endif
 } s_board;
 
 typedef struct
 {
-  #ifdef HASHTABLE
+#ifdef HASHTABLE
     uint64_t key;
-  #endif
-  uint8_t num_halfmoves;
-  uint8_t ep;
-  uint8_t castling;
+#endif
+    uint8_t num_halfmoves;
+    uint8_t ep;
+    uint8_t castling;
 } s_irreversible;
 
 void reset_hh_bf(s_board *board);

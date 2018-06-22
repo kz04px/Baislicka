@@ -8,21 +8,21 @@ enum {GEN_HASHMOVE, GEN_CAPTURES, GEN_QUIETS};
 
 typedef struct
 {
-  int stage;
-  int move_num;
-  int num_moves;
-  int capture_piece;
-  #ifdef HASHTABLE
+    int stage;
+    int move_num;
+    int num_moves;
+    int capture_piece;
+#ifdef HASHTABLE
     s_move hash_move;
-  #endif
-  #ifdef KILLER_MOVES
+#endif
+#ifdef KILLER_MOVES
     s_move killer_move;
-  #endif
-  #ifdef KILLER_MOVES_2
+#endif
+#ifdef KILLER_MOVES_2
     s_move killer_move_2;
-  #endif
-  s_move moves[MAX_MOVES];
-  int scores[MAX_MOVES];
+#endif
+    s_move moves[MAX_MOVES];
+    int scores[MAX_MOVES];
 } s_move_generator;
 
 int next_move(s_board *board, s_move_generator *generator, s_move *move);

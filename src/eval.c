@@ -1,8 +1,8 @@
+#include <assert.h>
 #include "defs.h"
 #include "bitboards.h"
 #include "eval.h"
 #include "attack.h"
-#include <assert.h>
 
 const int piece_location_bonus[2][6][64] = {{
 {
@@ -172,488 +172,486 @@ const int rook_open_value[9]   = {12, 10, 8, 6, 4, 2, 0, 0, 0};
     
 int get_phase(const int num_knights, const int num_bishops, const int num_rooks, const int num_queens)
 {
-  const int knight_phase = 1;
-  const int bishop_phase = 1;
-  const int rook_phase   = 2;
-  const int queen_phase  = 4;
+    const int knight_phase = 1;
+    const int bishop_phase = 1;
+    const int rook_phase   = 2;
+    const int queen_phase  = 4;
 
-  const int total_phase = knight_phase*4 + bishop_phase*4 + rook_phase*4 + queen_phase*2;
+    const int total_phase = knight_phase*4 + bishop_phase*4 + rook_phase*4 + queen_phase*2;
 
-  int phase = total_phase;
+    int phase = total_phase;
 
-  phase -= knight_phase * num_knights;
-  phase -= bishop_phase * num_bishops;
-  phase -= rook_phase   * num_rooks;
-  phase -= queen_phase  * num_queens;
+    phase -= knight_phase * num_knights;
+    phase -= bishop_phase * num_bishops;
+    phase -= rook_phase   * num_rooks;
+    phase -= queen_phase  * num_queens;
 
-  return (phase * 256 + (total_phase / 2)) / total_phase;
+    return (phase * 256 + (total_phase / 2)) / total_phase;
 }
 
 int king_safety(s_board *board, int side)
 {
-  assert(board != NULL);
-  assert(side == WHITE || side == BLACK);
+    assert(board != NULL);
+    assert(side == WHITE || side == BLACK);
 
-  int eval = 0;
-  int sq = __builtin_ctzll(board->pieces[KINGS] & board->colour[side]);
-  const uint64_t surrounding = magic_moves_king(sq);
+    int eval = 0;
+    int sq = __builtin_ctzll(board->pieces[KINGS] & board->colour[side]);
+    const uint64_t surrounding = magic_moves_king(sq);
 
-  // Positive: Nearby friendly pieces
-  eval += 5*__builtin_popcountll(surrounding & board->colour[side]);
+    // Positive: Nearby friendly pieces
+    eval += 5*__builtin_popcountll(surrounding & board->colour[side]);
 
-  // Negative: Nearby enemy pieces
-  //eval -= 5*__builtin_popcountll(surrounding & board->colour[!side]);
+    // Negative: Nearby enemy pieces
+    //eval -= 5*__builtin_popcountll(surrounding & board->colour[!side]);
 
-  /*
-  // Positive: Friendly rooks and queens on the same lines
-  eval += 5*__builtin_popcountll(magic_moves_rook(0ULL, sq) & (board->colour[side] & (board->pieces[ROOKS] | board->pieces[QUEENS])));
+    /*
+    // Positive: Friendly rooks and queens on the same lines
+    eval += 5*__builtin_popcountll(magic_moves_rook(0ULL, sq) & (board->colour[side] & (board->pieces[ROOKS] | board->pieces[QUEENS])));
 
-  // Negative: Enemy rooks and queens on the same lines
-  eval -= 5*__builtin_popcountll(magic_moves_rook(0ULL, sq) & (board->colour[!side] & (board->pieces[ROOKS] | board->pieces[QUEENS])));
-  */
+    // Negative: Enemy rooks and queens on the same lines
+    eval -= 5*__builtin_popcountll(magic_moves_rook(0ULL, sq) & (board->colour[!side] & (board->pieces[ROOKS] | board->pieces[QUEENS])));
+    */
 
-  // Positive: Defending nearby squares
-  /*
-  int count = 0;
-  uint64_t copy = surrounding;
-  while(copy)
-  {
-    uint64_t pos = copy & ~(copy-1);
+    // Positive: Defending nearby squares
+    /*
+    int count = 0;
+    uint64_t copy = surrounding;
+    while(copy)
+    {
+        uint64_t pos = copy & ~(copy-1);
 
-    count += count_attackers(board, pos, side);
+        count += count_attackers(board, pos, side);
 
-    copy ^= pos;
-  }
-  eval += king_safety_table[count];
-  */
+        copy ^= pos;
+    }
+    eval += king_safety_table[count];
+    */
 
-  // Negative: Opponent attacking nearby squares
-  /*
-  int count = 0;
-  uint64_t copy = surrounding;
-  while(copy)
-  {
-    uint64_t pos = copy & ~(copy-1);
+    // Negative: Opponent attacking nearby squares
+    /*
+    int count = 0;
+    uint64_t copy = surrounding;
+    while(copy)
+    {
+        uint64_t pos = copy & ~(copy-1);
 
-    count += count_attackers(board, pos, !side);
+        count += count_attackers(board, pos, !side);
 
-    copy ^= pos;
-  }
-  eval -= king_safety_table[count];
-  */
+        copy ^= pos;
+    }
+    eval -= king_safety_table[count];
+    */
 
-  return eval;
+    return eval;
 }
 
 int piece_mobility(s_board *board, int side)
 {
-  assert(board);
-  assert(side == WHITE || side == BLACK);
+    assert(board);
+    assert(side == WHITE || side == BLACK);
 
-  uint64_t moves = 0;
-  uint64_t copy = 0;
-  uint64_t allowed = ~board->colour[side];
-  int from = 0;
+    uint64_t moves = 0;
+    uint64_t copy = 0;
+    uint64_t allowed = ~board->colour[side];
+    int from = 0;
 
-  // Knights
-  copy = board->pieces[KNIGHTS] & board->colour[side];
-  while(copy)
-  {
-    from = __builtin_ctzll(copy);
-    moves |= magic_moves_knight(from) & allowed;
+    // Knights
+    copy = board->pieces[KNIGHTS] & board->colour[side];
+    while(copy)
+    {
+        from = __builtin_ctzll(copy);
+        moves |= magic_moves_knight(from) & allowed;
 
-    copy &= copy-1;
-  }
+        copy &= copy-1;
+    }
 
-  // Bishops & Queens
-  copy = (board->pieces[BISHOPS] | board->pieces[QUEENS]) & board->colour[side];
-  while(copy)
-  {
-    from = __builtin_ctzll(copy);
-    moves |= magic_moves_bishop((board->colour[WHITE]|board->colour[BLACK]), from) & allowed;
+    // Bishops & Queens
+    copy = (board->pieces[BISHOPS] | board->pieces[QUEENS]) & board->colour[side];
+    while(copy)
+    {
+        from = __builtin_ctzll(copy);
+        moves |= magic_moves_bishop((board->colour[WHITE]|board->colour[BLACK]), from) & allowed;
 
-    copy &= copy-1;
-  }
+        copy &= copy-1;
+    }
 
-  // Rooks & Queens
-  copy = (board->pieces[ROOKS] | board->pieces[QUEENS]) & board->colour[side];
-  while(copy)
-  {
-    from = __builtin_ctzll(copy);
-    moves |= magic_moves_rook((board->colour[WHITE]|board->colour[BLACK]), from) & allowed;
+    // Rooks & Queens
+    copy = (board->pieces[ROOKS] | board->pieces[QUEENS]) & board->colour[side];
+    while(copy)
+    {
+        from = __builtin_ctzll(copy);
+        moves |= magic_moves_rook((board->colour[WHITE]|board->colour[BLACK]), from) & allowed;
 
-    copy &= copy-1;
-  }
+        copy &= copy-1;
+    }
 
-  int count = __builtin_popcountll(moves);
+    int count = __builtin_popcountll(moves);
 
-  return 4*count;
+    return 4*count;
 }
 
 int piece_value(int piece)
 {
-  assert(PAWNS <= piece);
-  assert(piece <= KINGS);
-  return piece_values[piece];
+    assert(PAWNS <= piece);
+    assert(piece <= KINGS);
+    return piece_values[piece];
 }
 
 int dist(const int sq_1, const int sq_2)
 {
-  int file_dif = abs(SQ_TO_FILE(sq_1) - SQ_TO_FILE(sq_2));
-  int rank_dif = abs(SQ_TO_RANK(sq_1) - SQ_TO_RANK(sq_2));
-  return (file_dif >= rank_dif) ? file_dif : rank_dif;
+    int file_dif = abs(SQ_TO_FILE(sq_1) - SQ_TO_FILE(sq_2));
+    int rank_dif = abs(SQ_TO_RANK(sq_1) - SQ_TO_RANK(sq_2));
+    return (file_dif >= rank_dif) ? file_dif : rank_dif;
 }
 
 int pst_value(int piece, int sq, int endgame)
 {
-  assert(sq >= 0);
-  assert(sq < 64);
-  assert(piece >= 0);
-  assert(piece < 6);
+    assert(sq >= 0);
+    assert(sq < 64);
+    assert(piece >= 0);
+    assert(piece < 6);
 
-  return piece_location_bonus[endgame][piece][sq];
+    return piece_location_bonus[endgame][piece][sq];
 }
 
 int is_endgame(s_board *board)
 {
-  assert(board != NULL);
+    assert(board != NULL);
 
-  // "side to move has three or less non-pawn pieces including king"
-  return __builtin_popcountll(board->colour[board->turn] & (board->pieces[KNIGHTS] | board->pieces[BISHOPS] | board->pieces[ROOKS] | board->pieces[QUEENS])) <= 2;
+    // "side to move has three or less non-pawn pieces including king"
+    return __builtin_popcountll(board->colour[board->turn] & (board->pieces[KNIGHTS] | board->pieces[BISHOPS] | board->pieces[ROOKS] | board->pieces[QUEENS])) <= 2;
 }
 
 int is_fifty_move_draw(s_board *board)
 {
-  assert(board != NULL);
+    assert(board != NULL);
 
-  if(board->num_halfmoves >= 100)
-  {
-    return 1;
-  }
+    if(board->num_halfmoves >= 100)
+    {
+        return 1;
+    }
 
-  return 0;
+    return 0;
 }
 
 int is_threefold(s_board *board)
 {
-  assert(board != NULL);
+    assert(board != NULL);
 
-  if(board->num_halfmoves < 8)
-  {
-    return 0;
-  }
-
-  int repeats = 0;
-
-  int lim = (board->num_halfmoves+1 < board->history_size) ? board->num_halfmoves+1 : board->history_size;
-
-  for(int i = 1; i <= lim; ++i)
-  {
-    assert(board->history_size-i >= 0);
-
-    if(board->key_history[board->history_size-i] == board->key)
+    if(board->num_halfmoves < 8)
     {
-      repeats++;
-
-      if(repeats >= 3)
-      {
-        return 1;
-      }
+        return 0;
     }
-  }
-  return 0;
+
+    int repeats = 0;
+    int lim = (board->num_halfmoves+1 < board->history_size) ? board->num_halfmoves+1 : board->history_size;
+
+    for(int i = 1; i <= lim; ++i)
+    {
+        assert(board->history_size-i >= 0);
+
+        if(board->key_history[board->history_size-i] == board->key)
+        {
+            repeats++;
+
+            if(repeats >= 3)
+            {
+                return 1;
+            }
+        }
+    }
+    return 0;
 }
 
 int insufficient_material(s_board *board)
 {
-  assert(board != NULL);
+    assert(board != NULL);
 
-  // KP
-  if(board->pieces[PAWNS])  {return 0;}
-  // KQ
-  if(board->pieces[QUEENS]) {return 0;}
-  // KR
-  if(board->pieces[ROOKS])  {return 0;}
-  // KNB
-  if(board->colour[WHITE]&board->pieces[KNIGHTS] && board->colour[WHITE]&board->pieces[BISHOPS]) {return 0;}
-  if(board->colour[BLACK]&board->pieces[KNIGHTS] && board->colour[BLACK]&board->pieces[BISHOPS]) {return 0;}
+    // KP
+    if(board->pieces[PAWNS])  {return 0;}
+    // KQ
+    if(board->pieces[QUEENS]) {return 0;}
+    // KR
+    if(board->pieces[ROOKS])  {return 0;}
+    // KNB
+    if(board->colour[WHITE]&board->pieces[KNIGHTS] && board->colour[WHITE]&board->pieces[BISHOPS]) {return 0;}
+    if(board->colour[BLACK]&board->pieces[KNIGHTS] && board->colour[BLACK]&board->pieces[BISHOPS]) {return 0;}
 
-  return 1;
+    return 1;
 }
 
 int evaluate(s_board *board)
 {
-  int endgame = is_endgame(board);
+    int endgame = is_endgame(board);
 
-  /*
-  if(endgame && insufficient_material(board))
-  {
-    return 0;
-  }
-  */
-
-  int score = 0;
-
-  // Piece counts
-  const int num_wP = __builtin_popcountll(board->colour[WHITE] & board->pieces[PAWNS]);
-  const int num_wN = __builtin_popcountll(board->colour[WHITE] & board->pieces[KNIGHTS]);
-  const int num_wB = __builtin_popcountll(board->colour[WHITE] & board->pieces[BISHOPS]);
-  const int num_wR = __builtin_popcountll(board->colour[WHITE] & board->pieces[ROOKS]);
-  const int num_wQ = __builtin_popcountll(board->colour[WHITE] & board->pieces[QUEENS]);
-
-  const int num_bP = __builtin_popcountll(board->colour[BLACK] & board->pieces[PAWNS]);
-  const int num_bN = __builtin_popcountll(board->colour[BLACK] & board->pieces[KNIGHTS]);
-  const int num_bB = __builtin_popcountll(board->colour[BLACK] & board->pieces[BISHOPS]);
-  const int num_bR = __builtin_popcountll(board->colour[BLACK] & board->pieces[ROOKS]);
-  const int num_bQ = __builtin_popcountll(board->colour[BLACK] & board->pieces[QUEENS]);
-
-  // Piece values
-  int white_pieces = num_wP*piece_values[PAWNS]   +
-                     num_wN*piece_values[KNIGHTS] +
-                     num_wB*piece_values[BISHOPS] +
-                     num_wR*piece_values[ROOKS]   +
-                     num_wQ*piece_values[QUEENS];
-
-  int black_pieces = num_bP*piece_values[PAWNS]   +
-                     num_bN*piece_values[KNIGHTS] +
-                     num_bB*piece_values[BISHOPS] +
-                     num_bR*piece_values[ROOKS]   +
-                     num_bQ*piece_values[QUEENS];
-
-  score += white_pieces - black_pieces;
-
-  // Side to move
-  if(board->turn == WHITE)
-  {
-    score += 10;
-  }
-  else
-  {
-    score -= 10;
-  }
-
-  // Piece pairs
-  if(num_wB >= 2) {score += bishop_pair_value;}
-  if(num_bB >= 2) {score -= bishop_pair_value;}
-  if(num_wN >= 2) {score += knight_pair_value;}
-  if(num_bN >= 2) {score -= knight_pair_value;}
-
-  for(int colour = WHITE; colour <= BLACK; ++colour)
-  {
-    for(int i = 0; i <= 7; ++i)
+    /*
+    if(endgame && insufficient_material(board))
     {
-      uint64_t file;
-
-      // Check if doubled
-      file = get_file(i) & board->colour[colour] & board->pieces[PAWNS];
-      if(file ^ (file & ~(file-1)))
-      {
-        score += doubled_pawn_value * ((colour == WHITE) ? 1 : -1);
-      }
-
-      // Check if isolated
-      if(!(get_adj_files(i) & board->colour[colour] & board->pieces[PAWNS]))
-      {
-        score += isolated_pawn_value * ((colour == WHITE) ? 1 : -1);
-      }
-
-      // Rooks & Queens on open files
-      file = get_file(i) & board->pieces[PAWNS];
-
-      if(!file && (get_file(i) & ((board->pieces[ROOKS] | board->pieces[QUEENS]) & board->colour[colour])))
-      {
-        score += open_file_value * ((colour == WHITE) ? 1 : -1);
-      }
+      return 0;
     }
-  }
+    */
 
-  /*
-  uint64_t white_pawn_blockers = ((board->colour[WHITE] & board->pieces[PAWNS])<<8) & board->colour[WHITE];
-  uint64_t black_pawn_blockers = ((board->colour[BLACK] & board->pieces[PAWNS])>>8) & board->colour[BLACK];
+    int score = 0;
 
-  score -= 10*__builtin_popcountll(white_pawn_blockers);
-  score += 10*__builtin_popcountll(black_pawn_blockers);
-  */
+    // Piece counts
+    const int num_wP = __builtin_popcountll(board->colour[WHITE] & board->pieces[PAWNS]);
+    const int num_wN = __builtin_popcountll(board->colour[WHITE] & board->pieces[KNIGHTS]);
+    const int num_wB = __builtin_popcountll(board->colour[WHITE] & board->pieces[BISHOPS]);
+    const int num_wR = __builtin_popcountll(board->colour[WHITE] & board->pieces[ROOKS]);
+    const int num_wQ = __builtin_popcountll(board->colour[WHITE] & board->pieces[QUEENS]);
 
-  #ifdef PAWN_BLOCKING
+    const int num_bP = __builtin_popcountll(board->colour[BLACK] & board->pieces[PAWNS]);
+    const int num_bN = __builtin_popcountll(board->colour[BLACK] & board->pieces[KNIGHTS]);
+    const int num_bB = __builtin_popcountll(board->colour[BLACK] & board->pieces[BISHOPS]);
+    const int num_bR = __builtin_popcountll(board->colour[BLACK] & board->pieces[ROOKS]);
+    const int num_bQ = __builtin_popcountll(board->colour[BLACK] & board->pieces[QUEENS]);
+
+    // Piece values
+    int white_pieces = num_wP*piece_values[PAWNS]   +
+                       num_wN*piece_values[KNIGHTS] +
+                       num_wB*piece_values[BISHOPS] +
+                       num_wR*piece_values[ROOKS]   +
+                       num_wQ*piece_values[QUEENS];
+
+    int black_pieces = num_bP*piece_values[PAWNS]   +
+                       num_bN*piece_values[KNIGHTS] +
+                       num_bB*piece_values[BISHOPS] +
+                       num_bR*piece_values[ROOKS]   +
+                       num_bQ*piece_values[QUEENS];
+
+    score += white_pieces - black_pieces;
+
+    // Side to move
+    if(board->turn == WHITE)
+    {
+        score += 10;
+    }
+    else
+    {
+        score -= 10;
+    }
+
+    // Piece pairs
+    if(num_wB >= 2) {score += bishop_pair_value;}
+    if(num_bB >= 2) {score -= bishop_pair_value;}
+    if(num_wN >= 2) {score += knight_pair_value;}
+    if(num_bN >= 2) {score -= knight_pair_value;}
+
+    for(int colour = WHITE; colour <= BLACK; ++colour)
+    {
+        for(int i = 0; i <= 7; ++i)
+        {
+            uint64_t file;
+
+            // Check if doubled
+            file = get_file(i) & board->colour[colour] & board->pieces[PAWNS];
+            if(file ^ (file & ~(file-1)))
+            {
+                score += doubled_pawn_value * ((colour == WHITE) ? 1 : -1);
+            }
+
+            // Check if isolated
+            if(!(get_adj_files(i) & board->colour[colour] & board->pieces[PAWNS]))
+            {
+                score += isolated_pawn_value * ((colour == WHITE) ? 1 : -1);
+            }
+
+            // Rooks & Queens on open files
+            file = get_file(i) & board->pieces[PAWNS];
+
+            if(!file && (get_file(i) & ((board->pieces[ROOKS] | board->pieces[QUEENS]) & board->colour[colour])))
+            {
+                score += open_file_value * ((colour == WHITE) ? 1 : -1);
+            }
+        }
+    }
+
+    /*
+    uint64_t white_pawn_blockers = ((board->colour[WHITE] & board->pieces[PAWNS])<<8) & board->colour[WHITE];
+    uint64_t black_pawn_blockers = ((board->colour[BLACK] & board->pieces[PAWNS])>>8) & board->colour[BLACK];
+
+    score -= 10*__builtin_popcountll(white_pawn_blockers);
+    score += 10*__builtin_popcountll(black_pawn_blockers);
+    */
+
+#ifdef PAWN_BLOCKING
     if(U64_D2 & (board->colour[WHITE] & board->pieces[PAWNS]) && U64_D3 & (board->colour[WHITE] & ~board->pieces[PAWNS]))
     {
-      score -= 20;
+        score -= 20;
     }
     if(U64_E2 & (board->colour[WHITE] & board->pieces[PAWNS]) && U64_E3 & (board->colour[WHITE] & ~board->pieces[PAWNS]))
     {
-      score -= 20;
+        score -= 20;
     }
 
     if(U64_D7 & (board->colour[BLACK] & board->pieces[PAWNS]) && U64_D6 & (board->colour[BLACK] & ~board->pieces[PAWNS]))
     {
-      score += 20;
+        score += 20;
     }
     if(U64_E7 & (board->colour[BLACK] & board->pieces[PAWNS]) && U64_E6 & (board->colour[BLACK] & ~board->pieces[PAWNS]))
     {
-      score += 20;
+        score += 20;
     }
-  #endif
+#endif
 
-  // Piece in the middle majority
-  //score += 20*(__builtin_popcountll(U64_CENTER & board->colour[WHITE]) - __builtin_popcountll(U64_CENTER & board->colour[BLACK]));
+    // Piece in the middle majority
+    //score += 20*(__builtin_popcountll(U64_CENTER & board->colour[WHITE]) - __builtin_popcountll(U64_CENTER & board->colour[BLACK]));
 
-  int sq;
+    int sq;
 
-  #ifdef TAPERED_EVAL
+#ifdef TAPERED_EVAL
     int opening_score = 0;
     int endgame_score = 0;
-  #endif
+#endif
 
-  int piece_type;
-  for(piece_type = 0; piece_type < 6; ++piece_type)
-  {
-    uint64_t copy;
-
-    // White
-    copy = board->pieces[piece_type] & board->colour[WHITE];
-    while(copy)
+    for(int piece_type = 0; piece_type < 6; ++piece_type)
     {
-      sq = __builtin_ctzll(copy);
+        uint64_t copy;
 
-      if(piece_type == PAWNS)
-      {
-        #ifdef PASSED_PAWN_EVAL
-          if(is_passed_pawn(WHITE, sq, board->colour[BLACK] & board->pieces[PAWNS]))
-          {
-            const int rank = SQ_TO_RANK(sq);
-            opening_score += passed_pawn_value[rank]>>1;
-            endgame_score += passed_pawn_value[rank];
+        // White
+        copy = board->pieces[piece_type] & board->colour[WHITE];
+        while(copy)
+        {
+            sq = __builtin_ctzll(copy);
 
-            /*
-            // Check if not isolated
-            const int file = SQ_TO_FILE(sq);
-            if(get_adj_files(file) & board->colour[WHITE] & board->pieces[PAWNS])
+            if(piece_type == PAWNS)
             {
-              opening_score += 20;
-              endgame_score += 20;
+#ifdef PASSED_PAWN_EVAL
+                if(is_passed_pawn(WHITE, sq, board->colour[BLACK] & board->pieces[PAWNS]))
+                {
+                  const int rank = SQ_TO_RANK(sq);
+                  opening_score += passed_pawn_value[rank]>>1;
+                  endgame_score += passed_pawn_value[rank];
+
+                  /*
+                  // Check if not isolated
+                  const int file = SQ_TO_FILE(sq);
+                  if(get_adj_files(file) & board->colour[WHITE] & board->pieces[PAWNS])
+                  {
+                    opening_score += 20;
+                    endgame_score += 20;
+                  }
+                  */
+
+                  //opening_score += piece_location_bonus[0][PAWNS][sq];
+                  //endgame_score += piece_location_bonus[1][PAWNS][sq];
+                }
+#endif
+
+#ifdef BACKWARD_PAWN_EVAL
+                if(is_backward_pawn_white(sq, board->pieces[PAWNS]&board->colour[WHITE], board->pieces[PAWNS]&board->colour[BLACK]))
+                {
+                  score += backward_pawn_value;
+                }
+#endif
+
+#ifdef PAWN_CHAINS
+                if(board->colour[WHITE] & board->pieces[PAWNS] & magic_moves_pawns(BLACK, sq))
+                {
+                  score += pawn_chain_value;
+                }
+#endif
             }
-            */
 
-            //opening_score += piece_location_bonus[0][PAWNS][sq];
-            //endgame_score += piece_location_bonus[1][PAWNS][sq];
-          }
-        #endif
+#ifdef TAPERED_EVAL
+              opening_score += piece_location_bonus[0][piece_type][sq];
+              endgame_score += piece_location_bonus[1][piece_type][sq];
+#else
+              score += piece_location_bonus[endgame][piece_type][sq];
+#endif
 
-        #ifdef BACKWARD_PAWN_EVAL
-          if(is_backward_pawn_white(sq, board->pieces[PAWNS]&board->colour[WHITE], board->pieces[PAWNS]&board->colour[BLACK]))
-          {
-            score += backward_pawn_value;
-          }
-        #endif
+            copy &= copy-1;
+        }
 
-        #ifdef PAWN_CHAINS
-          if(board->colour[WHITE] & board->pieces[PAWNS] & magic_moves_pawns(BLACK, sq))
-          {
-            score += pawn_chain_value;
-          }
-        #endif
-      }
+        // Black
+        copy = board->pieces[piece_type] & board->colour[BLACK];
+        while(copy)
+        {
+            sq = __builtin_ctzll(copy);
 
-      #ifdef TAPERED_EVAL
-        opening_score += piece_location_bonus[0][piece_type][sq];
-        endgame_score += piece_location_bonus[1][piece_type][sq];
-      #else
-        score += piece_location_bonus[endgame][piece_type][sq];
-      #endif
+            if(piece_type == PAWNS)
+            {
+#ifdef PASSED_PAWN_EVAL
+                if(is_passed_pawn(BLACK, sq, board->colour[WHITE] & board->pieces[PAWNS]))
+                {
+                  const int rank = 7 - SQ_TO_RANK(sq);
+                  opening_score -= passed_pawn_value[rank]>>1;
+                  endgame_score -= passed_pawn_value[rank];
 
-      copy &= copy-1;
+                  /*
+                  // Check if not isolated
+                  const int file = SQ_TO_FILE(sq);
+                  if(get_adj_files(file) & board->colour[BLACK] & board->pieces[PAWNS])
+                  {
+                    opening_score -= 20;
+                    endgame_score -= 20;
+                  }
+                  */
+
+                  //opening_score -= piece_location_bonus[0][PAWNS][sq^56];
+                  //endgame_score -= piece_location_bonus[1][PAWNS][sq^56];
+                }
+#endif
+
+#ifdef BACKWARD_PAWN_EVAL
+                if(is_backward_pawn_black(sq, board->pieces[PAWNS]&board->colour[BLACK], board->pieces[PAWNS]&board->colour[WHITE]))
+                {
+                  score -= backward_pawn_value;
+                }
+#endif
+
+#ifdef PAWN_CHAINS
+                if(board->colour[BLACK] & board->pieces[PAWNS] & magic_moves_pawns(WHITE, sq))
+                {
+                  score -= pawn_chain_value;
+                }
+#endif
+            }
+
+#ifdef TAPERED_EVAL
+              opening_score -= piece_location_bonus[0][piece_type][sq^56];
+              endgame_score -= piece_location_bonus[1][piece_type][sq^56];
+#else
+              score -= piece_location_bonus[endgame][piece_type][sq^56];
+#endif
+
+            copy &= copy-1;
+        }
     }
 
-    // Black
-    copy = board->pieces[piece_type] & board->colour[BLACK];
-    while(copy)
-    {
-      sq = __builtin_ctzll(copy);
-
-      if(piece_type == PAWNS)
-      {
-        #ifdef PASSED_PAWN_EVAL
-          if(is_passed_pawn(BLACK, sq, board->colour[WHITE] & board->pieces[PAWNS]))
-          {
-            const int rank = 7 - SQ_TO_RANK(sq);
-            opening_score -= passed_pawn_value[rank]>>1;
-            endgame_score -= passed_pawn_value[rank];
-
-            /*
-            // Check if not isolated
-            const int file = SQ_TO_FILE(sq);
-            if(get_adj_files(file) & board->colour[BLACK] & board->pieces[PAWNS])
-            {
-              opening_score -= 20;
-              endgame_score -= 20;
-            }
-            */
-
-            //opening_score -= piece_location_bonus[0][PAWNS][sq^56];
-            //endgame_score -= piece_location_bonus[1][PAWNS][sq^56];
-          }
-        #endif
-
-        #ifdef BACKWARD_PAWN_EVAL
-          if(is_backward_pawn_black(sq, board->pieces[PAWNS]&board->colour[BLACK], board->pieces[PAWNS]&board->colour[WHITE]))
-          {
-            score -= backward_pawn_value;
-          }
-        #endif
-
-        #ifdef PAWN_CHAINS
-          if(board->colour[BLACK] & board->pieces[PAWNS] & magic_moves_pawns(WHITE, sq))
-          {
-            score -= pawn_chain_value;
-          }
-        #endif
-      }
-
-      #ifdef TAPERED_EVAL
-        opening_score -= piece_location_bonus[0][piece_type][sq^56];
-        endgame_score -= piece_location_bonus[1][piece_type][sq^56];
-      #else
-        score -= piece_location_bonus[endgame][piece_type][sq^56];
-      #endif
-
-      copy &= copy-1;
-    }
-  }
-
-  #ifdef KNIGHT_OUTPOSTS
+#ifdef KNIGHT_OUTPOSTS
     // White
     uint64_t white_knights = U64_CENTER & board->colour[WHITE] & board->pieces[KNIGHTS]; // (board->colour[WHITE] & ~board->pieces[PAWNS])
     while(white_knights)
     {
-      sq = __builtin_ctzll(white_knights);
+        sq = __builtin_ctzll(white_knights);
 
-      if(magic_moves_pawns(BLACK, sq) & (board->colour[WHITE] & board->pieces[PAWNS]) &&
-         is_outpost(WHITE, sq, board->colour[BLACK] & board->pieces[PAWNS]))
-      {
-        score += knight_outpost_value;
-      }
+        if(magic_moves_pawns(BLACK, sq) & (board->colour[WHITE] & board->pieces[PAWNS]) &&
+           is_outpost(WHITE, sq, board->colour[BLACK] & board->pieces[PAWNS]))
+        {
+            score += knight_outpost_value;
+        }
 
-      white_knights &= white_knights-1;
+        white_knights &= white_knights-1;
     }
 
     // Black
     uint64_t black_knights = U64_CENTER & board->colour[BLACK] & board->pieces[KNIGHTS];
     while(black_knights)
     {
-      sq = __builtin_ctzll(black_knights);
+        sq = __builtin_ctzll(black_knights);
 
-      if(magic_moves_pawns(WHITE, sq) & (board->colour[BLACK] & board->pieces[PAWNS]) &&
-         is_outpost(BLACK, sq, board->colour[WHITE] & board->pieces[PAWNS]))
-      {
-        score -= knight_outpost_value;
-      }
+        if(magic_moves_pawns(WHITE, sq) & (board->colour[BLACK] & board->pieces[PAWNS]) &&
+           is_outpost(BLACK, sq, board->colour[WHITE] & board->pieces[PAWNS]))
+        {
+            score -= knight_outpost_value;
+        }
 
-      black_knights &= black_knights-1;
+        black_knights &= black_knights-1;
     }
-  #endif
+#endif
 
-  #ifdef PINNED_PIECE_EVAL
+#ifdef PINNED_PIECE_EVAL
     sq = __builtin_ctzll(board->pieces[KINGS] & board->colour[WHITE]);
     uint64_t white_pinned = pinned_pieces_white(board, sq);// & (board->colour[WHITE] & ~board->pieces[PAWNS]);
     assert(__builtin_popcountll(white_pinned) <= 8);
@@ -663,9 +661,9 @@ int evaluate(s_board *board)
     uint64_t black_pinned = pinned_pieces_black(board, sq);// & (board->colour[BLACK] & ~board->pieces[PAWNS]);
     assert(__builtin_popcountll(black_pinned) <= 8);
     score += 20*__builtin_popcountll(black_pinned);
-  #endif
+#endif
 
-  #ifdef PIECE_OPEN_SCALING
+#ifdef PIECE_OPEN_SCALING
     // White
     score += num_wN*bishop_open_value[num_wP];
     score += num_wB*bishop_open_value[num_wP];
@@ -675,29 +673,29 @@ int evaluate(s_board *board)
     score -= num_bN*bishop_open_value[num_bP];
     score -= num_bB*bishop_open_value[num_bP];
     score -= num_bR*bishop_open_value[num_bP];
-  #endif
+#endif
 
-  #ifdef TAPERED_EVAL
+#ifdef TAPERED_EVAL
     int phase = get_phase(num_wN + num_bN, num_wB + num_bB, num_wR + num_bR, num_wQ + num_bQ);
     score += ((opening_score * (256 - phase)) + (endgame_score * phase)) / 256;
-  #endif
+#endif
 
-  #ifdef KING_SAFETY
+#ifdef KING_SAFETY
     // White King
     score += king_safety(board, WHITE);
     score -= king_safety(board, BLACK);
-  #endif
+#endif
 
-  // Piece mobility
-  #ifdef PIECE_MOBILITY
+    // Piece mobility
+#ifdef PIECE_MOBILITY
     score += piece_mobility(board, WHITE);
     score -= piece_mobility(board, BLACK);
-  #endif
+#endif
 
-  if(board->turn == BLACK)
-  {
-    score = -score;
-  }
+    if(board->turn == BLACK)
+    {
+        score = -score;
+    }
 
-  return score;
+    return score;
 }

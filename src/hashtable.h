@@ -10,19 +10,19 @@ enum {EXACT, LOWERBOUND, UPPERBOUND};
 
 typedef struct
 {
-  uint8_t flags;
-  uint64_t key;
-  uint8_t depth;
-  int eval;
-  s_move pv;
+    uint8_t flags;
+    uint64_t key;
+    uint8_t depth;
+    int eval;
+    s_move pv;
 } s_hashtable_entry;
 
 typedef struct
 {
-  s_hashtable_entry *entries;
-  int num_entries;
-  int max_entries;
-  int size_bytes;
+    s_hashtable_entry *entries;
+    int num_entries;
+    int max_entries;
+    int size_bytes;
 } s_hashtable;
 
 s_hashtable *hashtable;

@@ -1,8 +1,8 @@
 #ifndef MOVE_H_INCLUDED
 #define MOVE_H_INCLUDED
 
-#include "board.h"
 #include <inttypes.h>
+#include "board.h"
 
 #define NO_MOVE ((s_move) {0})
 
