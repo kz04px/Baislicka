@@ -112,6 +112,9 @@ void* search_root(void *n)
         // Updates
         pv = stack[0].pv;
 
+        assert(pv.num_moves > 0);
+        assert(pv.num_moves < MAX_DEPTH);
+
         int index = 0;
         move_string[0] = '\0';
         for(int n = 0; n < stack[0].pv.num_moves; ++n)

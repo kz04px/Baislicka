@@ -10,6 +10,11 @@
 
 int qsearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int beta)
 {
+    assert(info != NULL);
+    assert(stack != NULL);
+    assert(board != NULL);
+    assert(alpha < beta);
+
     int stand_pat = evaluate(board);
 
     if(stack->ply > info->seldepth)

@@ -25,8 +25,9 @@ int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int
     assert(info != NULL);
     assert(stack != NULL);
     assert(board != NULL);
-    assert(beta >= alpha);
+    assert(alpha < beta);
     assert(depth >= 0);
+    assert(depth <= MAX_DEPTH);
 
     stack->pv.num_moves = 0;
 
