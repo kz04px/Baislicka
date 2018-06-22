@@ -117,11 +117,11 @@ void* search_root(void *n)
 
         int index = 0;
         move_string[0] = '\0';
-        for(int n = 0; n < stack[0].pv.num_moves; ++n)
+        for(int n = 0; n < pv.num_moves; ++n)
         {
             move_string[index] = ' ';
             index++;
-            index += move_to_string(&move_string[index], &stack[0].pv.moves[n]);
+            index += move_to_string(&move_string[index], &pv.moves[n]);
         }
 
         if(score > INF-MAX_DEPTH)
