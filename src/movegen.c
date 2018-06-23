@@ -479,6 +479,9 @@ int find_moves_all(s_board *board, s_move *move_list, int colour)
     num_moves += find_moves_kings(board, &move_list[num_moves], allowed);
     num_moves += find_moves_kings_castles(board, &move_list[num_moves]);
 
+    assert(num_moves >= 0);
+    assert(num_moves < 256);
+
 #ifndef NDEBUG
     for(int i = 0; i < num_moves; ++i)
     {
