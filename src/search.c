@@ -409,6 +409,16 @@ int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int
         flag = EXACT;
     }
     hashtable_add(hashtable, flag, board->key, depth, eval_to_tt(best_score, stack->ply), best_move);
+
+#ifndef NDEBUG
+    s_hashtable_entry test_entry = *hashtable_poll(hashtable, board->key);
+    assert(test_entry.flags == flag);
+    assert(test_entry.key == board->key);
+    assert(test_entry.depth == depth);
+    assert(eval_from_tt(test_entry.eval, stack->ply) == best_score);
+    assert(test_entry.pv == best_move);
+#endif
+
 #endif
 
     return best_score; // fail-hard
