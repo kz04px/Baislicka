@@ -164,7 +164,7 @@ int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int
     store_irreversible(&permissions, board);
 
 #ifdef NULL_MOVE
-    if(stack->ply > 1 && stack->null_move && !pvnode && depth > 2 && !in_check && !is_endgame(board))
+    if(stack->null_move && !pvnode && depth > 2 && !in_check && !is_endgame(board))
     {
         // Make nullmove
         null_make(board);
