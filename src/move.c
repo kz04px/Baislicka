@@ -20,22 +20,22 @@ const uint8_t castling_perms[64] = {
      7,15,15,15, 5,15,15,13  // 8
 };
 
-int is_same_move(s_move move_1, s_move move_2)
+int is_same_move(const s_move move_1, const s_move move_2)
 {
     return (move_1 == move_2);
 }
 
-int is_no_move(s_move move)
+int is_no_move(const s_move move)
 {
     return is_same_move(move, NO_MOVE);
 }
 
-int is_promo_move(s_move move)
+int is_promo_move(const s_move move)
 {
     return move_get_type(move)&8;
 }
 
-int is_capture_move(s_move move)
+int is_capture_move(const s_move move)
 {
     return move_get_type(move)&4;
 }
@@ -243,7 +243,7 @@ s_move move_add(s_board *board, int from, int to, int type, int piece_type)
     return move;
 }
 
-void move_make(s_board *board, s_move *move)
+void move_make(s_board *board, const s_move *move)
 {
     assert(board != NULL);
     assert(move != NULL);
@@ -491,7 +491,7 @@ void move_make(s_board *board, s_move *move)
     board->turn = 1-(board->turn);
 }
 
-void move_undo(s_board *board, s_move *move)
+void move_undo(s_board *board, const s_move *move)
 {
     assert(board != NULL);
     assert(move != NULL);
@@ -606,7 +606,7 @@ void move_undo(s_board *board, s_move *move)
     assert(board->history_size >= 0);
 }
 
-int move_make_ascii(s_board *board, char *move_string)
+int move_make_ascii(s_board *board, const char *move_string)
 {
   assert(board != NULL);
   assert(move_string != NULL);
@@ -686,7 +686,7 @@ int move_make_ascii(s_board *board, char *move_string)
   return 0;
 }
 
-int move_to_string(char *string, s_move *move)
+int move_to_string(char *string, const s_move *move)
 {
   assert(string != NULL);
   assert(move != NULL);
@@ -728,7 +728,7 @@ int move_to_string(char *string, s_move *move)
   return 4;
 }
 
-int find_move(s_board *board, s_move *move)
+int find_move(s_board *board, const s_move *move)
 {
   assert(board);
   assert(move);
@@ -807,7 +807,7 @@ int find_move(s_board *board, s_move *move)
   return (moves != 0);
 }
 
-int is_legal_move(s_board *board, s_move *move)
+int is_legal_move(s_board *board, const s_move *move)
 {
     assert(board != NULL);
     assert(move != NULL);
@@ -946,7 +946,7 @@ int see(int sq, int side, int captured, uint64_t colours[2], uint64_t pieces[6])
     return value;
 }
 
-int see_capture(s_board *board, s_move move)
+int see_capture(s_board *board, const s_move move)
 {
     uint64_t from_bb = (uint64_t)1<<move_get_from(move);
 
@@ -963,7 +963,7 @@ int see_capture(s_board *board, s_move move)
     return value;
 }
 
-int see_quiet(s_board *board, s_move move)
+int see_quiet(s_board *board, const s_move move)
 {
     uint64_t from_bb = (uint64_t)1<<move_get_from(move);
 
