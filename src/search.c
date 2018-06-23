@@ -357,7 +357,7 @@ int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int
 #endif
 
 #ifdef HASHTABLE
-                hashtable_add(hashtable, LOWERBOUND, board->key, depth, eval_to_tt(score, stack->ply), move);
+                hashtable_add(hashtable, LOWERBOUND, board->key, depth, eval_to_tt(best_score, stack->ply), move);
 #endif
 
 #ifndef NDEBUG
