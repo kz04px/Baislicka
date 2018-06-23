@@ -46,7 +46,7 @@ int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int
     int in_check = square_attacked(board, board->pieces[KINGS]&board->colour[board->turn], !board->turn);
 
     // Check extensions
-    if(in_check)
+    if(in_check && depth < MAX_DEPTH)
     {
         depth++;
     }
