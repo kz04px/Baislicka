@@ -77,30 +77,34 @@ void key_init()
     }
 }
 
-s_hashtable_entry *hashtable_poll(s_hashtable *hashtable, uint64_t key)
+s_hashtable_entry *hashtable_poll(s_hashtable *hashtable, const uint64_t key)
 {
     assert(hashtable != NULL);
 
-    return &hashtable->entries[key%(hashtable->max_entries)];
+    const int index = key%(hashtable->max_entries);
+
+    return &hashtable->entries[index];
 }
 
-s_hashtable_entry *hashtable_add(s_hashtable *hashtable, int flags, uint64_t key, int depth, int eval, s_move pv)
+s_hashtable_entry *hashtable_add(s_hashtable *hashtable, const int flags, const uint64_t key, const int depth, const int eval, const s_move pv)
 {
     assert(hashtable != NULL);
     assert(key != 0);
     assert(depth > 0);
     assert(depth < MAX_DEPTH);
 
-    if(hashtable->entries[key%(hashtable->max_entries)].key == 0)
+    const int index = key%(hashtable->max_entries);
+
+    if(hashtable->entries[index].key == 0)
     {
         hashtable->num_entries++;
     }
 
-    hashtable->entries[key%(hashtable->max_entries)].flags = flags;
-    hashtable->entries[key%(hashtable->max_entries)].key = key;
-    hashtable->entries[key%(hashtable->max_entries)].depth = depth;
-    hashtable->entries[key%(hashtable->max_entries)].eval = eval;
-    hashtable->entries[key%(hashtable->max_entries)].pv = pv;
+    hashtable->entries[index].flags = flags;
+    hashtable->entries[index].key = key;
+    hashtable->entries[index].depth = depth;
+    hashtable->entries[index].eval = eval;
+    hashtable->entries[index].pv = pv;
 
     return NULL;
 }
@@ -164,14 +168,14 @@ void hashtable_free(s_hashtable *hashtable)
     free(hashtable);
 }
 
-int eval_to_tt(int eval, int ply)
+int eval_to_tt(const int eval, const int ply)
 {
     if(eval >  INF-MAX_DEPTH) {return eval + ply;}
     if(eval < -INF+MAX_DEPTH) {return eval - ply;}
     return eval;
 }
 
-int eval_from_tt(int eval, int ply)
+int eval_from_tt(const int eval, const int ply)
 {
     if(eval >  INF-MAX_DEPTH) {return eval - ply;}
     if(eval < -INF+MAX_DEPTH) {return eval + ply;}

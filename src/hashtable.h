@@ -39,9 +39,9 @@ uint64_t create_key_board(s_board *board);
 int hashtable_init(s_hashtable *hashtable, int size_megabytes);
 void hashtable_clear(s_hashtable *hashtable);
 void hashtable_free(s_hashtable *hashtable);
-s_hashtable_entry *hashtable_poll(s_hashtable *hashtable, uint64_t key);
-s_hashtable_entry *hashtable_add(s_hashtable *hashtable, int flags, uint64_t key, int depth, int eval, s_move pv);
-int eval_to_tt(int eval, int ply);
-int eval_from_tt(int eval, int ply);
+s_hashtable_entry *hashtable_poll(s_hashtable *hashtable, const uint64_t key);
+s_hashtable_entry *hashtable_add(s_hashtable *hashtable, const int flags, const uint64_t key, const int depth, const int eval, const s_move pv);
+int eval_to_tt(const int eval, const int ply);
+int eval_from_tt(const int eval, const int ply);
 
 #endif
