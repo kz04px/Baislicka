@@ -91,7 +91,7 @@ s_hashtable_entry *hashtable_add(s_hashtable *hashtable, const int flags, const 
     assert(hashtable != NULL);
     assert(key != 0);
     assert(depth > 0);
-    assert(depth < MAX_DEPTH);
+    assert(depth <= MAX_DEPTH);
 
     const int index = key%(hashtable->max_entries);
 
