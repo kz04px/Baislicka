@@ -114,6 +114,7 @@ void* search_root(void *n)
 
         assert(pv.num_moves > 0);
         assert(pv.num_moves < MAX_DEPTH);
+        assert(legal_pv(board, &pv) != 0);
 
         int index = 0;
         move_string[0] = '\0';
