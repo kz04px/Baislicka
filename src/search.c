@@ -421,5 +421,5 @@ int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int
 
 #endif
 
-    return best_score; // fail-hard
+    return best_score;
 }

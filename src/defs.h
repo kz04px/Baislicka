@@ -56,4 +56,4 @@
 //#define PIECE_OPEN_SCALING
 //#define PINNED_PIECE_EVAL
 
-#endif // DEFS_H_INCLUDED
+#endif
