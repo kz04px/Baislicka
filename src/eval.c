@@ -519,45 +519,45 @@ int evaluate(s_board *board)
 #ifdef PASSED_PAWN_EVAL
                 if(is_passed_pawn(WHITE, sq, board->colour[BLACK] & board->pieces[PAWNS]))
                 {
-                  const int rank = SQ_TO_RANK(sq);
-                  opening_score += passed_pawn_value[rank]>>1;
-                  endgame_score += passed_pawn_value[rank];
+                    const int rank = SQ_TO_RANK(sq);
+                    opening_score += passed_pawn_value[rank]>>1;
+                    endgame_score += passed_pawn_value[rank];
 
-                  /*
-                  // Check if not isolated
-                  const int file = SQ_TO_FILE(sq);
-                  if(get_adj_files(file) & board->colour[WHITE] & board->pieces[PAWNS])
-                  {
-                    opening_score += 20;
-                    endgame_score += 20;
-                  }
-                  */
+                    /*
+                    // Check if not isolated
+                    const int file = SQ_TO_FILE(sq);
+                    if(get_adj_files(file) & board->colour[WHITE] & board->pieces[PAWNS])
+                    {
+                        opening_score += 20;
+                        endgame_score += 20;
+                    }
+                    */
 
-                  //opening_score += piece_location_bonus[0][PAWNS][sq];
-                  //endgame_score += piece_location_bonus[1][PAWNS][sq];
+                    //opening_score += piece_location_bonus[0][PAWNS][sq];
+                    //endgame_score += piece_location_bonus[1][PAWNS][sq];
                 }
 #endif
 
 #ifdef BACKWARD_PAWN_EVAL
                 if(is_backward_pawn_white(sq, board->pieces[PAWNS]&board->colour[WHITE], board->pieces[PAWNS]&board->colour[BLACK]))
                 {
-                  score += backward_pawn_value;
+                    score += backward_pawn_value;
                 }
 #endif
 
 #ifdef PAWN_CHAINS
                 if(board->colour[WHITE] & board->pieces[PAWNS] & magic_moves_pawns(BLACK, sq))
                 {
-                  score += pawn_chain_value;
+                    score += pawn_chain_value;
                 }
 #endif
             }
 
 #ifdef TAPERED_EVAL
-              opening_score += piece_location_bonus[0][piece_type][sq];
-              endgame_score += piece_location_bonus[1][piece_type][sq];
+            opening_score += piece_location_bonus[0][piece_type][sq];
+            endgame_score += piece_location_bonus[1][piece_type][sq];
 #else
-              score += piece_location_bonus[endgame][piece_type][sq];
+            score += piece_location_bonus[endgame][piece_type][sq];
 #endif
 
             copy &= copy-1;
@@ -574,45 +574,45 @@ int evaluate(s_board *board)
 #ifdef PASSED_PAWN_EVAL
                 if(is_passed_pawn(BLACK, sq, board->colour[WHITE] & board->pieces[PAWNS]))
                 {
-                  const int rank = 7 - SQ_TO_RANK(sq);
-                  opening_score -= passed_pawn_value[rank]>>1;
-                  endgame_score -= passed_pawn_value[rank];
+                    const int rank = 7 - SQ_TO_RANK(sq);
+                    opening_score -= passed_pawn_value[rank]>>1;
+                    endgame_score -= passed_pawn_value[rank];
 
-                  /*
-                  // Check if not isolated
-                  const int file = SQ_TO_FILE(sq);
-                  if(get_adj_files(file) & board->colour[BLACK] & board->pieces[PAWNS])
-                  {
+                    /*
+                    // Check if not isolated
+                    const int file = SQ_TO_FILE(sq);
+                    if(get_adj_files(file) & board->colour[BLACK] & board->pieces[PAWNS])
+                    {
                     opening_score -= 20;
                     endgame_score -= 20;
-                  }
-                  */
+                    }
+                    */
 
-                  //opening_score -= piece_location_bonus[0][PAWNS][sq^56];
-                  //endgame_score -= piece_location_bonus[1][PAWNS][sq^56];
+                    //opening_score -= piece_location_bonus[0][PAWNS][sq^56];
+                    //endgame_score -= piece_location_bonus[1][PAWNS][sq^56];
                 }
 #endif
 
 #ifdef BACKWARD_PAWN_EVAL
                 if(is_backward_pawn_black(sq, board->pieces[PAWNS]&board->colour[BLACK], board->pieces[PAWNS]&board->colour[WHITE]))
                 {
-                  score -= backward_pawn_value;
+                    score -= backward_pawn_value;
                 }
 #endif
 
 #ifdef PAWN_CHAINS
                 if(board->colour[BLACK] & board->pieces[PAWNS] & magic_moves_pawns(WHITE, sq))
                 {
-                  score -= pawn_chain_value;
+                    score -= pawn_chain_value;
                 }
 #endif
             }
 
 #ifdef TAPERED_EVAL
-              opening_score -= piece_location_bonus[0][piece_type][sq^56];
-              endgame_score -= piece_location_bonus[1][piece_type][sq^56];
+            opening_score -= piece_location_bonus[0][piece_type][sq^56];
+            endgame_score -= piece_location_bonus[1][piece_type][sq^56];
 #else
-              score -= piece_location_bonus[endgame][piece_type][sq^56];
+            score -= piece_location_bonus[endgame][piece_type][sq^56];
 #endif
 
             copy &= copy-1;
