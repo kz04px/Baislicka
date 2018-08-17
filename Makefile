@@ -15,7 +15,7 @@ SOURCES  := $(wildcard $(SRCDIR)/*.c)
 INCLUDES := $(wildcard $(SRCDIR)/*.h)
 OBJECTS  := $(SOURCES:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
 
-$(BINDIR)/$(EXEC): $(OBJECTS)
+$(BINDIR)/$(EXEC): $(BINDIR) $(OBJDIR) $(OBJECTS)
 	@$(LINKER) -o $@ $(OBJECTS) $(LFLAGS)
 
 $(OBJECTS): $(OBJDIR)/%.o : $(SRCDIR)/%.c
@@ -27,5 +27,13 @@ release:
 debug:
 	$(MAKE) FLAGS="$(DEBUG_FLAGS)" EXEC="$(EXEC)-debug"
 
+bin:
+	mkdir -p $(BINDIR)
+
+obj:
+	mkdir -p $(OBJDIR)
+
 clean:
-	-rm -f $(OBJECTS)
+	rm -f $(OBJECTS)
+
+.PHONY: clean
