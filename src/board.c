@@ -234,6 +234,34 @@ int set_fen(s_board *board, const char *fen)
     return 0;
 }
 
+int board_equality(const s_board *a, const s_board *b)
+{
+    if(a->turn != b->turn) {return 0;}
+    if(a->castling != b->castling) {return 0;}
+    if(a->ep != b->ep) {return 0;}
+    if(a->key != b->key) {return 0;}
+    if(a->num_halfmoves != b->num_halfmoves) {return 0;}
+
+    // Pieces
+    for(int i = 0; i < 6; ++i)
+    {
+        if(a->pieces[i] != b->pieces[i]) {return 0;}
+    }
+
+    // Colours
+    if(a->colour[WHITE] != b->colour[WHITE]) {return 0;}
+    if(a->colour[BLACK] != b->colour[BLACK]) {return 0;}
+
+    // History
+    if(a->history_size != b->history_size) {return 0;}
+    for(int i = 0; i < a->history_size; ++i)
+    {
+        if(a->key_history[i] != b->key_history[i]) {return 0;}
+    }
+
+    return 1;
+}
+
 int store_irreversible(s_irreversible *info, const s_board *board)
 {
     assert(board);
