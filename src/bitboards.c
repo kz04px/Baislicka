@@ -445,7 +445,7 @@ void bitboards_init()
     }
 }
 
-uint64_t pinned_pieces_white(s_board *board, int sq)
+uint64_t pinned_pieces_white(const s_board *board, int sq)
 {
     assert(board != NULL);
     assert(0 <= sq);
@@ -488,7 +488,7 @@ uint64_t pinned_pieces_white(s_board *board, int sq)
     return pinned;
 }
 
-uint64_t pinned_pieces_black(s_board *board, int sq)
+uint64_t pinned_pieces_black(const s_board *board, int sq)
 {
     assert(board != NULL);
     assert(0 <= sq);
@@ -531,7 +531,7 @@ uint64_t pinned_pieces_black(s_board *board, int sq)
     return pinned;
 }
 
-int error_check(s_board *board)
+int error_check(const s_board *board)
 {
     assert(board != NULL);
 

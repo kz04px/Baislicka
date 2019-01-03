@@ -8,7 +8,7 @@
                  (uint64_t)rand() << 45 | \
                  ((uint64_t)rand() & 0xf) << 60 )
 
-uint64_t create_key_board(s_board *board)
+uint64_t create_key_board(const s_board *board)
 {
     assert(board != NULL);
 

@@ -189,7 +189,7 @@ int get_phase(const int num_knights, const int num_bishops, const int num_rooks,
     return (phase * 256 + (total_phase / 2)) / total_phase;
 }
 
-int king_safety(s_board *board, int side)
+int king_safety(const s_board *board, int side)
 {
     assert(board != NULL);
     assert(side == WHITE || side == BLACK);
@@ -245,7 +245,7 @@ int king_safety(s_board *board, int side)
     return eval;
 }
 
-int piece_mobility(s_board *board, int side)
+int piece_mobility(const s_board *board, int side)
 {
     assert(board);
     assert(side == WHITE || side == BLACK);
@@ -314,7 +314,7 @@ int pst_value(int piece, int sq, int endgame)
     return piece_location_bonus[endgame][piece][sq];
 }
 
-int is_endgame(s_board *board)
+int is_endgame(const s_board *board)
 {
     assert(board != NULL);
 
@@ -322,7 +322,7 @@ int is_endgame(s_board *board)
     return __builtin_popcountll(board->colour[board->turn] & (board->pieces[KNIGHTS] | board->pieces[BISHOPS] | board->pieces[ROOKS] | board->pieces[QUEENS])) <= 2;
 }
 
-int is_fifty_move_draw(s_board *board)
+int is_fifty_move_draw(const s_board *board)
 {
     assert(board != NULL);
 
@@ -334,7 +334,7 @@ int is_fifty_move_draw(s_board *board)
     return 0;
 }
 
-int is_threefold(s_board *board)
+int is_threefold(const s_board *board)
 {
     assert(board != NULL);
 
@@ -363,7 +363,7 @@ int is_threefold(s_board *board)
     return 0;
 }
 
-int insufficient_material(s_board *board)
+int insufficient_material(const s_board *board)
 {
     assert(board != NULL);
 
@@ -380,7 +380,7 @@ int insufficient_material(s_board *board)
     return 1;
 }
 
-int evaluate(s_board *board)
+int evaluate(const s_board *board)
 {
     int endgame = is_endgame(board);
 

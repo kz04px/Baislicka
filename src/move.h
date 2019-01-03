@@ -17,16 +17,16 @@ uint64_t qsc_rook[2];
 
 int null_make(s_board *board);
 int null_undo(s_board *board);
-s_move move_add(s_board *board, int from, int to, int type, int piece_type);
-int move_add_pawn(s_board *board, s_move *move_list, int from, int to);
-s_move add_promotion_move(s_board *board, int from, int to, int type);
+s_move move_add(const s_board *board, int from, int to, int type, int piece_type);
+int move_add_pawn(const s_board *board, s_move *move_list, int from, int to);
+s_move add_promotion_move(const s_board *board, int from, int to, int type);
 void move_make(s_board *board, const s_move *move);
 void move_undo(s_board *board, const s_move *move);
 int moves_sort_see(s_board *board, s_move *moves, int num_moves);
 int move_make_ascii(s_board *board, const char *move_string);
 int move_to_string(char *string, const s_move *move);
 
-int is_legal_move(s_board *board, const s_move *move);
+int is_legal_move(const s_board *board, const s_move *move);
 int is_promo_move(const s_move move);
 int is_capture_move(const s_move move);
 

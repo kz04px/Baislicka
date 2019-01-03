@@ -35,7 +35,7 @@ uint64_t key_ksc[2];
 uint64_t key_qsc[2];
 
 void key_init();
-uint64_t create_key_board(s_board *board);
+uint64_t create_key_board(const s_board *board);
 int hashtable_init(s_hashtable *hashtable, int size_megabytes);
 void hashtable_clear(s_hashtable *hashtable);
 void hashtable_free(s_hashtable *hashtable);

@@ -156,7 +156,7 @@ int null_undo(s_board *board)
     return 0;
 }
 
-int move_add_pawn(s_board *board, s_move *move_list, int from, int to)
+int move_add_pawn(const s_board *board, s_move *move_list, int from, int to)
 {
     assert(board != NULL);
     assert(move_list != NULL);
@@ -180,7 +180,7 @@ int move_add_pawn(s_board *board, s_move *move_list, int from, int to)
     }
 }
 
-s_move add_promotion_move(s_board *board, int from, int to, int type)
+s_move add_promotion_move(const s_board *board, int from, int to, int type)
 {
     assert(board != NULL);
     assert(from >= 0);
@@ -207,7 +207,7 @@ s_move add_promotion_move(s_board *board, int from, int to, int type)
     return move;
 }
 
-s_move move_add(s_board *board, int from, int to, int type, int piece_type)
+s_move move_add(const s_board *board, int from, int to, int type, int piece_type)
 {
     assert(board != NULL);
     assert(from >= 0);
@@ -728,7 +728,7 @@ int move_to_string(char *string, const s_move *move)
   return 4;
 }
 
-int find_move(s_board *board, const s_move *move)
+int find_move(const s_board *board, const s_move *move)
 {
   assert(board);
   assert(move);
@@ -807,7 +807,7 @@ int find_move(s_board *board, const s_move *move)
   return (moves != 0);
 }
 
-int is_legal_move(s_board *board, const s_move *move)
+int is_legal_move(const s_board *board, const s_move *move)
 {
     assert(board != NULL);
     assert(move != NULL);

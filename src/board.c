@@ -234,7 +234,7 @@ int set_fen(s_board *board, const char *fen)
     return 0;
 }
 
-int store_irreversible(s_irreversible *info, s_board *board)
+int store_irreversible(s_irreversible *info, const s_board *board)
 {
     assert(board);
     assert(info);
@@ -249,7 +249,7 @@ int store_irreversible(s_irreversible *info, s_board *board)
     return 0;
 }
 
-int restore_irreversible(s_irreversible *info, s_board *board)
+int restore_irreversible(const s_irreversible *info, s_board *board)
 {
     assert(board);
     assert(info);

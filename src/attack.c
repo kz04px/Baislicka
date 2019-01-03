@@ -4,7 +4,7 @@
 #include "bitboards.h"
 #include "eval.h"
 
-int get_smallest_attacker(s_board *board, int sq, int side)
+int get_smallest_attacker(const s_board *board, int sq, int side)
 {
     assert(board != NULL);
     assert(side == WHITE || side == BLACK);
@@ -31,7 +31,7 @@ int get_smallest_attacker(s_board *board, int sq, int side)
     return EMPTY;
 }
 
-int square_attacked(s_board *board, uint64_t pos, int side)
+int square_attacked(const s_board *board, uint64_t pos, int side)
 {
     assert(board != NULL);
     assert(pos);
@@ -57,7 +57,7 @@ int square_attacked(s_board *board, uint64_t pos, int side)
     return 0;
 }
 
-uint64_t calculate_attacking(s_board *board, uint64_t pos, int side)
+uint64_t calculate_attacking(const s_board *board, uint64_t pos, int side)
 {
     assert(board != NULL);
     assert(pos);
@@ -84,7 +84,7 @@ uint64_t calculate_attacking(s_board *board, uint64_t pos, int side)
     return attackers;
 }
 
-int eval_attackers(s_board *board, uint64_t pos, int side)
+int eval_attackers(const s_board *board, uint64_t pos, int side)
 {
     assert(board != NULL);
     assert(pos);
@@ -144,7 +144,7 @@ int eval_attackers(s_board *board, uint64_t pos, int side)
     return eval;
 }
 
-int count_attackers(s_board *board, uint64_t pos, int side)
+int count_attackers(const s_board *board, uint64_t pos, int side)
 {
     assert(board != NULL);
     assert(pos);

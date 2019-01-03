@@ -27,21 +27,21 @@ typedef struct
 
 int next_move(s_board *board, s_move_generator *generator, s_move *move);
 
-int find_moves_pawn_ep(s_board *board, s_move *move_list);
-int find_moves_pawn_captures(s_board *board, s_move *move_list, uint64_t allowed);
-int find_moves_wP_quiet(s_board *board, s_move *move_list);
-int find_moves_bP_quiet(s_board *board, s_move *move_list);
-int find_moves_knights(s_board *board, s_move *move_list, uint64_t allowed);
-int find_moves_bishops(s_board *board, s_move *move_list, uint64_t allowed);
-int find_moves_rooks(s_board *board, s_move *move_list, uint64_t allowed);
-int find_moves_queens(s_board *board, s_move *move_list, uint64_t allowed);
-int find_moves_bishops_queens(s_board *board, s_move *move_list, uint64_t allowed);
-int find_moves_rooks_queens(s_board *board, s_move *move_list, uint64_t allowed);
-int find_moves_kings(s_board *board, s_move *move_list, uint64_t allowed);
-int find_moves_kings_castles(s_board *board, s_move *move_list);
-int find_moves_all(s_board *board, s_move *move_list, int colour);
-int find_moves_captures(s_board *board, s_move *move_list, int colour);
-int find_moves_quiet(s_board *board, s_move *move_list, int colour);
-int can_castle(s_board *board, int turn, int side);
+int find_moves_pawn_ep(const s_board *board, s_move *move_list);
+int find_moves_pawn_captures(const s_board *board, s_move *move_list, uint64_t allowed);
+int find_moves_wP_quiet(const s_board *board, s_move *move_list);
+int find_moves_bP_quiet(const s_board *board, s_move *move_list);
+int find_moves_knights(const s_board *board, s_move *move_list, uint64_t allowed);
+int find_moves_bishops(const s_board *board, s_move *move_list, uint64_t allowed);
+int find_moves_rooks(const s_board *board, s_move *move_list, uint64_t allowed);
+int find_moves_queens(const s_board *board, s_move *move_list, uint64_t allowed);
+int find_moves_bishops_queens(const s_board *board, s_move *move_list, uint64_t allowed);
+int find_moves_rooks_queens(const s_board *board, s_move *move_list, uint64_t allowed);
+int find_moves_kings(const s_board *board, s_move *move_list, uint64_t allowed);
+int find_moves_kings_castles(const s_board *board, s_move *move_list);
+int find_moves_all(const s_board *board, s_move *move_list, int colour);
+int find_moves_captures(const s_board *board, s_move *move_list, int colour);
+int find_moves_quiet(const s_board *board, s_move *move_list, int colour);
+int can_castle(const s_board *board, int turn, int side);
 
 #endif
