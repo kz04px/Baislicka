@@ -608,203 +608,203 @@ void move_undo(s_board *board, const s_move *move)
 
 int move_make_ascii(s_board *board, const char *move_string)
 {
-  assert(board != NULL);
-  assert(move_string != NULL);
+    assert(board != NULL);
+    assert(move_string != NULL);
 
-  int from_file = move_string[0] - 'a';
-  int from_rank = move_string[1] - '1';
-  int to_file = move_string[2] - 'a';
-  int to_rank = move_string[3] - '1';
+    int from_file = move_string[0] - 'a';
+    int from_rank = move_string[1] - '1';
+    int to_file = move_string[2] - 'a';
+    int to_rank = move_string[3] - '1';
 
-  int to = 8*to_rank + to_file;
-  int from = 8*from_rank + from_file;
-  int promo = EMPTY;
+    int to = 8*to_rank + to_file;
+    int from = 8*from_rank + from_file;
+    int promo = EMPTY;
 
-  if(move_string[4] == 'Q' || move_string[4] == 'q')
-  {
-      promo = QUEENS;
-  }
-  else if(move_string[4] == 'R' || move_string[4] == 'r')
-  {
-      promo = ROOKS;
-  }
-  else if(move_string[4] == 'B' || move_string[4] == 'b')
-  {
-      promo = BISHOPS;
-  }
-  else if(move_string[4] == 'N' || move_string[4] == 'n')
-  {
-      promo = KNIGHTS;
-  }
-
-  // Set old permissions
-  s_irreversible permissions;
-  store_irreversible(&permissions, board);
-
-  s_move moves[MAX_MOVES];
-  int num_moves = find_moves_all(board, &moves[0], board->turn);
-
-  for(int i = 0; i < num_moves; ++i)
-  {
-    int move_to = move_get_to(moves[i]);
-    int move_from = move_get_from(moves[i]);
-    int move_type = move_get_type(moves[i]);
-
-    if(move_to != to) {continue;}
-    if(move_from != from) {continue;}
-
-    if(promo == KNIGHTS && move_type != KNIGHT_PROMO && move_type != KNIGHT_PROMO_CAPTURE)
+    if(move_string[4] == 'Q' || move_string[4] == 'q')
     {
-        continue;
+        promo = QUEENS;
     }
-    if(promo == BISHOPS && move_type != BISHOP_PROMO && move_type != BISHOP_PROMO_CAPTURE)
+    else if(move_string[4] == 'R' || move_string[4] == 'r')
     {
-        continue;
+        promo = ROOKS;
     }
-    if(promo == ROOKS && move_type != ROOK_PROMO && move_type != ROOK_PROMO_CAPTURE)
+    else if(move_string[4] == 'B' || move_string[4] == 'b')
     {
-        continue;
+        promo = BISHOPS;
     }
-    if(promo == QUEENS && move_type != QUEEN_PROMO && move_type != QUEEN_PROMO_CAPTURE)
+    else if(move_string[4] == 'N' || move_string[4] == 'n')
     {
-        continue;
+        promo = KNIGHTS;
     }
 
-    move_make(board, &moves[i]);
+    // Set old permissions
+    s_irreversible permissions;
+    store_irreversible(&permissions, board);
 
-    if(square_attacked(board, board->pieces[KINGS]&board->colour[!board->turn], board->turn))
+    s_move moves[MAX_MOVES];
+    int num_moves = find_moves_all(board, &moves[0], board->turn);
+
+    for(int i = 0; i < num_moves; ++i)
     {
-      // Restore old permissions
-      restore_irreversible(&permissions, board);
-      move_undo(board, &moves[i]);
-      continue;
+        int move_to = move_get_to(moves[i]);
+        int move_from = move_get_from(moves[i]);
+        int move_type = move_get_type(moves[i]);
+
+        if(move_to != to) {continue;}
+        if(move_from != from) {continue;}
+
+        if(promo == KNIGHTS && move_type != KNIGHT_PROMO && move_type != KNIGHT_PROMO_CAPTURE)
+        {
+            continue;
+        }
+        if(promo == BISHOPS && move_type != BISHOP_PROMO && move_type != BISHOP_PROMO_CAPTURE)
+        {
+            continue;
+        }
+        if(promo == ROOKS && move_type != ROOK_PROMO && move_type != ROOK_PROMO_CAPTURE)
+        {
+            continue;
+        }
+        if(promo == QUEENS && move_type != QUEEN_PROMO && move_type != QUEEN_PROMO_CAPTURE)
+        {
+            continue;
+        }
+
+        move_make(board, &moves[i]);
+
+        if(square_attacked(board, board->pieces[KINGS]&board->colour[!board->turn], board->turn))
+        {
+            // Restore old permissions
+            restore_irreversible(&permissions, board);
+            move_undo(board, &moves[i]);
+            continue;
+        }
+
+        return 1;
     }
 
-    return 1;
-  }
-
-  return 0;
+    return 0;
 }
 
 int move_to_string(char *string, const s_move *move)
 {
-  assert(string != NULL);
-  assert(move != NULL);
+    assert(string != NULL);
+    assert(move != NULL);
 
-  string[0] = SQ_TO_FILE_CHAR(move_get_from(*move));
-  string[1] = SQ_TO_RANK_CHAR(move_get_from(*move));
-  string[2] = SQ_TO_FILE_CHAR(move_get_to(*move));
-  string[3] = SQ_TO_RANK_CHAR(move_get_to(*move));
-  string[4] = '\0';
+    string[0] = SQ_TO_FILE_CHAR(move_get_from(*move));
+    string[1] = SQ_TO_RANK_CHAR(move_get_from(*move));
+    string[2] = SQ_TO_FILE_CHAR(move_get_to(*move));
+    string[3] = SQ_TO_RANK_CHAR(move_get_to(*move));
+    string[4] = '\0';
 
-  // FIX ME
-  if(is_promo_move(*move))
-  {
-    int type = move_get_type(*move);
-
-    switch(type)
+    // FIX ME
+    if(is_promo_move(*move))
     {
-      case QUEEN_PROMO:
-      case QUEEN_PROMO_CAPTURE:
-        string[4] = 'q';
-        break;
-      case ROOK_PROMO:
-      case ROOK_PROMO_CAPTURE:
-        string[4] = 'r';
-        break;
-      case BISHOP_PROMO:
-      case BISHOP_PROMO_CAPTURE:
-        string[4] = 'b';
-        break;
-      case KNIGHT_PROMO:
-      case KNIGHT_PROMO_CAPTURE:
-        string[4] = 'n';
-        break;
-    }
-    string[5] = '\0';
-    return 5;
-  }
+        int type = move_get_type(*move);
 
-  return 4;
+        switch(type)
+        {
+        case QUEEN_PROMO:
+        case QUEEN_PROMO_CAPTURE:
+            string[4] = 'q';
+            break;
+        case ROOK_PROMO:
+        case ROOK_PROMO_CAPTURE:
+            string[4] = 'r';
+            break;
+        case BISHOP_PROMO:
+        case BISHOP_PROMO_CAPTURE:
+            string[4] = 'b';
+            break;
+        case KNIGHT_PROMO:
+        case KNIGHT_PROMO_CAPTURE:
+            string[4] = 'n';
+            break;
+        }
+        string[5] = '\0';
+        return 5;
+    }
+
+    return 4;
 }
 
 int find_move(const s_board *board, const s_move *move)
 {
-  assert(board);
-  assert(move);
+    assert(board);
+    assert(move);
 
-  uint64_t moves = 0;
-  uint64_t to_bb = (uint64_t)1<<(move_get_to(*move));
-  uint64_t from_bb = (uint64_t)1<<(move_get_from(*move));
-  uint64_t occupancy = board->colour[WHITE]|board->colour[BLACK];
+    uint64_t moves = 0;
+    uint64_t to_bb = (uint64_t)1<<(move_get_to(*move));
+    uint64_t from_bb = (uint64_t)1<<(move_get_from(*move));
+    uint64_t occupancy = board->colour[WHITE]|board->colour[BLACK];
 
-  // Can't capture our own pieces
-  if(to_bb & board->colour[board->turn]) {return 0;}
-  // The piece to move has to be there
-  if(!(from_bb & board->colour[board->turn])) {return 0;}
-  if(!(from_bb & board->pieces[move_get_piece(*move)])) {return 0;}
-  // The captured piece (if any) has to be there - except during EP
-  if(move_get_captured(*move) != EMPTY && move_get_type(*move) != EP)
-  {
-    if(!(board->pieces[move_get_captured(*move)] & to_bb)) {return 0;}
-  }
-  else
-  {
-    if(to_bb & (board->colour[WHITE]|board->colour[BLACK])) {return 0;}
-  }
+    // Can't capture our own pieces
+    if(to_bb & board->colour[board->turn]) {return 0;}
+    // The piece to move has to be there
+    if(!(from_bb & board->colour[board->turn])) {return 0;}
+    if(!(from_bb & board->pieces[move_get_piece(*move)])) {return 0;}
+    // The captured piece (if any) has to be there - except during EP
+    if(move_get_captured(*move) != EMPTY && move_get_type(*move) != EP)
+    {
+        if(!(board->pieces[move_get_captured(*move)] & to_bb)) {return 0;}
+    }
+    else
+    {
+        if(to_bb & (board->colour[WHITE]|board->colour[BLACK])) {return 0;}
+    }
 
-  switch(move_get_piece(*move))
-  {
-    case PAWNS:
-      if(move_get_type(*move) == DOUBLE_PAWN)
-      {
-        if(board->turn == WHITE)
-        {
-          if((to_bb>>8) & (board->colour[WHITE]|board->colour[BLACK])) {return 0;}
-        }
-        else
-        {
-          if((to_bb<<8) & (board->colour[WHITE]|board->colour[BLACK])) {return 0;}
-        }
-      }
-      else if(move_get_type(*move) == EP)
-      {
-        if(board->ep != move_get_to(*move)) {return 0;}
-      }
-      return 1;
-      break;
-    case KNIGHTS:
-      moves = magic_moves_knight(move_get_from(*move)) & to_bb;
-      break;
-    case BISHOPS:
-      moves = magic_moves_bishop(occupancy, move_get_from(*move)) & to_bb;
-      break;
-    case ROOKS:
-      moves = magic_moves_rook(occupancy, move_get_from(*move)) & to_bb;
-      break;
-    case QUEENS:
-      moves = (magic_moves_bishop(occupancy, move_get_from(*move)) | magic_moves_rook(occupancy, move_get_from(*move))) & to_bb;
-      break;
-    case KINGS:
-      if(move_get_type(*move) == KSC)
-      {
-        return can_castle(board, board->turn, KSC);
-      }
-      else if(move_get_type(*move) == QSC)
-      {
-        return can_castle(board, board->turn, QSC);
-      }
-      else
-      {
-        moves = magic_moves_king(move_get_from(*move)) & to_bb;
-      }
-      break;
-    default:
-      assert(0);
-      break;
-  }
+    switch(move_get_piece(*move))
+    {
+        case PAWNS:
+            if(move_get_type(*move) == DOUBLE_PAWN)
+            {
+                if(board->turn == WHITE)
+                {
+                    if((to_bb>>8) & (board->colour[WHITE]|board->colour[BLACK])) {return 0;}
+                }
+                else
+                {
+                    if((to_bb<<8) & (board->colour[WHITE]|board->colour[BLACK])) {return 0;}
+                }
+            }
+            else if(move_get_type(*move) == EP)
+            {
+                if(board->ep != move_get_to(*move)) {return 0;}
+            }
+            return 1;
+            break;
+        case KNIGHTS:
+            moves = magic_moves_knight(move_get_from(*move)) & to_bb;
+            break;
+        case BISHOPS:
+            moves = magic_moves_bishop(occupancy, move_get_from(*move)) & to_bb;
+            break;
+        case ROOKS:
+            moves = magic_moves_rook(occupancy, move_get_from(*move)) & to_bb;
+            break;
+        case QUEENS:
+            moves = (magic_moves_bishop(occupancy, move_get_from(*move)) | magic_moves_rook(occupancy, move_get_from(*move))) & to_bb;
+            break;
+        case KINGS:
+            if(move_get_type(*move) == KSC)
+            {
+                return can_castle(board, board->turn, KSC);
+            }
+            else if(move_get_type(*move) == QSC)
+            {
+                return can_castle(board, board->turn, QSC);
+            }
+            else
+            {
+                moves = magic_moves_king(move_get_from(*move)) & to_bb;
+            }
+            break;
+        default:
+            assert(0);
+            break;
+    }
 
-  return (moves != 0);
+    return (moves != 0);
 }
 
 int is_legal_move(const s_board *board, const s_move *move)
@@ -819,10 +819,10 @@ int is_legal_move(const s_board *board, const s_move *move)
 
     for(int i = 0; i < num_moves; ++i)
     {
-      if(is_same_move(moves[i], *move))
-      {
-        return 1;
-      }
+        if(is_same_move(moves[i], *move))
+        {
+            return 1;
+        }
     }
 
     return 0;
