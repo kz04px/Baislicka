@@ -45,13 +45,14 @@ int board_flip(s_board *board)
     return 0;
 }
 
-int test_move_legality(s_board *board, const char *filepath)
+int test_move_legality(const char *filepath)
 {
-    assert(board);
     assert(filepath);
 
-    set_fen(board, "startpos");
-    if(is_legal_move(board, &NO_MOVE)) {return -1;}
+    s_board board;
+
+    set_fen(&board, "startpos");
+    if(is_legal_move(&board, &NO_MOVE)) {return -1;}
 
     FILE *file = fopen(filepath, "r");
     if(!file)
@@ -64,16 +65,16 @@ int test_move_legality(s_board *board, const char *filepath)
     {
         if(line[0] == '#' || strlen(line) < 5) {continue;}
 
-        int r = set_fen(board, line);
+        int r = set_fen(&board, line);
         if(r) {continue;}
 
         s_move moves[MAX_MOVES];
-        int num_moves = find_moves_captures(board, &moves[0], board->turn);
-        num_moves += find_moves_quiet(board, &moves[num_moves], board->turn);
+        int num_moves = find_moves_captures(&board, &moves[0], board.turn);
+        num_moves += find_moves_quiet(&board, &moves[num_moves], board.turn);
 
         for(int m = 0; m < num_moves; ++m)
         {
-            int legal = is_legal_move(board, &moves[m]);
+            int legal = is_legal_move(&board, &moves[m]);
             if(!legal) {fclose(file); return -2;}
         }
     }
@@ -82,9 +83,8 @@ int test_move_legality(s_board *board, const char *filepath)
     return 0;
 }
 
-int test_eval_mirroring(s_board *board, const char *filepath)
+int test_eval_mirroring(const char *filepath)
 {
-    assert(board);
     assert(filepath);
 
     FILE *file = fopen(filepath, "r");
@@ -93,19 +93,21 @@ int test_eval_mirroring(s_board *board, const char *filepath)
         return -1;
     }
 
+    s_board board;
+
     char line[1024];
     while(fgets(line, sizeof(line), file))
     {
         if(line[0] == '#' || strlen(line) < 5) {continue;}
 
-        int r = set_fen(board, line);
+        int r = set_fen(&board, line);
         if(r) {continue;}
 
-        int eval_normal = evaluate(board);
+        int eval_normal = evaluate(&board);
 
-        board_flip(board);
+        board_flip(&board);
 
-        int eval_mirror = evaluate(board);
+        int eval_mirror = evaluate(&board);
 
         if(eval_normal != eval_mirror) {fclose(file); return -2;}
     }
@@ -114,10 +116,8 @@ int test_eval_mirroring(s_board *board, const char *filepath)
     return 0;
 }
 
-int test_backward_pawns(s_board *board)
+int test_backward_pawns()
 {
-    assert(board);
-
     const char positions[16][256] = {
         {"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -"},
         {"k7/8/3p4/4p3/4P3/8/8/K7 w - -"},
@@ -126,10 +126,11 @@ int test_backward_pawns(s_board *board)
     };
     const uint64_t passed_white[16] = {0, U64_E4, 0, U64_F3};
     const uint64_t passed_black[16] = {0, U64_D6, 0, U64_G5};
+    s_board board;
 
     for(int i = 0; i < 16; ++i)
     {
-        int r = set_fen(board, positions[i]);
+        int r = set_fen(&board, positions[i]);
         if(r) {continue;}
 
         uint64_t found_white = 0;
@@ -137,13 +138,13 @@ int test_backward_pawns(s_board *board)
         uint64_t copy;
 
         // White pawns
-        copy = board->pieces[PAWNS] & board->colour[WHITE];
+        copy = board.pieces[PAWNS] & board.colour[WHITE];
         while(copy)
         {
             int sq = __builtin_ctzll(copy);
             uint64_t pos = (copy & ~(copy-1));
 
-            if(is_backward_pawn_white(sq, board->pieces[PAWNS]&board->colour[WHITE], board->pieces[PAWNS]&board->colour[BLACK]))
+            if(is_backward_pawn_white(sq, board.pieces[PAWNS]&board.colour[WHITE], board.pieces[PAWNS]&board.colour[BLACK]))
             {
                 found_white ^= pos;
             }
@@ -152,13 +153,13 @@ int test_backward_pawns(s_board *board)
         }
 
         // Black pawns
-        copy = board->pieces[PAWNS] & board->colour[BLACK];
+        copy = board.pieces[PAWNS] & board.colour[BLACK];
         while(copy)
         {
             int sq = __builtin_ctzll(copy);
             uint64_t pos = (copy & ~(copy-1));
 
-            if(is_backward_pawn_black(sq, board->pieces[PAWNS]&board->colour[BLACK], board->pieces[PAWNS]&board->colour[WHITE]))
+            if(is_backward_pawn_black(sq, board.pieces[PAWNS]&board.colour[BLACK], board.pieces[PAWNS]&board.colour[WHITE]))
             {
                 found_black ^= pos;
             }
@@ -175,10 +176,8 @@ int test_backward_pawns(s_board *board)
     return 0;
 }
 
-int test_passed_pawns(s_board *board)
+int test_passed_pawns()
 {
-    assert(board);
-
     const char positions[16][256] = {
         {"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -"},
         {"k7/8/8/4p3/4P3/8/2P5/K7 w - -"},
@@ -186,10 +185,11 @@ int test_passed_pawns(s_board *board)
     };
     const uint64_t passed_white[16] = {0, U64_C2, 0};
     const uint64_t passed_black[16] = {0, 0, U64_H7};
+    s_board board;
 
     for(int i = 0; i < 16; ++i)
     {
-        int r = set_fen(board, positions[i]);
+        int r = set_fen(&board, positions[i]);
         if(r) {continue;}
 
         uint64_t found_white = 0;
@@ -197,13 +197,13 @@ int test_passed_pawns(s_board *board)
         uint64_t copy;
 
         // White pawns
-        copy = board->pieces[PAWNS] & board->colour[WHITE];
+        copy = board.pieces[PAWNS] & board.colour[WHITE];
         while(copy)
         {
             int sq = __builtin_ctzll(copy);
             uint64_t pos = (copy & ~(copy-1));
 
-            if(is_passed_pawn(WHITE, sq, board->pieces[PAWNS]|board->colour[BLACK]))
+            if(is_passed_pawn(WHITE, sq, board.pieces[PAWNS]|board.colour[BLACK]))
             {
                 found_white ^= pos;
             }
@@ -212,13 +212,13 @@ int test_passed_pawns(s_board *board)
         }
 
         // Black pawns
-        copy = board->pieces[PAWNS] & board->colour[BLACK];
+        copy = board.pieces[PAWNS] & board.colour[BLACK];
         while(copy)
         {
             int sq = __builtin_ctzll(copy);
             uint64_t pos = (copy & ~(copy-1));
 
-            if(is_passed_pawn(BLACK, sq, board->pieces[PAWNS]|board->colour[WHITE]))
+            if(is_passed_pawn(BLACK, sq, board.pieces[PAWNS]|board.colour[WHITE]))
             {
                 found_black ^= pos;
             }
@@ -237,9 +237,6 @@ int test_passed_pawns(s_board *board)
 
 int test_all()
 {
-    s_board *board = (s_board*) malloc(1*sizeof(s_board));
-    if(board == NULL) {return -1;}
-
 #ifdef NDEBUG
     printf("Suggest not compiling with -DNDEBUG\n");
 #endif
@@ -250,23 +247,21 @@ int test_all()
     printf("Tests:\n");
 
     printf(" 1) Move legality:  ");
-    r = test_move_legality(board, "perftsuite.epd");
+    r = test_move_legality("perftsuite.epd");
     printf("%s (%i)\n", TEST_PASS(r), r);
 
     printf(" 2) Eval mirroring: ");
-    r = test_eval_mirroring(board, "perftsuite.epd");
+    r = test_eval_mirroring("perftsuite.epd");
     printf("%s (%i)\n", TEST_PASS(r), r);
 
     printf(" 3) Backward pawns: ");
-    r = test_backward_pawns(board);
+    r = test_backward_pawns();
     printf("%s (%i)\n", TEST_PASS(r), r);
 
     printf(" 4) Passed pawns:   ");
-    r = test_passed_pawns(board);
+    r = test_passed_pawns();
     printf("%s (%i)\n", TEST_PASS(r), r);
 
     printf("\n");
-
-    free(board);
     return 0;
 }
