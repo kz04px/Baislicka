@@ -48,8 +48,6 @@ typedef struct
     s_search_settings *settings;
 } s_thread_data;
 
-int store_irreversible(s_irreversible *info, s_board *board);
-int restore_irreversible(s_irreversible *info, s_board *board);
 void* search_root(void *n);
 int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int beta, int depth);
 int qsearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int beta);
