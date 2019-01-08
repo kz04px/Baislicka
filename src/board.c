@@ -224,7 +224,7 @@ int set_fen(s_board *board, const char *fen)
     board->num_halfmoves = atoi(&fen[n]);
 
 #ifdef HASHTABLE
-        board->key = create_key_board(board);
+    board->key = create_key_board(board);
 #endif
 
     // History

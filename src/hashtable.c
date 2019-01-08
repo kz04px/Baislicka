@@ -57,10 +57,10 @@ void key_init()
 {
     for(int piece = 0; piece < 6; ++piece)
     {
-        for(int p = 0; p < 64; ++p)
+        for(int sq = 0; sq < 64; ++sq)
         {
-            key_piece_positions[piece][WHITE][p] = RAND_64;
-            key_piece_positions[piece][BLACK][p] = RAND_64;
+            key_piece_positions[piece][WHITE][sq] = RAND_64;
+            key_piece_positions[piece][BLACK][sq] = RAND_64;
         }
     }
 
