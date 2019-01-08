@@ -136,9 +136,6 @@ typedef struct
 
 typedef struct
 {
-#ifdef HASHTABLE
-    uint64_t key;
-#endif
     uint8_t num_halfmoves;
     uint8_t ep;
     uint8_t castling;

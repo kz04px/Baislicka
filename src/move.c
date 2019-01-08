@@ -150,7 +150,13 @@ int null_undo(s_board *board)
 {
     assert(board);
 
+    // History
     board->history_size--;
+    assert(board->history_size >= 1);
+
+#ifdef HASHTABLE
+    board->key = board->key_history[board->history_size-1];
+#endif
     board->turn = 1-(board->turn);
 
     return 0;
@@ -585,25 +591,21 @@ void move_undo(s_board *board, const s_move *move)
             board->pieces[KINGS] ^= ksc_king[board->turn];
             board->pieces[ROOKS] ^= ksc_rook[board->turn];
             board->colour[board->turn] ^= (ksc_king[board->turn] | ksc_rook[board->turn]);
-
-#ifdef HASHTABLE
-            board->key ^= key_ksc[board->turn];
-#endif
             break;
         case QSC:
             board->pieces[KINGS] ^= qsc_king[board->turn];
             board->pieces[ROOKS] ^= qsc_rook[board->turn];
             board->colour[board->turn] ^= (qsc_king[board->turn] | qsc_rook[board->turn]);
-
-#ifdef HASHTABLE
-              board->key ^= key_qsc[board->turn];
-#endif
             break;
     }
 
     // History
     board->history_size--;
-    assert(board->history_size >= 0);
+    assert(board->history_size >= 1);
+
+#ifdef HASHTABLE
+    board->key = board->key_history[board->history_size-1];
+#endif
 }
 
 int move_make_ascii(s_board *board, const char *move_string)

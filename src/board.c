@@ -267,9 +267,6 @@ int store_irreversible(s_irreversible *info, const s_board *board)
     assert(board);
     assert(info);
 
-#ifdef HASHTABLE
-    info->key           = board->key;
-#endif
     info->num_halfmoves = board->num_halfmoves;
     info->ep            = board->ep;
     info->castling      = board->castling;
@@ -282,9 +279,6 @@ int restore_irreversible(const s_irreversible *info, s_board *board)
     assert(board);
     assert(info);
 
-#ifdef HASHTABLE
-    board->key           = info->key;
-#endif
     board->num_halfmoves = info->num_halfmoves;
     board->ep            = info->ep;
     board->castling      = info->castling;
