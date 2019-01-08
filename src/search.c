@@ -259,6 +259,14 @@ int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int
         restore_irreversible(&permissions, board);
         move_undo(board, &move);
 
+        // Store pv line
+        stack->pv.moves[0] = move;
+        for(int i = 0; i < (stack+1)->pv.num_moves && i < MAX_DEPTH - 1; ++i)
+        {
+            stack->pv.moves[i+1] = (stack+1)->pv.moves[i];
+        }
+        stack->pv.num_moves = (stack+1)->pv.num_moves + 1;
+
         if(best_score > alpha)
         {
             if(best_score >= beta)
@@ -282,14 +290,6 @@ int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int
             }
             alpha = best_score;
         }
-
-        // Store pv line
-        stack->pv.moves[0] = move;
-        for(int i = 0; i < (stack+1)->pv.num_moves && i < MAX_DEPTH - 1; ++i)
-        {
-            stack->pv.moves[i+1] = (stack+1)->pv.moves[i];
-        }
-        stack->pv.num_moves = (stack+1)->pv.num_moves + 1;
 
 #ifdef HASHTABLE
         best_move = move;
@@ -347,6 +347,14 @@ int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int
 
         if(score > best_score)
         {
+            // Store pv line
+            stack->pv.moves[0] = move;
+            for(int i = 0; i < (stack+1)->pv.num_moves && i < MAX_DEPTH - 1; ++i)
+            {
+                stack->pv.moves[i+1] = (stack+1)->pv.moves[i];
+            }
+            stack->pv.num_moves = (stack+1)->pv.num_moves + 1;
+
             if(score >= beta)
             {
 #ifdef KILLER_MOVES
@@ -370,14 +378,6 @@ int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int
 #ifdef HASHTABLE
             best_move = move;
 #endif
-
-            // Store pv line
-            stack->pv.moves[0] = move;
-            for(int i = 0; i < (stack+1)->pv.num_moves && i < MAX_DEPTH - 1; ++i)
-            {
-                stack->pv.moves[i+1] = (stack+1)->pv.moves[i];
-            }
-            stack->pv.num_moves = (stack+1)->pv.num_moves + 1;
 
             best_score = score;
         }
