@@ -215,7 +215,7 @@ int set_fen(s_board *board, const char *fen)
         int file = fen[n] - 'a';
         int rank = fen[n+1] - '1';
         assert(0 <= file && file <= 7);
-        assert(0 <= rank && rank <= 7);
+        assert(rank == 2 || rank == 5);
         board->ep = rank*8 + file;
         n++;
     }
@@ -230,6 +230,8 @@ int set_fen(s_board *board, const char *fen)
     // History
     board->key_history[0] = board->key;
     board->history_size = 1;
+
+    assert(board->ep == 0 || (1ULL<<board->ep) & (U64_RANK_3 | U64_RANK_6));
 
     return 0;
 }
