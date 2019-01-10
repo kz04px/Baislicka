@@ -32,12 +32,6 @@ uint64_t create_key_board(const s_board *board)
         }
     }
 
-    key_ksc[WHITE] = key_piece_positions[KINGS][WHITE][E1] ^ key_piece_positions[KINGS][WHITE][G1] ^ key_piece_positions[ROOKS][WHITE][F1] ^ key_piece_positions[ROOKS][WHITE][H1];
-    key_ksc[BLACK] = key_piece_positions[KINGS][BLACK][E8] ^ key_piece_positions[KINGS][BLACK][G8] ^ key_piece_positions[ROOKS][BLACK][F8] ^ key_piece_positions[ROOKS][BLACK][H8];
-
-    key_qsc[WHITE] = key_piece_positions[KINGS][WHITE][E1] ^ key_piece_positions[KINGS][WHITE][C1] ^ key_piece_positions[ROOKS][WHITE][D1] ^ key_piece_positions[ROOKS][WHITE][A1];
-    key_qsc[BLACK] = key_piece_positions[KINGS][BLACK][E8] ^ key_piece_positions[KINGS][BLACK][C8] ^ key_piece_positions[ROOKS][BLACK][D8] ^ key_piece_positions[ROOKS][BLACK][A8];
-
     if(board->turn == WHITE)
     {
         key ^= key_turn;
@@ -75,6 +69,12 @@ void key_init()
     {
         key_ep_file[i] = RAND_64;
     }
+
+    key_ksc[WHITE] = key_piece_positions[KINGS][WHITE][E1] ^ key_piece_positions[KINGS][WHITE][G1] ^ key_piece_positions[ROOKS][WHITE][F1] ^ key_piece_positions[ROOKS][WHITE][H1];
+    key_ksc[BLACK] = key_piece_positions[KINGS][BLACK][E8] ^ key_piece_positions[KINGS][BLACK][G8] ^ key_piece_positions[ROOKS][BLACK][F8] ^ key_piece_positions[ROOKS][BLACK][H8];
+
+    key_qsc[WHITE] = key_piece_positions[KINGS][WHITE][E1] ^ key_piece_positions[KINGS][WHITE][C1] ^ key_piece_positions[ROOKS][WHITE][D1] ^ key_piece_positions[ROOKS][WHITE][A1];
+    key_qsc[BLACK] = key_piece_positions[KINGS][BLACK][E8] ^ key_piece_positions[KINGS][BLACK][C8] ^ key_piece_positions[ROOKS][BLACK][D8] ^ key_piece_positions[ROOKS][BLACK][A8];
 }
 
 s_hashtable_entry *hashtable_poll(s_hashtable *hashtable, const uint64_t key)
