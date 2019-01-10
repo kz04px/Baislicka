@@ -131,22 +131,30 @@ int moves_sort_see(s_board *board, s_move *moves, int num_moves)
     return 0;
 }
 
-int null_make(s_board *board)
+void null_make(s_board *board)
 {
     assert(board);
 
-    board->ep = 0;
 #ifdef HASHTABLE
+    if(board->ep)
+    {
+        board->key ^= key_ep_file[SQ_TO_FILE(board->ep)];
+        board->ep = 0;
+    }
     board->key ^= key_turn;
 #endif
+
     board->num_halfmoves = 0;
+    board->turn = 1-(board->turn);
+
+    // History
     board->key_history[board->history_size] = board->key;
     board->history_size++;
-    board->turn = 1-(board->turn);
-    return 0;
+
+    assert(board->key == create_key_board(board));
 }
 
-int null_undo(s_board *board)
+void null_undo(s_board *board)
 {
     assert(board);
 
@@ -158,8 +166,6 @@ int null_undo(s_board *board)
     board->key = board->key_history[board->history_size-1];
 #endif
     board->turn = 1-(board->turn);
-
-    return 0;
 }
 
 int move_add_pawn(const s_board *board, s_move *move_list, int from, int to)
@@ -310,7 +316,7 @@ void move_make(s_board *board, const s_move *move)
 #ifdef HASHTABLE
             board->key ^= key_piece_positions[move_get_piece(*move)][board->turn][move_get_from(*move)];
             board->key ^= key_piece_positions[move_get_piece(*move)][board->turn][move_get_to(*move)];
-            board->key ^= key_piece_positions[move_get_captured(*move)][board->turn][move_get_to(*move)];
+            board->key ^= key_piece_positions[move_get_captured(*move)][!board->turn][move_get_to(*move)];
 #endif
             break;
         case DOUBLE_PAWN:
@@ -353,7 +359,7 @@ void move_make(s_board *board, const s_move *move)
             board->key ^= key_piece_positions[QUEENS][board->turn][move_get_to(*move)];
             if(move_get_captured(*move) != EMPTY)
             {
-                board->key ^= key_piece_positions[move_get_captured(*move)][board->turn][move_get_to(*move)];
+                board->key ^= key_piece_positions[move_get_captured(*move)][!board->turn][move_get_to(*move)];
             }
 #endif
             break;
@@ -376,7 +382,7 @@ void move_make(s_board *board, const s_move *move)
             board->key ^= key_piece_positions[ROOKS][board->turn][move_get_to(*move)];
             if(move_get_captured(*move) != EMPTY)
             {
-                board->key ^= key_piece_positions[move_get_captured(*move)][board->turn][move_get_to(*move)];
+                board->key ^= key_piece_positions[move_get_captured(*move)][!board->turn][move_get_to(*move)];
             }
 #endif
             break;
@@ -399,7 +405,7 @@ void move_make(s_board *board, const s_move *move)
             board->key ^= key_piece_positions[BISHOPS][board->turn][move_get_to(*move)];
             if(move_get_captured(*move) != EMPTY)
             {
-                board->key ^= key_piece_positions[move_get_captured(*move)][board->turn][move_get_to(*move)];
+                board->key ^= key_piece_positions[move_get_captured(*move)][!board->turn][move_get_to(*move)];
             }
 #endif
             break;
@@ -422,7 +428,7 @@ void move_make(s_board *board, const s_move *move)
             board->key ^= key_piece_positions[KNIGHTS][board->turn][move_get_to(*move)];
             if(move_get_captured(*move) != EMPTY)
             {
-                board->key ^= key_piece_positions[move_get_captured(*move)][board->turn][move_get_to(*move)];
+                board->key ^= key_piece_positions[move_get_captured(*move)][!board->turn][move_get_to(*move)];
             }
 #endif
             break;
@@ -477,13 +483,6 @@ void move_make(s_board *board, const s_move *move)
     }
 
 #ifdef HASHTABLE
-    /*
-    // FIX ME
-    if((board->castling & wKSC) != (move->castling & wKSC)) {board->key ^= key_castling[0];}
-    if((board->castling & wQSC) != (move->castling & wQSC)) {board->key ^= key_castling[1];}
-    if((board->castling & bKSC) != (move->castling & bKSC)) {board->key ^= key_castling[2];}
-    if((board->castling & bQSC) != (move->castling & bQSC)) {board->key ^= key_castling[3];}
-    */
     board->key ^= key_turn;
 #endif
 
@@ -495,6 +494,9 @@ void move_make(s_board *board, const s_move *move)
 
     // Turn
     board->turn = 1-(board->turn);
+
+    assert(board->ep == 0 || (1ULL<<board->ep) & (U64_RANK_3 | U64_RANK_6));
+    assert(board->key == create_key_board(board));
 }
 
 void move_undo(s_board *board, const s_move *move)

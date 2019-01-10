@@ -15,8 +15,8 @@ uint64_t ksc_rook[2];
 uint64_t qsc_king[2];
 uint64_t qsc_rook[2];
 
-int null_make(s_board *board);
-int null_undo(s_board *board);
+void null_make(s_board *board);
+void null_undo(s_board *board);
 s_move move_add(const s_board *board, int from, int to, int type, int piece_type);
 int move_add_pawn(const s_board *board, s_move *move_list, int from, int to);
 s_move add_promotion_move(const s_board *board, int from, int to, int type);

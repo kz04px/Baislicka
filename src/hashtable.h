@@ -27,7 +27,7 @@ typedef struct
 
 s_hashtable *hashtable;
 
-uint64_t key_piece_positions[6][2][10*12];
+uint64_t key_piece_positions[6][2][64];
 uint64_t key_turn;
 uint64_t key_castling[16];
 uint64_t key_ep_file[8];
