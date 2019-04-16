@@ -98,13 +98,15 @@ int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int
     s_hashtable_entry entry = *hashtable_poll(hashtable, board->key);
     int entry_valid = (board->key == entry.key);
 
+    int pvnode = (beta - alpha > 1);
+
     if(entry_valid)
     {
         info->hashtable_hits++;
         gen.hash_move = entry.pv;
         int entry_eval = eval_from_tt(entry.eval, stack->ply);
 
-        if(entry.depth >= depth)
+        if(!pvnode && entry.depth >= depth)
         {
             switch(entry.flags)
             {
@@ -135,8 +137,6 @@ int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int
         }
     }
 #endif
-
-    int pvnode = (beta - alpha > 1);
 
 #ifdef FUTILITY_PRUNING
     if(!pvnode && stack->null_move && depth == 1 && !in_check && !is_endgame(board))
