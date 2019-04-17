@@ -73,10 +73,10 @@ uint64_t calculate_attacking(const s_board *board, uint64_t pos, int side)
     attackers |= board->colour[side] & board->pieces[KNIGHTS] & magic_moves_knight(sq);
 
     // Bishops & Queens
-    attackers |= magic_moves_bishop((board->colour[WHITE]|board->colour[BLACK]), sq) & board->colour[WHITE] & (board->pieces[BISHOPS] | board->pieces[QUEENS]);
+    attackers |= magic_moves_bishop((board->colour[WHITE]|board->colour[BLACK]), sq) & board->colour[side] & (board->pieces[BISHOPS] | board->pieces[QUEENS]);
 
     // Rooks & Queens
-    attackers |= magic_moves_rook((board->colour[WHITE]|board->colour[BLACK]), sq) & board->colour[WHITE] & (board->pieces[ROOKS] | board->pieces[QUEENS]);
+    attackers |= magic_moves_rook((board->colour[WHITE]|board->colour[BLACK]), sq) & board->colour[side] & (board->pieces[ROOKS] | board->pieces[QUEENS]);
 
     // King
     attackers |= magic_moves_king(sq) & board->pieces[KINGS] & board->colour[side];
