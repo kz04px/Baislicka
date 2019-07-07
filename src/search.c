@@ -129,7 +129,10 @@ int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int
                     }
                     break;
                 case EXACT:
-                    break;
+                    // Store pv
+                    stack->pv.num_moves = 1;
+                    stack->pv.moves[0] = entry.pv;
+                    return entry_eval;
                 default:
                     assert(0);
                     break;
