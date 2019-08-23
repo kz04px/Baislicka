@@ -141,24 +141,19 @@ int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int
     }
 #endif
 
-#ifdef FUTILITY_PRUNING
-    if(!pvnode && stack->null_move && depth == 1 && !in_check && !is_endgame(board))
-    {
-        int static_eval = evaluate(board);
-        if(static_eval - 350 >= beta)
-        {
-            return static_eval - 350;
-            //return qsearch(info, stack, board, alpha, beta);
-        }
+#ifdef REVERSE_FUTILITY_PRUNING
+    const int static_eval = evaluate(board);
+    static const int margins[] = {0, 330, 500, 900};
 
-        /*
-        int static_eval = evaluate(board);
-        if(static_eval + 350 < alpha)
-        {
-            //return static_eval;
-            return qsearch(info, stack, board, alpha, beta);
-        }
-        */
+    if(!pvnode &&
+       stack->null_move &&
+       depth <= 3 &&
+       !in_check &&
+       !is_endgame(board) &&
+       abs(beta) < INF - MAX_DEPTH &&
+       static_eval - margins[depth] >= beta)
+    {
+        return static_eval - margins[depth];
     }
 #endif
 

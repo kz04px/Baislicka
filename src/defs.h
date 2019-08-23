@@ -35,7 +35,7 @@
 #define NULL_MOVE
 #define ASPIRATION_WINDOW
 #define LMR
-//#define FUTILITY_PRUNING
+#define REVERSE_FUTILITY_PRUNING
 //#define NULL_MOVE_REDUCTIONS
 //#define IID
 //#define DELTA_PRUNING

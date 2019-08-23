@@ -155,10 +155,10 @@ int main()
         printf("  Disabled - Delta Pruning\n");
 #endif
 
-#ifdef FUTILITY_PRUNING
-        printf("  Enabled  - Futility Pruning\n");
+#ifdef REVERSE_FUTILITY_PRUNING
+        printf("  Enabled  - Reverse Futility Pruning\n");
 #else
-        printf("  Disabled - Futility Pruning\n");
+        printf("  Disabled - Reverse Futility Pruning\n");
 #endif
 
 #ifdef IID
