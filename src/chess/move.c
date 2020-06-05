@@ -134,6 +134,14 @@ int moves_sort_see(s_board *board, s_move *moves, int num_moves, const int *valu
 void null_make(s_board *board)
 {
     assert(board);
+    assert(board->history_size < HISTORY_SIZE_MAX);
+
+    // History
+    board->history[board->history_size].num_halfmoves = board->num_halfmoves;
+    board->history[board->history_size].ep            = board->ep;
+    board->history[board->history_size].castling      = board->castling;
+    board->history[board->history_size].key           = board->key;
+    board->history_size++;
 
     if(board->ep)
     {
@@ -141,13 +149,8 @@ void null_make(s_board *board)
         board->ep = 0;
     }
     board->key ^= key_turn;
-
     board->num_halfmoves = 0;
     board->turn = 1-(board->turn);
-
-    // History
-    board->key_history[board->history_size] = board->key;
-    board->history_size++;
 
     assert(board->key == create_key_board(board));
 }
@@ -155,13 +158,17 @@ void null_make(s_board *board)
 void null_undo(s_board *board)
 {
     assert(board);
+    assert(board->history_size > 0);
 
     // History
+    board->num_halfmoves = board->history[board->history_size-1].num_halfmoves;
+    board->ep            = board->history[board->history_size-1].ep;
+    board->castling      = board->history[board->history_size-1].castling;
+    board->key           = board->history[board->history_size-1].key;
     board->history_size--;
-    assert(board->history_size >= 1);
 
-    board->key = board->key_history[board->history_size-1];
     board->turn = 1-(board->turn);
+    assert(board->key == create_key_board(board));
 }
 
 int move_add_pawn(const s_board *board, s_move *move_list, int from, int to)
@@ -258,9 +265,16 @@ void move_make(s_board *board, const s_move *move)
     assert(move_get_from(*move) <= 63);
     assert(move_get_to(*move) <= 63);
     assert(move_get_piece(*move) <= KINGS);
+    assert(board->history_size < HISTORY_SIZE_MAX);
 
     uint64_t from = (uint64_t)1<<(move_get_from(*move));
     uint64_t to   = (uint64_t)1<<(move_get_to(*move));
+
+    board->history[board->history_size].num_halfmoves = board->num_halfmoves;
+    board->history[board->history_size].ep            = board->ep;
+    board->history[board->history_size].castling      = board->castling;
+    board->history[board->history_size].key           = board->key;
+    board->history_size++;
 
     if(board->ep)
     {
@@ -457,8 +471,6 @@ void move_make(s_board *board, const s_move *move)
     // History
     assert(board->history_size < HISTORY_SIZE_MAX);
     assert(board->history_size >= 0);
-    board->key_history[board->history_size] = board->key;
-    board->history_size++;
 
     // Turn
     board->turn = 1-(board->turn);
@@ -471,12 +483,19 @@ void move_undo(s_board *board, const s_move *move)
 {
     assert(board != NULL);
     assert(move != NULL);
+    assert(board->history_size > 0);
 
     // Turn
     board->turn = 1-(board->turn);
 
     uint64_t from = (uint64_t)1<<(move_get_from(*move));
     uint64_t to   = (uint64_t)1<<(move_get_to(*move));
+
+    board->num_halfmoves = board->history[board->history_size-1].num_halfmoves;
+    board->ep            = board->history[board->history_size-1].ep;
+    board->castling      = board->history[board->history_size-1].castling;
+    board->key           = board->history[board->history_size-1].key;
+    board->history_size--;
 
     switch(move_get_type(*move))
     {
@@ -568,12 +587,6 @@ void move_undo(s_board *board, const s_move *move)
             board->colour[board->turn] ^= (qsc_king[board->turn] | qsc_rook[board->turn]);
             break;
     }
-
-    // History
-    board->history_size--;
-    assert(board->history_size >= 1);
-
-    board->key = board->key_history[board->history_size-1];
 }
 
 int move_make_ascii(s_board *board, const char *move_string)
@@ -606,10 +619,6 @@ int move_make_ascii(s_board *board, const char *move_string)
     {
         promo = KNIGHTS;
     }
-
-    // Set old permissions
-    s_irreversible permissions;
-    store_irreversible(&permissions, board);
 
     s_move moves[MAX_MOVES];
     int num_moves = find_moves_all(board, &moves[0], board->turn);
@@ -644,8 +653,6 @@ int move_make_ascii(s_board *board, const char *move_string)
 
         if(square_attacked(board, board->pieces[KINGS]&board->colour[!board->turn], board->turn))
         {
-            // Restore old permissions
-            restore_irreversible(&permissions, board);
             move_undo(board, &moves[i]);
             continue;
         }

@@ -24,10 +24,9 @@ int set_fen(s_board *board, const char *fen)
     }
     board->colour[WHITE] = 0;
     board->colour[BLACK] = 0;
-
     board->ep = 0;
-
     board->castling = 0;
+    board->history_size = 0;
 
     /*
     for(int i = 0; i < 12; ++i)
@@ -210,10 +209,6 @@ int set_fen(s_board *board, const char *fen)
 
     board->key = create_key_board(board);
 
-    // History
-    board->key_history[0] = board->key;
-    board->history_size = 1;
-
     assert(board->ep == 0 || (1ULL<<board->ep) & (U64_RANK_3 | U64_RANK_6));
 
     return 0;
@@ -241,34 +236,10 @@ int board_equality(const s_board *a, const s_board *b)
     if(a->history_size != b->history_size) {return 0;}
     for(int i = 0; i < a->history_size; ++i)
     {
-        if(a->key_history[i] != b->key_history[i]) {return 0;}
+        if(a->history[i].key != b->history[i].key) {return 0;}
     }
 
     return 1;
-}
-
-int store_irreversible(s_irreversible *info, const s_board *board)
-{
-    assert(board);
-    assert(info);
-
-    info->num_halfmoves = board->num_halfmoves;
-    info->ep            = board->ep;
-    info->castling      = board->castling;
-
-    return 0;
-}
-
-int restore_irreversible(const s_irreversible *info, s_board *board)
-{
-    assert(board);
-    assert(info);
-
-    board->num_halfmoves = info->num_halfmoves;
-    board->ep            = info->ep;
-    board->castling      = info->castling;
-
-    return 0;
 }
 
 int is_endgame(const s_board *board)
@@ -301,17 +272,17 @@ int is_threefold(const s_board *board)
     }
 
     int repeats = 0;
-    int lim = (board->num_halfmoves+1 < board->history_size) ? board->num_halfmoves+1 : board->history_size;
+    int lim = board->num_halfmoves+1 < board->history_size ? board->num_halfmoves+1 : board->history_size;
 
     for(int i = 1; i <= lim; ++i)
     {
         assert(board->history_size-i >= 0);
 
-        if(board->key_history[board->history_size-i] == board->key)
+        if(board->history[board->history_size-i].key == board->key)
         {
             repeats++;
 
-            if(repeats >= 3)
+            if(repeats >= 2)
             {
                 return 1;
             }

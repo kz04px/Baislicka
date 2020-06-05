@@ -117,6 +117,14 @@ enum {PAWNS, KNIGHTS, BISHOPS, ROOKS, QUEENS, KINGS, EMPTY};
 
 typedef struct
 {
+    uint8_t num_halfmoves;
+    uint8_t ep;
+    uint8_t castling;
+    uint64_t key;
+} s_irreversible;
+
+typedef struct
+{
     int turn;
     uint8_t castling;
     uint8_t ep;
@@ -125,19 +133,10 @@ typedef struct
     uint64_t key;
     uint8_t num_halfmoves;
     int history_size;
-    uint64_t key_history[HISTORY_SIZE_MAX];
+    s_irreversible history[HISTORY_SIZE_MAX];
 } s_board;
 
-typedef struct
-{
-    uint8_t num_halfmoves;
-    uint8_t ep;
-    uint8_t castling;
-} s_irreversible;
-
 int set_fen(s_board *board, const char *fen);
-int store_irreversible(s_irreversible *info, const s_board *board);
-int restore_irreversible(const s_irreversible *info, s_board *board);
 int board_equality(const s_board *a, const s_board *b);
 int is_endgame(const s_board *board);
 int is_fifty_move_draw(const s_board *board);
