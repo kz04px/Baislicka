@@ -2,12 +2,12 @@
 #include <pthread.h>
 #include <time.h>
 #include "defs.h"
-#include "search.h"
-#include "move.h"
-#include "hashtable.h"
+#include "chess/move.h"
+#include "chess/display.h"
+#include "chess/perft.h"
+#include "search/search.h"
+#include "search/hashtable.h"
 #include "uci.h"
-#include "display.h"
-#include "perft.h"
 
 void uci_listen()
 {

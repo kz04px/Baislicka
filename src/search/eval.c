@@ -1,8 +1,8 @@
 #include <assert.h>
 #include "defs.h"
-#include "bitboards.h"
+#include "../chess/bitboards.h"
+#include "../chess/attack.h"
 #include "eval.h"
-#include "attack.h"
 
 const int piece_location_bonus[2][6][64] = {{
 {
@@ -312,55 +312,6 @@ int pst_value(int piece, int sq, int endgame)
     assert(piece < 6);
 
     return piece_location_bonus[endgame][piece][sq];
-}
-
-int is_endgame(const s_board *board)
-{
-    assert(board != NULL);
-
-    // "side to move has three or less non-pawn pieces including king"
-    return __builtin_popcountll(board->colour[board->turn] & (board->pieces[KNIGHTS] | board->pieces[BISHOPS] | board->pieces[ROOKS] | board->pieces[QUEENS])) <= 2;
-}
-
-int is_fifty_move_draw(const s_board *board)
-{
-    assert(board != NULL);
-
-    if(board->num_halfmoves >= 100)
-    {
-        return 1;
-    }
-
-    return 0;
-}
-
-int is_threefold(const s_board *board)
-{
-    assert(board != NULL);
-
-    if(board->num_halfmoves < 8)
-    {
-        return 0;
-    }
-
-    int repeats = 0;
-    int lim = (board->num_halfmoves+1 < board->history_size) ? board->num_halfmoves+1 : board->history_size;
-
-    for(int i = 1; i <= lim; ++i)
-    {
-        assert(board->history_size-i >= 0);
-
-        if(board->key_history[board->history_size-i] == board->key)
-        {
-            repeats++;
-
-            if(repeats >= 3)
-            {
-                return 1;
-            }
-        }
-    }
-    return 0;
 }
 
 int insufficient_material(const s_board *board)

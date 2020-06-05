@@ -1,8 +1,8 @@
 #include <string.h>
 #include <assert.h>
 #include "defs.h"
-#include "hashtable.h"
 #include "board.h"
+#include "zobrist.h"
 
 #define START_FEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
@@ -285,5 +285,54 @@ int restore_irreversible(const s_irreversible *info, s_board *board)
     board->ep            = info->ep;
     board->castling      = info->castling;
 
+    return 0;
+}
+
+int is_endgame(const s_board *board)
+{
+    assert(board != NULL);
+
+    // "side to move has three or less non-pawn pieces including king"
+    return __builtin_popcountll(board->colour[board->turn] & (board->pieces[KNIGHTS] | board->pieces[BISHOPS] | board->pieces[ROOKS] | board->pieces[QUEENS])) <= 2;
+}
+
+int is_fifty_move_draw(const s_board *board)
+{
+    assert(board != NULL);
+
+    if(board->num_halfmoves >= 100)
+    {
+        return 1;
+    }
+
+    return 0;
+}
+
+int is_threefold(const s_board *board)
+{
+    assert(board != NULL);
+
+    if(board->num_halfmoves < 8)
+    {
+        return 0;
+    }
+
+    int repeats = 0;
+    int lim = (board->num_halfmoves+1 < board->history_size) ? board->num_halfmoves+1 : board->history_size;
+
+    for(int i = 1; i <= lim; ++i)
+    {
+        assert(board->history_size-i >= 0);
+
+        if(board->key_history[board->history_size-i] == board->key)
+        {
+            repeats++;
+
+            if(repeats >= 3)
+            {
+                return 1;
+            }
+        }
+    }
     return 0;
 }

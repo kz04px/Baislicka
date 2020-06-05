@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include "tests.h"
-#include "bitboards.h"
+#include "chess/bitboards.h"
 
 #define TEST_PASS(x) ((x) == 0) ? "Passed" : "Failed", x
 

@@ -1,7 +1,7 @@
 #ifndef TESTS_H
 #define TESTS_H
 
-#include <board.h>
+#include <chess/board.h>
 
 int test_move_legality();
 int test_make_undo();

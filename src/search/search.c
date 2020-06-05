@@ -2,18 +2,18 @@
 #include <assert.h>
 #include "defs.h"
 #include "search.h"
-#include "attack.h"
-#include "movegen.h"
-#include "bitboards.h"
-#include "move.h"
 #include "eval.h"
 #include "hashtable.h"
+#include "../chess/attack.h"
+#include "../chess/movegen.h"
+#include "../chess/bitboards.h"
+#include "../chess/move.h"
 
 #define R 2
 
 int reduction(const int move_num, const int depth, const int in_check, const int move_type)
 {
-    if(move_num < 4 || depth < 3 || in_check || move_type == CAPTURE || move_type == QUEEN_PROMO || move_type == QUEEN_PROMO_CAPTURE)
+    if (move_num < 4 || depth < 3 || in_check || move_type == CAPTURE || move_type == QUEEN_PROMO || move_type == QUEEN_PROMO_CAPTURE)
     {
         return 0;
     }
@@ -32,26 +32,26 @@ int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int
     stack->pv.num_moves = 0;
 
     // Evaluate draws
-    if(is_threefold(board) || is_fifty_move_draw(board))
+    if (is_threefold(board) || is_fifty_move_draw(board))
     {
         return CONTEMPT_VALUE;
     }
 
     // Stop search at maximum depth
-    if(stack->ply >= MAX_DEPTH)
+    if (stack->ply >= MAX_DEPTH)
     {
         return evaluate(board);
     }
 
-    int in_check = square_attacked(board, board->pieces[KINGS]&board->colour[board->turn], !board->turn);
+    int in_check = square_attacked(board, board->pieces[KINGS] & board->colour[board->turn], !board->turn);
 
     // Check extensions
-    if(in_check && depth < MAX_DEPTH)
+    if (in_check && depth < MAX_DEPTH)
     {
         depth++;
     }
 
-    if(depth == 0)
+    if (depth == 0)
     {
 #ifdef QUIESCENCE_SEARCH
         return qsearch(info, stack, board, alpha, beta);
@@ -64,17 +64,17 @@ int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int
     time_spent = (clock() - info->time_start) * 1000 / CLOCKS_PER_SEC;
 
     // Check time
-    if(time_spent >= info->time_max || *info->stop != 0)
+    if (time_spent >= info->time_max || *info->stop != 0)
     {
         return 0;
     }
 
-    if(info->nodes%524288 == 0)
+    if (info->nodes % 524288 == 0)
     {
         // Update GUI on our search
-        if(time_spent > 0)
+        if (time_spent > 0)
         {
-            printf("info nps %" PRIu64 "\n", 1000*info->nodes/time_spent);
+            printf("info nps %" PRIu64 "\n", 1000 * info->nodes / time_spent);
         }
     }
 
@@ -100,42 +100,42 @@ int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int
 
     int pvnode = (beta - alpha > 1);
 
-    if(entry_valid)
+    if (entry_valid)
     {
         info->hashtable_hits++;
         gen.hash_move = entry.pv;
         int entry_eval = eval_from_tt(entry.eval, stack->ply);
 
-        if(!pvnode && entry.depth >= depth)
+        if (!pvnode && entry.depth >= depth)
         {
-            switch(entry.flags)
+            switch (entry.flags)
             {
-                case LOWERBOUND:
-                    if(entry_eval >= beta)
-                    {
-                        // Store pv
-                        stack->pv.num_moves = 1;
-                        stack->pv.moves[0] = entry.pv;
-                        return entry_eval;
-                    }
-                    break;
-                case UPPERBOUND:
-                    if(entry_eval <= alpha)
-                    {
-                        // Store pv
-                        stack->pv.num_moves = 1;
-                        stack->pv.moves[0] = entry.pv;
-                        return entry_eval;
-                    }
-                    break;
-                case EXACT:
+            case LOWERBOUND:
+                if (entry_eval >= beta)
+                {
                     // Store pv
                     stack->pv.num_moves = 1;
                     stack->pv.moves[0] = entry.pv;
                     return entry_eval;
-                default:
-                    assert(0);
-                    break;
+                }
+                break;
+            case UPPERBOUND:
+                if (entry_eval <= alpha)
+                {
+                    // Store pv
+                    stack->pv.num_moves = 1;
+                    stack->pv.moves[0] = entry.pv;
+                    return entry_eval;
+                }
+                break;
+            case EXACT:
+                // Store pv
+                stack->pv.num_moves = 1;
+                stack->pv.moves[0] = entry.pv;
+                return entry_eval;
+            default:
+                assert(0);
+                break;
             }
         }
     }
@@ -145,13 +145,13 @@ int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int
     const int static_eval = evaluate(board);
     static const int margins[] = {0, 330, 500, 900};
 
-    if(!pvnode &&
-       stack->null_move &&
-       depth <= 3 &&
-       !in_check &&
-       !is_endgame(board) &&
-       abs(beta) < INF - MAX_DEPTH &&
-       static_eval - margins[depth] >= beta)
+    if (!pvnode &&
+        stack->null_move &&
+        depth <= 3 &&
+        !in_check &&
+        !is_endgame(board) &&
+        abs(beta) < INF - MAX_DEPTH &&
+        static_eval - margins[depth] >= beta)
     {
         return static_eval - margins[depth];
     }
@@ -162,13 +162,13 @@ int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int
     store_irreversible(&permissions, board);
 
 #ifdef NULL_MOVE
-    if(stack->null_move && !pvnode && depth > 2 && !in_check && !is_endgame(board))
+    if (stack->null_move && !pvnode && depth > 2 && !in_check && !is_endgame(board))
     {
         // Make nullmove
         null_make(board);
 
-        (stack+1)->null_move = 0;
-        score = -pvSearch(info, stack+1, board, -beta, -beta+1, depth-1-R);
+        (stack + 1)->null_move = 0;
+        score = -pvSearch(info, stack + 1, board, -beta, -beta + 1, depth - 1 - R);
 
         // Unmake nullmove
         null_undo(board);
@@ -179,7 +179,7 @@ int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int
         // Test
         stack->pv.num_moves = 0;
 
-        if(score >= beta)
+        if (score >= beta)
         {
             return score;
         }
@@ -187,23 +187,23 @@ int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int
 #endif
 
 #ifdef NULL_MOVE_REDUCTIONS
-    if(stack->null_move && !in_check && depth > 4)
+    if (stack->null_move && !in_check && depth > 4)
     {
         int new_r = depth > 6 ? 4 : 3;
 
         // Make nullmove
         null_make(board);
 
-        (stack+1)->null_move = 0;
-        score = -pvSearch(info, stack+1, board, -beta, -beta+1, depth-1-new_r);
+        (stack + 1)->null_move = 0;
+        score = -pvSearch(info, stack + 1, board, -beta, -beta + 1, depth - 1 - new_r);
 
         // Unmake nullmove
         null_undo(board);
 
-        if(score >= beta)
+        if (score >= beta)
         {
             depth -= 4;
-            if(depth <= 0)
+            if (depth <= 0)
             {
                 return qsearch(info, stack, board, alpha, beta);
             }
@@ -212,7 +212,7 @@ int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int
 #endif
 
 #ifdef IID
-    if(pvnode && gen.hash_move == NO_MOVE && depth > 3)
+    if (pvnode && gen.hash_move == NO_MOVE && depth > 3)
     {
         score = -pvSearch(info, stack, board, alpha, beta, depth - 3);
         gen.hash_move = stack->pv.moves[0];
@@ -223,9 +223,9 @@ int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int
     gen.killer_move = stack->killer_move;
 #endif
 #ifdef KILLER_MOVES_2
-    if(stack->ply-2 >= 0)
+    if (stack->ply - 2 >= 0)
     {
-        gen.killer_move_2 = (stack-2)->killer_move;
+        gen.killer_move_2 = (stack - 2)->killer_move;
     }
 #endif
 
@@ -235,11 +235,11 @@ int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int
     int move_num = 0;
 
     // Try the first move
-    while(next_move(board, &gen, &move))
+    while (next_move(board, &gen, &move, piece_values))
     {
         move_make(board, &move);
 
-        if(square_attacked(board, board->pieces[KINGS]&board->colour[!board->turn], board->turn))
+        if (square_attacked(board, board->pieces[KINGS] & board->colour[!board->turn], board->turn))
         {
             // Restore old permissions
             restore_irreversible(&permissions, board);
@@ -250,8 +250,8 @@ int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int
         move_num++;
         info->nodes++;
 
-        (stack+1)->null_move = 1;
-        best_score = -pvSearch(info, stack+1, board, -beta, -alpha, depth - 1);
+        (stack + 1)->null_move = 1;
+        best_score = -pvSearch(info, stack + 1, board, -beta, -alpha, depth - 1);
 
         // Restore old permissions
         restore_irreversible(&permissions, board);
@@ -259,18 +259,18 @@ int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int
 
         // Store pv line
         stack->pv.moves[0] = move;
-        for(int i = 0; i < (stack+1)->pv.num_moves && i < MAX_DEPTH - 1; ++i)
+        for (int i = 0; i < (stack + 1)->pv.num_moves && i < MAX_DEPTH - 1; ++i)
         {
-            stack->pv.moves[i+1] = (stack+1)->pv.moves[i];
+            stack->pv.moves[i + 1] = (stack + 1)->pv.moves[i];
         }
-        stack->pv.num_moves = (stack+1)->pv.num_moves + 1;
+        stack->pv.num_moves = (stack + 1)->pv.num_moves + 1;
 
-        if(best_score > alpha)
+        if (best_score > alpha)
         {
-            if(best_score >= beta)
+            if (best_score >= beta)
             {
 #ifdef KILLER_MOVES
-                if(move_get_type(move) == QUIET)
+                if (move_get_type(move) == QUIET)
                 {
                     stack->killer_move = move;
                 }
@@ -296,13 +296,13 @@ int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int
         break;
     }
 
-    (stack+1)->null_move = 1;
+    (stack + 1)->null_move = 1;
     // Try the rest of the moves
-    while(next_move(board, &gen, &move))
+    while (next_move(board, &gen, &move, piece_values))
     {
         move_make(board, &move);
 
-        if(square_attacked(board, board->pieces[KINGS]&board->colour[!board->turn], board->turn))
+        if (square_attacked(board, board->pieces[KINGS] & board->colour[!board->turn], board->turn))
         {
             // Restore old permissions
             restore_irreversible(&permissions, board);
@@ -315,24 +315,24 @@ int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int
 
 #ifdef LMR
         int r = reduction(move_num, depth, in_check, move_get_type(move));
-        score = -pvSearch(info, stack+1, board, -alpha-1, -alpha, depth - 1 - r);
+        score = -pvSearch(info, stack + 1, board, -alpha - 1, -alpha, depth - 1 - r);
 
         // Re-search
-        if(score > alpha && score < beta)
+        if (score > alpha && score < beta)
         {
-            score = -pvSearch(info, stack+1, board, -beta, -alpha, depth - 1);
-            if(score > alpha)
+            score = -pvSearch(info, stack + 1, board, -beta, -alpha, depth - 1);
+            if (score > alpha)
             {
                 alpha = score;
             }
         }
 #else
-        score = -pvSearch(info, stack+1, board, -alpha-1, -alpha, depth - 1);
+        score = -pvSearch(info, stack + 1, board, -alpha - 1, -alpha, depth - 1);
 
-        if(score > alpha && score < beta)
+        if (score > alpha && score < beta)
         {
             score = -pvSearch(info, stack, board, -beta, -alpha, depth - 1);
-            if(score > alpha)
+            if (score > alpha)
             {
                 alpha = score;
             }
@@ -343,20 +343,20 @@ int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int
         restore_irreversible(&permissions, board);
         move_undo(board, &move);
 
-        if(score > best_score)
+        if (score > best_score)
         {
             // Store pv line
             stack->pv.moves[0] = move;
-            for(int i = 0; i < (stack+1)->pv.num_moves && i < MAX_DEPTH - 1; ++i)
+            for (int i = 0; i < (stack + 1)->pv.num_moves && i < MAX_DEPTH - 1; ++i)
             {
-                stack->pv.moves[i+1] = (stack+1)->pv.moves[i];
+                stack->pv.moves[i + 1] = (stack + 1)->pv.moves[i];
             }
-            stack->pv.num_moves = (stack+1)->pv.num_moves + 1;
+            stack->pv.num_moves = (stack + 1)->pv.num_moves + 1;
 
-            if(score >= beta)
+            if (score >= beta)
             {
 #ifdef KILLER_MOVES
-                if(move_get_type(move) == QUIET)
+                if (move_get_type(move) == QUIET)
                 {
                     stack->killer_move = move;
                 }
@@ -367,7 +367,7 @@ int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int
 #endif
 
 #ifndef NDEBUG
-                info->num_cutoffs[move_num-1]++;
+                info->num_cutoffs[move_num - 1]++;
 #endif
 
                 return score;
@@ -382,9 +382,9 @@ int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int
     }
 
     // If we haven't played a move, then there are none
-    if(best_score == -INF)
+    if (best_score == -INF)
     {
-        if(in_check)
+        if (in_check)
         {
             // Checkmate
             return -INF + stack->ply;
@@ -398,7 +398,7 @@ int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int
 
 #ifdef HASHTABLE
     int flag;
-    if(best_score == alpha_original)
+    if (best_score == alpha_original)
     {
         flag = UPPERBOUND;
     }

@@ -1,8 +1,8 @@
-#include "bitboards.h"
-#include "board.h"
-#include "move.h"
-#include "movegen.h"
 #include "tests.h"
+#include "chess/bitboards.h"
+#include "chess/board.h"
+#include "chess/move.h"
+#include "chess/movegen.h"
 
 int test_move_legality()
 {

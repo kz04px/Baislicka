@@ -1,8 +1,9 @@
 #include <string.h>
 #include "defs.h"
-#include "bitboards.h"
-#include "hashtable.h"
-#include "perft.h"
+#include "chess/bitboards.h"
+#include "chess/perft.h"
+#include "chess/zobrist.h"
+#include "search/hashtable.h"
 #include "uci.h"
 
 int main()
