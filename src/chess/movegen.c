@@ -643,7 +643,6 @@ int next_move(s_board *board, s_move_generator *generator, s_move *move, const i
         {
             generator->stage++;
             generator->num_moves = find_moves_quiet(board, &generator->moves[0], board->turn);
-            int endgame = is_endgame(board);
 #ifdef SORT_MOVES
             for(int i = 0; i < generator->num_moves; ++i)
             {
@@ -652,6 +651,7 @@ int next_move(s_board *board, s_move_generator *generator, s_move *move, const i
                 int from = move_get_from(generator->moves[i]);
                 generator->scores[i] = board->hh_score[from][to] / board->bf_score[from][to];
 #elif defined(QUIET_SORT_PST)
+                int endgame = is_endgame(board);
                 generator->scores[i] = 500 +
                                        pst_value(move_get_piece(generator->moves[i]), move_get_to(generator->moves[i]),   endgame) -
                                        pst_value(move_get_piece(generator->moves[i]), move_get_from(generator->moves[i]), endgame);

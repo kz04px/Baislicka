@@ -8,7 +8,7 @@ include_directories(.)
 include_directories(./src/)
 
 # Flags
-set(CMAKE_C_FLAGS "-pthread")
+set(CMAKE_C_FLAGS "-pthread -Wall -Wextra -Wshadow")
 set(CMAKE_C_FLAGS_DEBUG "-g")
 set(CMAKE_C_FLAGS_RELEASE "-O3 -flto -march=native -DNDEBUG")
 

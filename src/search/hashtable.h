@@ -27,11 +27,11 @@ typedef struct
 
 s_hashtable *hashtable;
 
-int hashtable_init(s_hashtable *hashtable, int size_megabytes);
-void hashtable_clear(s_hashtable *hashtable);
-void hashtable_free(s_hashtable *hashtable);
-s_hashtable_entry *hashtable_poll(s_hashtable *hashtable, const uint64_t key);
-s_hashtable_entry *hashtable_add(s_hashtable *hashtable, const int flags, const uint64_t key, const int depth, const int eval, const s_move pv);
+int hashtable_init(s_hashtable *table, int size_megabytes);
+void hashtable_clear(s_hashtable *table);
+void hashtable_free(s_hashtable *table);
+s_hashtable_entry *hashtable_poll(s_hashtable *table, const uint64_t key);
+s_hashtable_entry *hashtable_add(s_hashtable *table, const int flags, const uint64_t key, const int depth, const int eval, const s_move pv);
 int eval_to_tt(const int eval, const int ply);
 int eval_from_tt(const int eval, const int ply);
 
