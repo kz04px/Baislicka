@@ -25,18 +25,6 @@ int main()
         size = size>>1;
     }
 
-    ksc_king[WHITE] = U64_E1 | U64_G1;
-    ksc_king[BLACK] = U64_E8 | U64_G8;
-
-    ksc_rook[WHITE] = U64_F1 | U64_H1;
-    ksc_rook[BLACK] = U64_F8 | U64_H8;
-
-    qsc_king[WHITE] = U64_E1 | U64_C1;
-    qsc_king[BLACK] = U64_E8 | U64_C8;
-
-    qsc_rook[WHITE] = U64_D1 | U64_A1;
-    qsc_rook[BLACK] = U64_D8 | U64_A8;
-
     // kill buffering
     setbuf(stdout, NULL);
     setbuf(stdin, NULL);

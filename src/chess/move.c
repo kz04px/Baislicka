@@ -19,6 +19,11 @@ const uint8_t castling_perms[64] = {
      7,15,15,15, 5,15,15,13  // 8
 };
 
+const uint64_t ksc_king[2] = {U64_E1 | U64_G1, U64_E8 | U64_G8};
+const uint64_t ksc_rook[2] = {U64_F1 | U64_H1, U64_F8 | U64_H8};
+const uint64_t qsc_king[2] = {U64_E1 | U64_C1, U64_E8 | U64_C8};
+const uint64_t qsc_rook[2] = {U64_D1 | U64_A1, U64_D8 | U64_A8};
+
 int is_same_move(const s_move move_1, const s_move move_2)
 {
     return (move_1 == move_2);

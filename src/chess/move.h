@@ -10,11 +10,6 @@ typedef uint32_t s_move;
 
 enum {QUIET, DOUBLE_PAWN, KSC, QSC, CAPTURE, EP, FILLER1, FILLER2, KNIGHT_PROMO, BISHOP_PROMO, ROOK_PROMO, QUEEN_PROMO, KNIGHT_PROMO_CAPTURE, BISHOP_PROMO_CAPTURE, ROOK_PROMO_CAPTURE, QUEEN_PROMO_CAPTURE};
 
-uint64_t ksc_king[2];
-uint64_t ksc_rook[2];
-uint64_t qsc_king[2];
-uint64_t qsc_rook[2];
-
 void null_make(s_board *board);
 void null_undo(s_board *board);
 s_move move_add(const s_board *board, int from, int to, int type, int piece_type);
