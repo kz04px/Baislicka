@@ -2,8 +2,8 @@
 #include <assert.h>
 #include "defs.h"
 #include "search.h"
-#include "eval.h"
 #include "hashtable.h"
+#include "../eval/eval.h"
 #include "../chess/attack.h"
 #include "../chess/movegen.h"
 #include "../chess/bitboards.h"
