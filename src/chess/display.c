@@ -1,7 +1,6 @@
 #include <assert.h>
 #include "defs.h"
 #include "move.h"
-#include "eval.h"
 #include "attack.h"
 #include "movegen.h"
 
@@ -263,11 +262,6 @@ void display_board(s_board *board)
     printf("is 3fold:   %i\n", is_threefold(board));
     printf("is 50move:  %i\n", is_fifty_move_draw(board));
     printf("is endgame: %i\n", is_endgame(board));
-
-    printf("White king safety: %i\n", king_safety(board, WHITE));
-    printf("Black king safety: %i\n", -king_safety(board, BLACK));
-
-    printf("Eval: %i\n", evaluate(board));
 
     printf("Castling: ");
     if(board->castling & wKSC) {printf("K");}

@@ -1,9 +1,9 @@
 #include <assert.h>
-#include "board.h"
-#include "eval.h"
-#include "hashtable.h"
-#include "move.h"
 #include "tests.h"
+#include "search/eval.h"
+#include "chess/board.h"
+#include "chess/move.h"
+#include "chess/zobrist.h"
 
 int board_flip(s_board *board)
 {

@@ -1,7 +1,7 @@
 #ifndef HASHTABLE_H_INCLUDED
 #define HASHTABLE_H_INCLUDED
 
-#include "move.h"
+#include "../chess/move.h"
 
 #define HASHTABLE_SIZE_MIN        1
 #define HASHTABLE_SIZE_MAX     2048
@@ -27,15 +27,6 @@ typedef struct
 
 s_hashtable *hashtable;
 
-uint64_t key_piece_positions[6][2][64];
-uint64_t key_turn;
-uint64_t key_castling[16];
-uint64_t key_ep_file[8];
-uint64_t key_ksc[2];
-uint64_t key_qsc[2];
-
-void key_init();
-uint64_t create_key_board(const s_board *board);
 int hashtable_init(s_hashtable *hashtable, int size_megabytes);
 void hashtable_clear(s_hashtable *hashtable);
 void hashtable_free(s_hashtable *hashtable);

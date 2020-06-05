@@ -10,7 +10,7 @@ include_directories(./src/)
 # Flags
 set(CMAKE_C_FLAGS "-pthread")
 set(CMAKE_C_FLAGS_DEBUG "-g")
-set(CMAKE_C_FLAGS_RELEASE "-O3 -march=native -DNDEBUG")
+set(CMAKE_C_FLAGS_RELEASE "-O3 -flto -march=native -DNDEBUG")
 
 # Default build type
 if(NOT CMAKE_BUILD_TYPE)
@@ -21,20 +21,23 @@ endif()
 add_executable(
     baislicka
     src/main.c
-    src/attack.c
-    src/bitboards.c
-    src/board.c
-    src/display.c
-    src/eval.c
-    src/hashtable.c
-    src/move.c
-    src/movegen.c
-    src/perft.c
-    src/pv.c
-    src/qsearch.c
-    src/search-root.c
-    src/search.c
     src/uci.c
+
+    src/chess/attack.c
+    src/chess/bitboards.c
+    src/chess/board.c
+    src/chess/display.c
+    src/chess/move.c
+    src/chess/movegen.c
+    src/chess/perft.c
+    src/chess/zobrist.c
+
+    src/search/eval.c
+    src/search/hashtable.c
+    src/search/pv.c
+    src/search/qsearch.c
+    src/search/search-root.c
+    src/search/search.c
 )
 
 # Add test executable
@@ -47,11 +50,13 @@ add_executable(
     tests/makeundo.c
     tests/passed_pawns.c
 
-    src/attack.c
-    src/bitboards.c
-    src/board.c
-    src/eval.c
-    src/hashtable.c
-    src/move.c
-    src/movegen.c
+    src/chess/attack.c
+    src/chess/bitboards.c
+    src/chess/board.c
+    src/chess/move.c
+    src/chess/movegen.c
+    src/chess/zobrist.c
+
+    src/search/eval.c
+    src/search/hashtable.c
 )

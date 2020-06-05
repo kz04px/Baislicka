@@ -5,8 +5,7 @@
 #include "movegen.h"
 #include "bitboards.h"
 #include "move.h"
-#include "hashtable.h"
-#include "eval.h"
+#include "zobrist.h"
 
 const uint8_t castling_perms[64] = {
   // A  B  C  D  E  F  G  H
@@ -96,11 +95,12 @@ void move_set_piece(s_move *move, uint8_t piece)
 }
 
 // SEE (Static Exchange Evaluation)
-int moves_sort_see(s_board *board, s_move *moves, int num_moves)
+int moves_sort_see(s_board *board, s_move *moves, int num_moves, const int *values)
 {
     assert(moves != NULL);
     assert(num_moves >= 0);
     assert(num_moves < MAX_MOVES);
+    assert(values);
 
     if(num_moves < 2) {return 0;}
 
@@ -108,7 +108,7 @@ int moves_sort_see(s_board *board, s_move *moves, int num_moves)
 
     for(int a = 0; a < num_moves; ++a)
     {
-        scores[a] = see_capture(board, moves[a]);
+        scores[a] = see_capture(board, moves[a], values);
     }
 
     for(int a = 0; a < num_moves-1; ++a)
@@ -886,8 +886,9 @@ int is_legal_move(const s_board *board, const s_move *move)
     */
 }
 
-int see(int sq, int side, int captured, uint64_t colours[2], uint64_t pieces[6])
+int see(int sq, int side, int captured, uint64_t colours[2], uint64_t pieces[6], const int *values)
 {
+    assert(values);
     int value = 0;
     int smallest_attacker = EMPTY;
 
@@ -936,7 +937,7 @@ int see(int sq, int side, int captured, uint64_t colours[2], uint64_t pieces[6])
     pieces[smallest_attacker] ^= from_bb;
     colours[side] ^= from_bb;
 
-    value = piece_value(captured) - see(sq, 1-side, smallest_attacker, colours, pieces);
+    value = values[captured] - see(sq, 1-side, smallest_attacker, colours, pieces, values);
 
     if(value < 0)
     {
@@ -950,15 +951,17 @@ int see(int sq, int side, int captured, uint64_t colours[2], uint64_t pieces[6])
     return value;
 }
 
-int see_capture(s_board *board, const s_move move)
+int see_capture(s_board *board, const s_move move, const int *values)
 {
+    assert(board);
+    assert(values);
     uint64_t from_bb = (uint64_t)1<<move_get_from(move);
 
     // Make move
     board->pieces[move_get_piece(move)] ^= from_bb;
     board->colour[board->turn] ^= from_bb;
 
-    int value = piece_value(move_get_captured(move)) - see(move_get_to(move), 1-board->turn, move_get_piece(move), board->colour, board->pieces);
+    int value = values[move_get_captured(move)] - see(move_get_to(move), 1-board->turn, move_get_piece(move), board->colour, board->pieces, values);
 
     // Undo move
     board->pieces[move_get_piece(move)] ^= from_bb;
@@ -967,15 +970,17 @@ int see_capture(s_board *board, const s_move move)
     return value;
 }
 
-int see_quiet(s_board *board, const s_move move)
+int see_quiet(s_board *board, const s_move move, const int *values)
 {
+    assert(board);
+    assert(values);
     uint64_t from_bb = (uint64_t)1<<move_get_from(move);
 
     // Make move
     board->pieces[move_get_piece(move)] ^= from_bb;
     board->colour[board->turn] ^= from_bb;
 
-    int value = 0 - see(move_get_to(move), 1-board->turn, move_get_piece(move), board->colour, board->pieces);
+    int value = 0 - see(move_get_to(move), 1-board->turn, move_get_piece(move), board->colour, board->pieces, values);
 
     // Undo move
     board->pieces[move_get_piece(move)] ^= from_bb;

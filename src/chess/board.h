@@ -146,5 +146,8 @@ int set_fen(s_board *board, const char *fen);
 int store_irreversible(s_irreversible *info, const s_board *board);
 int restore_irreversible(const s_irreversible *info, s_board *board);
 int board_equality(const s_board *a, const s_board *b);
+int is_endgame(const s_board *board);
+int is_fifty_move_draw(const s_board *board);
+int is_threefold(const s_board *board);
 
 #endif

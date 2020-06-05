@@ -25,7 +25,7 @@ typedef struct
     int scores[MAX_MOVES];
 } s_move_generator;
 
-int next_move(s_board *board, s_move_generator *generator, s_move *move);
+int next_move(s_board *board, s_move_generator *generator, s_move *move, const int *values);
 
 int find_moves_pawn_ep(const s_board *board, s_move *move_list);
 int find_moves_pawn_captures(const s_board *board, s_move *move_list, uint64_t allowed);

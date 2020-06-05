@@ -5,7 +5,6 @@
 #include "attack.h"
 #include "bitboards.h"
 #include "move.h"
-#include "eval.h"
 
 int find_moves_pawn_ep(const s_board *board, s_move *move_list)
 {
@@ -584,11 +583,12 @@ int find_moves_quiet(const s_board *board, s_move *move_list, int colour)
     return num_moves;
 }
 
-int next_move(s_board *board, s_move_generator *generator, s_move *move)
+int next_move(s_board *board, s_move_generator *generator, s_move *move, const int *values)
 {
     assert(board);
     assert(generator);
     assert(move);
+    assert(values);
 
     while(generator->move_num >= generator->num_moves)
     {
@@ -611,7 +611,7 @@ int next_move(s_board *board, s_move_generator *generator, s_move *move)
             for(int i = 0; i < generator->num_moves; ++i)
             {
 #if defined(CAPTURE_SORT_SEE)
-                generator->scores[i] = 50000 + see_capture(board, generator->moves[i]);
+                generator->scores[i] = 50000 + see_capture(board, generator->moves[i], values);
 #elif defined(CAPTURE_SORT_MVVLVA)
                 generator->scores[i] = 0;
 #else
@@ -656,7 +656,7 @@ int next_move(s_board *board, s_move_generator *generator, s_move *move)
                                        pst_value(move_get_piece(generator->moves[i]), move_get_to(generator->moves[i]),   endgame) -
                                        pst_value(move_get_piece(generator->moves[i]), move_get_from(generator->moves[i]), endgame);
 #elif defined(QUIET_SORT_SEE)
-                generator->scores[i] = 50000 + see_quiet(board, generator->moves[i]);
+                generator->scores[i] = 50000 + see_quiet(board, generator->moves[i], values);
 #else
                 generator->scores[i] = 0;
 #endif
@@ -685,7 +685,7 @@ int next_move(s_board *board, s_move_generator *generator, s_move *move)
     {
         generator->move_num = 0;
         generator->num_moves = 0;
-        return next_move(board, generator, move);
+        return next_move(board, generator, move, values);
     }
 
     // Try not to repeat moves
@@ -695,7 +695,7 @@ int next_move(s_board *board, s_move_generator *generator, s_move *move)
         {
             generator->scores[best_move] = INT_MIN;
             generator->move_num++;
-            return next_move(board, generator, move);
+            return next_move(board, generator, move, values);
         }
     }
     if(generator->stage-1 > GEN_CAPTURES)
@@ -704,7 +704,7 @@ int next_move(s_board *board, s_move_generator *generator, s_move *move)
         {
             generator->scores[best_move] = INT_MIN;
             generator->move_num++;
-            return next_move(board, generator, move);
+            return next_move(board, generator, move, values);
         }
     }
 

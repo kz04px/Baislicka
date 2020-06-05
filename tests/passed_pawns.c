@@ -1,7 +1,7 @@
-#include "bitboards.h"
-#include "board.h"
-#include "move.h"
 #include "tests.h"
+#include "chess/bitboards.h"
+#include "chess/board.h"
+#include "chess/move.h"
 
 int test_passed_pawns()
 {
