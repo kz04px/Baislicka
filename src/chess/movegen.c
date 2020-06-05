@@ -607,28 +607,20 @@ int next_move(s_board *board, s_move_generator *generator, s_move *move, const i
         {
             generator->stage++;
             generator->num_moves = find_moves_captures(board, &generator->moves[0], board->turn);
-#ifdef SORT_MOVES
+
             for(int i = 0; i < generator->num_moves; ++i)
             {
-#if defined(CAPTURE_SORT_SEE)
                 generator->scores[i] = 50000 + see_capture(board, generator->moves[i], values);
-#elif defined(CAPTURE_SORT_MVVLVA)
-                generator->scores[i] = 0;
-#else
-                generator->scores[i] = 0;
-#endif
                 assert(generator->scores[i] >= 0);
             }
 
             // Insert the killer moves if they're legal
-#ifdef KILLER_MOVES
             if(is_legal_move(board, &generator->killer_move))
             {
                 generator->moves[generator->num_moves] = generator->killer_move;
                 generator->scores[generator->num_moves] = 50000;
                 generator->num_moves++;
             }
-#endif
 #ifdef KILLER_MOVES_2
             if(is_legal_move(board, &generator->killer_move_2))
             {
@@ -637,31 +629,16 @@ int next_move(s_board *board, s_move_generator *generator, s_move *move, const i
                 generator->num_moves++;
             }
 #endif
-#endif
         }
         else if(generator->stage == GEN_QUIETS)
         {
             generator->stage++;
             generator->num_moves = find_moves_quiet(board, &generator->moves[0], board->turn);
-#ifdef SORT_MOVES
+
             for(int i = 0; i < generator->num_moves; ++i)
             {
-#if defined(QUIET_SORT_HISTORY_HEURISTIC)
-                int to = move_get_to(generator->moves[i]);
-                int from = move_get_from(generator->moves[i]);
-                generator->scores[i] = board->hh_score[from][to] / board->bf_score[from][to];
-#elif defined(QUIET_SORT_PST)
-                int endgame = is_endgame(board);
-                generator->scores[i] = 500 +
-                                       pst_value(move_get_piece(generator->moves[i]), move_get_to(generator->moves[i]),   endgame) -
-                                       pst_value(move_get_piece(generator->moves[i]), move_get_from(generator->moves[i]), endgame);
-#elif defined(QUIET_SORT_SEE)
                 generator->scores[i] = 50000 + see_quiet(board, generator->moves[i], values);
-#else
-                generator->scores[i] = 0;
-#endif
             }
-#endif
         }
         else
         {

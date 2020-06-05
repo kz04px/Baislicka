@@ -8,21 +8,6 @@
 
 const char temp[256] = START_FEN;
 
-void reset_hh_bf(s_board *board)
-{
-#ifdef QUIET_SORT_HISTORY_HEURISTIC
-    for(int x = 0; x < 64; ++x)
-    {
-        int y;
-        for(y = 0; y < 64; ++y)
-        {
-            board->hh_score[x][y] = 0;
-            board->bf_score[x][y] = 1;
-        }
-    }
-#endif
-}
-
 int set_fen(s_board *board, const char *fen)
 {
     assert(board != NULL);
@@ -223,9 +208,7 @@ int set_fen(s_board *board, const char *fen)
 
     board->num_halfmoves = atoi(&fen[n]);
 
-#ifdef HASHTABLE
     board->key = create_key_board(board);
-#endif
 
     // History
     board->key_history[0] = board->key;

@@ -27,14 +27,15 @@ int qsearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int 
         return beta;
     }
 
-#ifdef DELTA_PRUNING
+    /*
+    // Delta pruning
     const int safety = 900; // The value of a queen
 
     if (stand_pat < alpha - safety && !is_endgame(board))
     {
         return alpha;
     }
-#endif
+    */
 
     if (stand_pat > alpha)
     {
@@ -52,9 +53,7 @@ int qsearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int 
 
     s_move moves[MAX_MOVES];
     int num_moves = find_moves_captures(board, moves, board->turn);
-#ifdef SORT_MOVES
     moves_sort_see(board, moves, num_moves, piece_values);
-#endif
 
     for (int m = 0; m < num_moves; ++m)
     {

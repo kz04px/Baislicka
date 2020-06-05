@@ -122,16 +122,10 @@ typedef struct
     uint8_t ep;
     uint64_t pieces[6];
     uint64_t colour[2];
-#ifdef HASHTABLE
     uint64_t key;
-#endif
     uint8_t num_halfmoves;
     int history_size;
     uint64_t key_history[HISTORY_SIZE_MAX];
-#ifdef QUIET_SORT_HISTORY_HEURISTIC
-    unsigned int hh_score[64][64];
-    unsigned int bf_score[64][64];
-#endif
 } s_board;
 
 typedef struct
@@ -141,7 +135,6 @@ typedef struct
     uint8_t castling;
 } s_irreversible;
 
-void reset_hh_bf(s_board *board);
 int set_fen(s_board *board, const char *fen);
 int store_irreversible(s_irreversible *info, const s_board *board);
 int restore_irreversible(const s_irreversible *info, s_board *board);

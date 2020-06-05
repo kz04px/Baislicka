@@ -66,15 +66,10 @@ void* search_root(void *n)
         }
     }
 
-#ifdef QUIET_SORT_HISTORY_HEURISTIC
-        reset_hh_bf(board);
-#endif
-
     for(int depth = 1; depth <= target_depth; ++depth)
     {
         int score = 0;
 
-#ifdef ASPIRATION_WINDOW
         if(depth < 3)
         {
             score = pvSearch(&info, stack, board, -INF, INF, depth);
@@ -94,9 +89,6 @@ void* search_root(void *n)
                 }
             }
         }
-#else
-        score = pvSearch(&info, stack, board, -INF, INF, depth);
-#endif
 
         clock_t time_spent = 0;
         time_spent = (double)(clock() - info.time_start) * 1000.0 / CLOCKS_PER_SEC;

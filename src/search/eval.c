@@ -449,10 +449,8 @@ int evaluate(const s_board *board)
 
     int sq;
 
-#ifdef TAPERED_EVAL
     int opening_score = 0;
     int endgame_score = 0;
-#endif
 
     for(int piece_type = 0; piece_type < 6; ++piece_type)
     {
@@ -495,20 +493,14 @@ int evaluate(const s_board *board)
                 }
 #endif
 
-#ifdef PAWN_CHAINS
                 if(board->colour[WHITE] & board->pieces[PAWNS] & magic_moves_pawns(BLACK, sq))
                 {
                     score += pawn_chain_value;
                 }
-#endif
             }
 
-#ifdef TAPERED_EVAL
             opening_score += piece_location_bonus[0][piece_type][sq];
             endgame_score += piece_location_bonus[1][piece_type][sq];
-#else
-            score += piece_location_bonus[endgame][piece_type][sq];
-#endif
 
             copy &= copy-1;
         }
@@ -550,20 +542,14 @@ int evaluate(const s_board *board)
                 }
 #endif
 
-#ifdef PAWN_CHAINS
                 if(board->colour[BLACK] & board->pieces[PAWNS] & magic_moves_pawns(WHITE, sq))
                 {
                     score -= pawn_chain_value;
                 }
-#endif
             }
 
-#ifdef TAPERED_EVAL
             opening_score -= piece_location_bonus[0][piece_type][sq^56];
             endgame_score -= piece_location_bonus[1][piece_type][sq^56];
-#else
-            score -= piece_location_bonus[endgame][piece_type][sq^56];
-#endif
 
             copy &= copy-1;
         }
@@ -625,22 +611,16 @@ int evaluate(const s_board *board)
     score -= num_bR*bishop_open_value[num_bP];
 #endif
 
-#ifdef TAPERED_EVAL
     int phase = get_phase(num_wN + num_bN, num_wB + num_bB, num_wR + num_bR, num_wQ + num_bQ);
     score += ((opening_score * (256 - phase)) + (endgame_score * phase)) / 256;
-#endif
 
-#ifdef KING_SAFETY
     // White King
     score += king_safety(board, WHITE);
     score -= king_safety(board, BLACK);
-#endif
 
     // Piece mobility
-#ifdef PIECE_MOBILITY
     score += piece_mobility(board, WHITE);
     score -= piece_mobility(board, BLACK);
-#endif
 
     if(board->turn == BLACK)
     {

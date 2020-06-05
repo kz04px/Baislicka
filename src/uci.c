@@ -13,9 +13,7 @@ void uci_listen()
 {
     printf("id name %s\n", ENGINE_NAME);
     printf("id author %s\n", ENGINE_AUTHOR);
-#ifdef HASHTABLE
     printf("option name Hash type spin default %i min %i max %i\n", HASHTABLE_SIZE_DEFAULT, HASHTABLE_SIZE_MIN, HASHTABLE_SIZE_MAX);
-#endif
     printf("uciok\n");
 
     // board & search information
@@ -197,7 +195,6 @@ void uci_listen()
             }
             else if(strncmp(part, "setoption", 9) == 0)
             {
-#ifdef HASHTABLE
                 if(strncmp(part, "setoption name Hash value", 25) == 0)
                 {
                     part += 26;
@@ -221,7 +218,6 @@ void uci_listen()
 #endif
                     }
                 }
-#endif
             }
 
             part++;
