@@ -16,5 +16,6 @@ int main()
     printf(" 3) Backward pawns: %s (%i)\n", TEST_PASS(test_backward_pawns()));
     printf(" 4) Passed pawns:   %s (%i)\n", TEST_PASS(test_passed_pawns()));
     printf(" 5) Make undo:      %s (%i)\n", TEST_PASS(test_make_undo()));
+    printf(" 6) Perft:          %s (%i)\n", TEST_PASS(test_perft()));
     printf("\n");
 }
