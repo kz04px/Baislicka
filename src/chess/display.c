@@ -254,9 +254,7 @@ void display_board(s_board *board)
     if(board->turn == WHITE) {printf("Turn: w\n");}
     else {printf("Turn: b\n");}
 
-#ifdef HASHTABLE
     printf("Key: %" PRIu64 "\n", board->key);
-#endif
     printf("50 move rule: %i\n", board->num_halfmoves);
     printf("history size: %i\n", board->history_size);
     printf("is 3fold:   %i\n", is_threefold(board));

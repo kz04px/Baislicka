@@ -135,14 +135,12 @@ void null_make(s_board *board)
 {
     assert(board);
 
-#ifdef HASHTABLE
     if(board->ep)
     {
         board->key ^= key_ep_file[SQ_TO_FILE(board->ep)];
         board->ep = 0;
     }
     board->key ^= key_turn;
-#endif
 
     board->num_halfmoves = 0;
     board->turn = 1-(board->turn);
@@ -162,9 +160,7 @@ void null_undo(s_board *board)
     board->history_size--;
     assert(board->history_size >= 1);
 
-#ifdef HASHTABLE
     board->key = board->key_history[board->history_size-1];
-#endif
     board->turn = 1-(board->turn);
 }
 
@@ -266,13 +262,11 @@ void move_make(s_board *board, const s_move *move)
     uint64_t from = (uint64_t)1<<(move_get_from(*move));
     uint64_t to   = (uint64_t)1<<(move_get_to(*move));
 
-#ifdef HASHTABLE
     if(board->ep)
     {
         board->key ^= key_ep_file[SQ_TO_FILE(board->ep)];
     }
     board->key ^= key_castling[board->castling];
-#endif
 
     board->ep = 0;
     board->num_halfmoves++;
@@ -281,9 +275,7 @@ void move_make(s_board *board, const s_move *move)
     board->castling &= castling_perms[move_get_from(*move)];
     board->castling &= castling_perms[move_get_to(*move)];
 
-#ifdef HASHTABLE
     board->key ^= key_castling[board->castling];
-#endif
 
     switch(move_get_type(*move))
     {
@@ -296,10 +288,8 @@ void move_make(s_board *board, const s_move *move)
                 board->num_halfmoves = 0;
             }
 
-#ifdef HASHTABLE
             board->key ^= key_piece_positions[move_get_piece(*move)][board->turn][move_get_from(*move)];
             board->key ^= key_piece_positions[move_get_piece(*move)][board->turn][move_get_to(*move)];
-#endif
             break;
         case CAPTURE:
             assert(move_get_captured(*move) != KINGS);
@@ -313,11 +303,9 @@ void move_make(s_board *board, const s_move *move)
 
             board->num_halfmoves = 0;
 
-#ifdef HASHTABLE
             board->key ^= key_piece_positions[move_get_piece(*move)][board->turn][move_get_from(*move)];
             board->key ^= key_piece_positions[move_get_piece(*move)][board->turn][move_get_to(*move)];
             board->key ^= key_piece_positions[move_get_captured(*move)][!board->turn][move_get_to(*move)];
-#endif
             break;
         case DOUBLE_PAWN:
             board->pieces[move_get_piece(*move)] ^= to | from;
@@ -334,11 +322,9 @@ void move_make(s_board *board, const s_move *move)
                 board->ep = move_get_to(*move)+8;
             }
 
-#ifdef HASHTABLE
             board->key ^= key_piece_positions[move_get_piece(*move)][board->turn][move_get_from(*move)];
             board->key ^= key_piece_positions[move_get_piece(*move)][board->turn][move_get_to(*move)];
             board->key ^= key_ep_file[SQ_TO_FILE(board->ep)];
-#endif
             break;
         case QUEEN_PROMO:
         case QUEEN_PROMO_CAPTURE:
@@ -354,14 +340,12 @@ void move_make(s_board *board, const s_move *move)
                 board->colour[!board->turn] ^= to;
             }
 
-#ifdef HASHTABLE
             board->key ^= key_piece_positions[move_get_piece(*move)][board->turn][move_get_from(*move)];
             board->key ^= key_piece_positions[QUEENS][board->turn][move_get_to(*move)];
             if(move_get_captured(*move) != EMPTY)
             {
                 board->key ^= key_piece_positions[move_get_captured(*move)][!board->turn][move_get_to(*move)];
             }
-#endif
             break;
         case ROOK_PROMO:
         case ROOK_PROMO_CAPTURE:
@@ -377,14 +361,12 @@ void move_make(s_board *board, const s_move *move)
                 board->colour[!board->turn] ^= to;
             }
 
-#ifdef HASHTABLE
             board->key ^= key_piece_positions[move_get_piece(*move)][board->turn][move_get_from(*move)];
             board->key ^= key_piece_positions[ROOKS][board->turn][move_get_to(*move)];
             if(move_get_captured(*move) != EMPTY)
             {
                 board->key ^= key_piece_positions[move_get_captured(*move)][!board->turn][move_get_to(*move)];
             }
-#endif
             break;
         case BISHOP_PROMO:
         case BISHOP_PROMO_CAPTURE:
@@ -400,14 +382,12 @@ void move_make(s_board *board, const s_move *move)
                 board->colour[!board->turn] ^= to;
             }
 
-#ifdef HASHTABLE
             board->key ^= key_piece_positions[move_get_piece(*move)][board->turn][move_get_from(*move)];
             board->key ^= key_piece_positions[BISHOPS][board->turn][move_get_to(*move)];
             if(move_get_captured(*move) != EMPTY)
             {
                 board->key ^= key_piece_positions[move_get_captured(*move)][!board->turn][move_get_to(*move)];
             }
-#endif
             break;
         case KNIGHT_PROMO:
         case KNIGHT_PROMO_CAPTURE:
@@ -423,14 +403,12 @@ void move_make(s_board *board, const s_move *move)
                 board->colour[!board->turn] ^= to;
             }
 
-#ifdef HASHTABLE
             board->key ^= key_piece_positions[move_get_piece(*move)][board->turn][move_get_from(*move)];
             board->key ^= key_piece_positions[KNIGHTS][board->turn][move_get_to(*move)];
             if(move_get_captured(*move) != EMPTY)
             {
                 board->key ^= key_piece_positions[move_get_captured(*move)][!board->turn][move_get_to(*move)];
             }
-#endif
             break;
         case EP:
             board->pieces[move_get_piece(*move)] ^= to | from;
@@ -449,7 +427,6 @@ void move_make(s_board *board, const s_move *move)
                 board->colour[WHITE] ^= to<<8;
             }
 
-#ifdef HASHTABLE
             board->key ^= key_piece_positions[move_get_piece(*move)][board->turn][move_get_from(*move)];
             board->key ^= key_piece_positions[move_get_piece(*move)][board->turn][move_get_to(*move)];
             if(board->turn == WHITE)
@@ -460,31 +437,22 @@ void move_make(s_board *board, const s_move *move)
             {
                 board->key ^= key_piece_positions[PAWNS][WHITE][move_get_to(*move)+8];
             }
-#endif
             break;
         case KSC:
             board->pieces[KINGS] ^= ksc_king[board->turn];
             board->pieces[ROOKS] ^= ksc_rook[board->turn];
             board->colour[board->turn] ^= (ksc_king[board->turn] | ksc_rook[board->turn]);
-
-#ifdef HASHTABLE
             board->key ^= key_ksc[board->turn];
-#endif
             break;
         case QSC:
             board->pieces[KINGS] ^= qsc_king[board->turn];
             board->pieces[ROOKS] ^= qsc_rook[board->turn];
             board->colour[board->turn] ^= (qsc_king[board->turn] | qsc_rook[board->turn]);
-
-#ifdef HASHTABLE
             board->key ^= key_qsc[board->turn];
-#endif
             break;
     }
 
-#ifdef HASHTABLE
     board->key ^= key_turn;
-#endif
 
     // History
     assert(board->history_size < HISTORY_SIZE_MAX);
@@ -605,9 +573,7 @@ void move_undo(s_board *board, const s_move *move)
     board->history_size--;
     assert(board->history_size >= 1);
 
-#ifdef HASHTABLE
     board->key = board->key_history[board->history_size-1];
-#endif
 }
 
 int move_make_ascii(s_board *board, const char *move_string)

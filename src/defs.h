@@ -17,38 +17,9 @@
 #define CONTEMPT_VALUE 0
 #define HASHTABLE_SIZE_DEFAULT 128
 
-//#define ALPHA_BETA
-#define PVS
-
-#define CAPTURE_SORT_SEE
-//#define CAPTURE_SORT_MVVLVA
-
-//#define QUIET_SORT_PST
-#define QUIET_SORT_SEE
-//#define QUIET_SORT_HISTORY_HEURISTIC
-
-#define SORT_MOVES
-
-// Search
-#define HASHTABLE
-#define QUIESCENCE_SEARCH
-#define NULL_MOVE
-#define ASPIRATION_WINDOW
-#define LMR
-#define REVERSE_FUTILITY_PRUNING
-//#define NULL_MOVE_REDUCTIONS
-//#define IID
-//#define DELTA_PRUNING
-
-// Move sorting
-#define KILLER_MOVES
 //#define KILLER_MOVES_2
 
 // Eval
-#define TAPERED_EVAL
-#define KING_SAFETY
-#define PIECE_MOBILITY
-#define PAWN_CHAINS
 //#define PASSED_PAWN_EVAL
 //#define BACKWARD_PAWN_EVAL
 //#define PAWN_BLOCKING

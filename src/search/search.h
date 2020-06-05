@@ -9,9 +9,7 @@ typedef struct {
   int ply;
   int null_move;
   s_pv pv;
-#if defined(KILLER_MOVES) || defined(KILLER_MOVES_2)
   s_move killer_move;
-#endif
 } s_stack;
 
 typedef struct {

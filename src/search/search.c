@@ -53,11 +53,7 @@ int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int
 
     if (depth == 0)
     {
-#ifdef QUIESCENCE_SEARCH
         return qsearch(info, stack, board, alpha, beta);
-#else
-        return evaluate(board);
-#endif
     }
 
     clock_t time_spent = 0;
@@ -80,19 +76,14 @@ int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int
 
     s_move_generator gen = {0};
     gen.stage = 0;
-#ifdef HASHTABLE
     gen.hash_move = NO_MOVE;
-#endif
-#ifdef KILLER_MOVES
     gen.killer_move = NO_MOVE;
-#endif
 #ifdef KILLER_MOVES_2
     gen.killer_move_2 = NO_MOVE;
 #endif
     int score = -INF;
     stack->pv.num_moves = 0;
 
-#ifdef HASHTABLE
     int alpha_original = alpha;
 
     s_hashtable_entry entry = *hashtable_poll(hashtable, board->key);
@@ -139,9 +130,8 @@ int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int
             }
         }
     }
-#endif
 
-#ifdef REVERSE_FUTILITY_PRUNING
+    // Reverse futility pruning
     const int static_eval = evaluate(board);
     static const int margins[] = {0, 330, 500, 900};
 
@@ -155,13 +145,11 @@ int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int
     {
         return static_eval - margins[depth];
     }
-#endif
 
     // Set old permissions
     s_irreversible permissions;
     store_irreversible(&permissions, board);
 
-#ifdef NULL_MOVE
     if (stack->null_move && !pvnode && depth > 2 && !in_check && !is_endgame(board))
     {
         // Make nullmove
@@ -184,9 +172,9 @@ int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int
             return score;
         }
     }
-#endif
 
-#ifdef NULL_MOVE_REDUCTIONS
+    /*
+    // Null move reductions
     if (stack->null_move && !in_check && depth > 4)
     {
         int new_r = depth > 6 ? 4 : 3;
@@ -209,19 +197,18 @@ int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int
             }
         }
     }
-#endif
+    */
 
-#ifdef IID
+    /*
+    // Internal Iterative Deepening
     if (pvnode && gen.hash_move == NO_MOVE && depth > 3)
     {
         score = -pvSearch(info, stack, board, alpha, beta, depth - 3);
         gen.hash_move = stack->pv.moves[0];
     }
-#endif
+    */
 
-#ifdef KILLER_MOVES
     gen.killer_move = stack->killer_move;
-#endif
 #ifdef KILLER_MOVES_2
     if (stack->ply - 2 >= 0)
     {
@@ -269,29 +256,23 @@ int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int
         {
             if (best_score >= beta)
             {
-#ifdef KILLER_MOVES
                 if (move_get_type(move) == QUIET)
                 {
                     stack->killer_move = move;
                 }
-#endif
 
 #ifndef NDEBUG
                 info->num_cutoffs[0]++;
 #endif
 
-#ifdef HASHTABLE
                 hashtable_add(hashtable, LOWERBOUND, board->key, depth, eval_to_tt(best_score, stack->ply), move);
-#endif
 
                 return best_score;
             }
             alpha = best_score;
         }
 
-#ifdef HASHTABLE
         best_move = move;
-#endif
 
         break;
     }
@@ -313,7 +294,6 @@ int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int
         move_num++;
         info->nodes++;
 
-#ifdef LMR
         int r = reduction(move_num, depth, in_check, move_get_type(move));
         score = -pvSearch(info, stack + 1, board, -alpha - 1, -alpha, depth - 1 - r);
 
@@ -326,18 +306,6 @@ int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int
                 alpha = score;
             }
         }
-#else
-        score = -pvSearch(info, stack + 1, board, -alpha - 1, -alpha, depth - 1);
-
-        if (score > alpha && score < beta)
-        {
-            score = -pvSearch(info, stack, board, -beta, -alpha, depth - 1);
-            if (score > alpha)
-            {
-                alpha = score;
-            }
-        }
-#endif
 
         // Restore old permissions
         restore_irreversible(&permissions, board);
@@ -355,16 +323,12 @@ int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int
 
             if (score >= beta)
             {
-#ifdef KILLER_MOVES
                 if (move_get_type(move) == QUIET)
                 {
                     stack->killer_move = move;
                 }
-#endif
 
-#ifdef HASHTABLE
                 hashtable_add(hashtable, LOWERBOUND, board->key, depth, eval_to_tt(best_score, stack->ply), move);
-#endif
 
 #ifndef NDEBUG
                 info->num_cutoffs[move_num - 1]++;
@@ -373,10 +337,7 @@ int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int
                 return score;
             }
 
-#ifdef HASHTABLE
             best_move = move;
-#endif
-
             best_score = score;
         }
     }
@@ -396,7 +357,6 @@ int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int
         }
     }
 
-#ifdef HASHTABLE
     int flag;
     if (best_score == alpha_original)
     {
@@ -415,8 +375,6 @@ int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int
     assert(test_entry.depth == depth);
     assert(eval_from_tt(test_entry.eval, stack->ply) == best_score);
     assert(test_entry.pv == best_move);
-#endif
-
 #endif
 
     return best_score;

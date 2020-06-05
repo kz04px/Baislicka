@@ -12,12 +12,8 @@ typedef struct
     int move_num;
     int num_moves;
     int capture_piece;
-#ifdef HASHTABLE
     s_move hash_move;
-#endif
-#ifdef KILLER_MOVES
     s_move killer_move;
-#endif
 #ifdef KILLER_MOVES_2
     s_move killer_move_2;
 #endif
