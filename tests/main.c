@@ -1,12 +1,15 @@
 #include <stdio.h>
 #include "tests.h"
 #include "chess/bitboards.h"
+#include "chess/zobrist.h"
 
 #define TEST_PASS(x) ((x) == 0) ? "Passed" : "Failed", x
 
 int main()
 {
+    srand(0x480ec5cb);
     bitboards_init();
+    key_init();
     printf("Tests:\n");
     printf(" 1) Move legality:  %s (%i)\n", TEST_PASS(test_move_legality()));
     printf(" 2) Eval mirroring: %s (%i)\n", TEST_PASS(test_eval_mirroring()));
