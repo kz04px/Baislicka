@@ -1,5 +1,5 @@
-#ifndef EVAL_H_INCLUDED
-#define EVAL_H_INCLUDED
+#ifndef EVAL_H
+#define EVAL_H
 
 #include "../chess/board.h"
 

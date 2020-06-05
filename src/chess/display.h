@@ -1,8 +1,8 @@
-#ifndef DISPLAY_H_INCLUDED
-#define DISPLAY_H_INCLUDED
+#ifndef CHESS_DISPLAY_H
+#define CHESS_DISPLAY_H
 
-#include "move.h"
 #include "board.h"
+#include "move.h"
 
 void print_move(s_move move);
 void print_moves(const s_board *board);

@@ -1,5 +1,5 @@
-#ifndef HASHTABLE_H_INCLUDED
-#define HASHTABLE_H_INCLUDED
+#ifndef SEARCH_HASHTABLE_H
+#define SEARCH_HASHTABLE_H
 
 #include "../chess/move.h"
 

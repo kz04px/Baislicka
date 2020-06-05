@@ -1,5 +1,5 @@
-#ifndef MOVEGEN_H_INCLUDED
-#define MOVEGEN_H_INCLUDED
+#ifndef CHESS_MOVEGEN_H
+#define CHESS_MOVEGEN_H
 
 #include "move.h"
 #include "board.h"

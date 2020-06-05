@@ -1,5 +1,5 @@
-#ifndef ATTACK_H_INCLUDED
-#define ATTACK_H_INCLUDED
+#ifndef CHESS_ATTACK_H
+#define CHESS_ATTACK_H
 
 #include "board.h"
 

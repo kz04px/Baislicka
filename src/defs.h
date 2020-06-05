@@ -1,5 +1,5 @@
-#ifndef DEFS_H_INCLUDED
-#define DEFS_H_INCLUDED
+#ifndef DEFS_H
+#define DEFS_H
 
 #include <stdio.h>
 #include <stdlib.h>

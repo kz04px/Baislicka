@@ -1,5 +1,5 @@
-#ifndef MOVE_H_INCLUDED
-#define MOVE_H_INCLUDED
+#ifndef CHESS_MOVE_H
+#define CHESS_MOVE_H
 
 #include <inttypes.h>
 #include "board.h"
