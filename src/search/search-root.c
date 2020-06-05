@@ -84,11 +84,11 @@ void* search_root(void *n)
             #define NUM_BOUNDS 3
             const int bounds[NUM_BOUNDS] = {50, 200, INF};
 
-            for(int n = 0; n < NUM_BOUNDS; ++n)
+            for(int b = 0; b < NUM_BOUNDS; ++b)
             {
-                score = pvSearch(&info, stack, board, -bounds[n], bounds[n], depth);
+                score = pvSearch(&info, stack, board, -bounds[b], bounds[b], depth);
 
-                if(-bounds[n] < score && score < bounds[n])
+                if(-bounds[b] < score && score < bounds[b])
                 {
                     break;
                 }
@@ -118,11 +118,11 @@ void* search_root(void *n)
 
         int index = 0;
         move_string[0] = '\0';
-        for(int n = 0; n < pv.num_moves; ++n)
+        for(int i = 0; i < pv.num_moves; ++i)
         {
             move_string[index] = ' ';
             index++;
-            index += move_to_string(&move_string[index], &pv.moves[n]);
+            index += move_to_string(&move_string[index], &pv.moves[i]);
         }
 
         if(score > INF-MAX_DEPTH)

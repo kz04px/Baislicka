@@ -333,9 +333,8 @@ int insufficient_material(const s_board *board)
 
 int evaluate(const s_board *board)
 {
-    int endgame = is_endgame(board);
-
     /*
+    int endgame = is_endgame(board);
     if(endgame && insufficient_material(board))
     {
       return 0;

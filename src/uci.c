@@ -34,8 +34,7 @@ void uci_listen()
     int exit = 0;
     while(!exit)
     {
-        char *r = fgets(message, 4096, stdin);
-        if(r == NULL)
+        if(!fgets(message, 4096, stdin))
         {
             break;
         }
