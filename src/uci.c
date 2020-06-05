@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <string.h>
 #include <pthread.h>
 #include <time.h>
@@ -8,6 +9,189 @@
 #include "search/search.h"
 #include "search/hashtable.h"
 #include "uci.h"
+
+void isready()
+{
+    printf("readyok\n");
+}
+
+void ucinewgame(s_board *board)
+{
+    assert(board);
+
+    hashtable_clear(hashtable);
+    set_fen(board, "startpos");
+}
+
+void position(s_board *board, char *part)
+{
+    assert(board);
+    assert(part);
+
+    part += 9;
+    if(strncmp(part, "startpos", 8) == 0)
+    {
+        set_fen(board, "startpos");
+    }
+    else if(strncmp(part, "fen", 3) == 0)
+    {
+        part += 4;
+        set_fen(board, part);
+    }
+}
+
+void moves(s_board *board, char *part)
+{
+    assert(board);
+    assert(part);
+
+    for(unsigned int i = 0; i < strlen(part)-4; ++i)
+    {
+        if(part[i  ] < 'a' || 'h' < part[i  ]) {continue;}
+        if(part[i+1] < '1' || '8' < part[i+1]) {continue;}
+        if(part[i+2] < 'a' || 'h' < part[i+2]) {continue;}
+        if(part[i+3] < '1' || '8' < part[i+3]) {continue;}
+
+        move_make_ascii(board, &part[i]);
+    }
+}
+
+void perft(s_board *board, char *part)
+{
+    assert(board);
+    assert(part);
+
+    part += 6;
+    uint64_t nodes = 0ULL;
+    int depth = atoi(part);
+
+    for(int d = 1; d <= depth; ++d)
+    {
+        clock_t start = clock();
+        nodes = perft_search(board, d);
+        clock_t end = clock();
+        clock_t time_taken = 1000*(end-start)/CLOCKS_PER_SEC;
+        printf("info depth %i nodes %" PRIu64 " time %i\n", d, nodes, (int)time_taken);
+    }
+    printf("nodes %" PRIu64 "\n", nodes);
+}
+
+void setoption(char *part)
+{
+    assert(part);
+
+    if(strncmp(part, "setoption name Hash value", 25) == 0)
+    {
+        part += 26;
+        int size = atoi(part);
+
+        if(HASHTABLE_SIZE_MIN <= size && size <= HASHTABLE_SIZE_MAX)
+        {
+            while(size >= HASHTABLE_SIZE_MIN)
+            {
+                int r = hashtable_init(hashtable, size);
+
+                if(r != -1) {break;}
+
+                size = size>>1;
+            }
+
+#ifndef NDEBUG
+            printf("Total size: %iMB\n", hashtable->size_bytes/1024/1024);
+            printf("Entry size: %" PRIu64 "B\n", sizeof(s_hashtable_entry));
+            printf("Max entries: %i\n", hashtable->max_entries);
+#endif
+        }
+    }
+}
+
+void go(pthread_t *search_thread, s_thread_data *data, char *part)
+{
+    assert(search_thread);
+    assert(data);
+    assert(part);
+    assert(data->board);
+    assert(data->settings);
+
+    /*
+    if(pthread_kill(search_thread, 0))
+    {
+        pthread_cancel(search_thread);
+    }
+    */
+
+    // arbitrary default values 1+0
+    data->settings->stop = 0;
+    data->settings->wtime = 60000;
+    data->settings->btime = 60000;
+    data->settings->winc = 0;
+    data->settings->binc = 0;
+    data->settings->movestogo = 20;
+    data->settings->depth = 0;
+    data->settings->movetime = 0;
+    // Not implemented yet
+    data->settings->nodes = 0;
+    data->settings->mate = 0;
+
+    // This is a bit ugly
+    while(part[1] != '\0')
+    {
+        if(strncmp(part, "infinite", 8) == 0)
+        {
+            data->settings->depth = MAX_DEPTH;
+            break;
+        }
+        else if(strncmp(part, "wtime", 5) == 0)
+        {
+            part += 6;
+            data->settings->wtime = atoi(part);
+        }
+        else if(strncmp(part, "btime", 5) == 0)
+        {
+            part += 6;
+            data->settings->btime = atoi(part);
+        }
+        else if(strncmp(part, "winc", 4) == 0)
+        {
+            part += 5;
+            data->settings->winc = atoi(part);
+        }
+        else if(strncmp(part, "binc", 4) == 0)
+        {
+            part += 5;
+            data->settings->binc = atoi(part);
+        }
+        else if(strncmp(part, "movestogo", 9) == 0)
+        {
+            part += 10;
+            data->settings->movestogo = atoi(part);
+        }
+        else if(strncmp(part, "depth", 5) == 0)
+        {
+            part += 6;
+            data->settings->depth = atoi(part);
+        }
+        else if(strncmp(part, "movetime", 8) == 0)
+        {
+            part += 9;
+            data->settings->movetime = atoi(part);
+        }
+
+        part++;
+    }
+
+    if(data->settings->movestogo == 1)
+    {
+        // Maintain a small period of buffer time for the search to end
+        data->settings->wtime -= 50;
+        data->settings->btime -= 50;
+    }
+
+    if(pthread_create(search_thread, NULL, search_root, data))
+    {
+        fprintf(stderr, "Error creating thread\n");
+    }
+}
 
 void uci_listen()
 {
@@ -48,42 +232,21 @@ void uci_listen()
             }
             else if(strncmp(part, "isready", 7) == 0)
             {
-                printf("readyok\n");
+                isready();
                 break;
             }
             else if(strncmp(part, "ucinewgame", 10) == 0)
             {
-                hashtable_clear(hashtable);
-                set_fen(&board, "startpos");
+                ucinewgame(&board);
                 break;
             }
             else if(strncmp(part, "position", 8) == 0)
             {
-                part += 9;
-                if(strncmp(part, "startpos", 8) == 0)
-                {
-                    set_fen(&board, "startpos");
-                }
-                else if(strncmp(part, "fen", 3) == 0)
-                {
-                    part += 4;
-                    set_fen(&board, part);
-                }
+                position(&board, part);
             }
             else if(strncmp(part, "moves", 5) == 0)
             {
-                //part += 6;
-
-                unsigned int i;
-                for(i = 0; i < strlen(part)-4; ++i)
-                {
-                    if(part[i  ] < 'a' || 'h' < part[i  ]) {continue;}
-                    if(part[i+1] < '1' || '8' < part[i+1]) {continue;}
-                    if(part[i+2] < 'a' || 'h' < part[i+2]) {continue;}
-                    if(part[i+3] < '1' || '8' < part[i+3]) {continue;}
-
-                    move_make_ascii(&board, &part[i]);
-                }
+                moves(&board, part);
             }
             else if(strncmp(part, "display", 7) == 0)
             {
@@ -93,84 +256,7 @@ void uci_listen()
             }
             else if(strncmp(part, "go", 2) == 0)
             {
-                /*
-                if(pthread_kill(search_thread, 0))
-                {
-                    pthread_cancel(search_thread);
-                }
-                */
-
-                // arbitrary default values 1+0
-                settings.stop = 0;
-                settings.wtime = 60000;
-                settings.btime = 60000;
-                settings.winc = 0;
-                settings.binc = 0;
-                settings.movestogo = 20;
-                settings.depth = 0;
-                settings.movetime = 0;
-                // Not implemented yet
-                settings.nodes = 0;
-                settings.mate = 0;
-
-                // This is a bit ugly
-                while(part[1] != '\0')
-                {
-                    if(strncmp(part, "infinite", 8) == 0)
-                    {
-                        settings.depth = MAX_DEPTH;
-                        break;
-                    }
-                    else if(strncmp(part, "wtime", 5) == 0)
-                    {
-                        part += 6;
-                        settings.wtime = atoi(part);
-                    }
-                    else if(strncmp(part, "btime", 5) == 0)
-                    {
-                        part += 6;
-                        settings.btime = atoi(part);
-                    }
-                    else if(strncmp(part, "winc", 4) == 0)
-                    {
-                        part += 5;
-                        settings.winc = atoi(part);
-                    }
-                    else if(strncmp(part, "binc", 4) == 0)
-                    {
-                        part += 5;
-                        settings.binc = atoi(part);
-                    }
-                    else if(strncmp(part, "movestogo", 9) == 0)
-                    {
-                        part += 10;
-                        settings.movestogo = atoi(part);
-                    }
-                    else if(strncmp(part, "depth", 5) == 0)
-                    {
-                        part += 6;
-                        settings.depth = atoi(part);
-                    }
-                    else if(strncmp(part, "movetime", 8) == 0)
-                    {
-                        part += 9;
-                        settings.movetime = atoi(part);
-                    }
-
-                    part++;
-                }
-
-                if(settings.movestogo == 1)
-                {
-                    // Maintain a small period of buffer time for the search to end
-                    settings.wtime -= 50;
-                    settings.btime -= 50;
-                }
-
-                if(pthread_create(&search_thread, NULL, search_root, &data))
-                {
-                    fprintf(stderr, "Error creating thread\n");
-                }
+                go(&search_thread, &data, part);
             }
             else if(strncmp(part, "stop", 4) == 0)
             {
@@ -179,45 +265,11 @@ void uci_listen()
             }
             else if(strncmp(part, "perft", 5) == 0)
             {
-                part += 6;
-                uint64_t nodes = 0ULL;
-                int depth = atoi(part);
-
-                for(int d = 1; d <= depth; ++d)
-                {
-                    clock_t start = clock();
-                    nodes = perft_search(&board, d);
-                    clock_t end = clock();
-                    clock_t time_taken = 1000*(end-start)/CLOCKS_PER_SEC;
-                    printf("info depth %i nodes %" PRIu64 " time %i\n", d, nodes, (int)time_taken);
-                }
-                printf("nodes %" PRIu64 "\n", nodes);
+                perft(&board, part);
             }
             else if(strncmp(part, "setoption", 9) == 0)
             {
-                if(strncmp(part, "setoption name Hash value", 25) == 0)
-                {
-                    part += 26;
-                    int size = atoi(part);
-
-                    if(HASHTABLE_SIZE_MIN <= size && size <= HASHTABLE_SIZE_MAX)
-                    {
-                        while(size >= HASHTABLE_SIZE_MIN)
-                        {
-                            int r = hashtable_init(hashtable, size);
-
-                            if(r != -1) {break;}
-
-                            size = size>>1;
-                        }
-
-#ifndef NDEBUG
-                        printf("Total size: %iMB\n", hashtable->size_bytes/1024/1024);
-                        printf("Entry size: %" PRIu64 "B\n", sizeof(s_hashtable_entry));
-                        printf("Max entries: %i\n", hashtable->max_entries);
-#endif
-                    }
-                }
+                setoption(part);
             }
 
             part++;
