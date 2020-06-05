@@ -49,12 +49,14 @@ add_executable(
     tests/is_legal.c
     tests/makeundo.c
     tests/passed_pawns.c
+    tests/perft.c
 
     src/chess/attack.c
     src/chess/bitboards.c
     src/chess/board.c
     src/chess/move.c
     src/chess/movegen.c
+    src/chess/perft.c
     src/chess/zobrist.c
 
     src/search/eval.c
