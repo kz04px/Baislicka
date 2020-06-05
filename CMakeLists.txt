@@ -32,12 +32,15 @@ add_executable(
     src/chess/perft.c
     src/chess/zobrist.c
 
-    src/search/eval.c
     src/search/hashtable.c
     src/search/pv.c
     src/search/qsearch.c
     src/search/search-root.c
     src/search/search.c
+
+    src/eval/eval.c
+    src/eval/king_safety.c
+    src/eval/mobility.c
 )
 
 # Add test executable
@@ -59,6 +62,9 @@ add_executable(
     src/chess/perft.c
     src/chess/zobrist.c
 
-    src/search/eval.c
     src/search/hashtable.c
+
+    src/eval/eval.c
+    src/eval/king_safety.c
+    src/eval/mobility.c
 )
