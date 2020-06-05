@@ -4,7 +4,6 @@
 #include "hashtable.h"
 #include "perft.h"
 #include "uci.h"
-#include "test.h"
 
 int main()
 {
@@ -54,10 +53,6 @@ int main()
     else if(strncmp(message, "xboard", 6) == 0)
     {
         printf("xboard protocol not implemented\n");
-    }
-    else if(strncmp(message, "test", 4) == 0)
-    {
-        test_all();
     }
     else if(strncmp(message, "about", 5) == 0)
     {
