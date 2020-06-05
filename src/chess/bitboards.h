@@ -1,5 +1,5 @@
-#ifndef BITBOARDS_H_INCLUDED
-#define BITBOARDS_H_INCLUDED
+#ifndef CHESS_BITBOARDS_H
+#define CHESS_BITBOARDS_H
 
 #include "board.h"
 

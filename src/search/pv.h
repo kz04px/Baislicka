@@ -1,5 +1,5 @@
-#ifndef PV_H_INCLUDED
-#define PV_H_INCLUDED
+#ifndef SEARCH_PV_H
+#define SEARCH_PV_H
 
 #include "../chess/board.h"
 #include "../chess/move.h"
