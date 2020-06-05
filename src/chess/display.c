@@ -125,10 +125,6 @@ void print_moves(s_board *board)
 {
     assert(board != NULL);
 
-    // Set old permissions
-    s_irreversible permissions;
-    store_irreversible(&permissions, board);
-
     s_move moves[MAX_MOVES];
     int num_moves = find_moves_all(board, &moves[0], board->turn);
 
@@ -140,9 +136,6 @@ void print_moves(s_board *board)
 
         if(square_attacked(board, board->pieces[KINGS]&board->colour[!board->turn], board->turn))
         {
-            // Restore old permissions
-            restore_irreversible(&permissions, board);
-
             move_undo(board, &moves[m]);
             continue;
         }
@@ -152,9 +145,6 @@ void print_moves(s_board *board)
         move_to_string(move_string, &moves[m]);
 
         printf("  %i)  %s  (3fold:%i)  (50moves:%i)  (Type:%i)\n", m, move_string, is_threefold(board), is_fifty_move_draw(board), move_get_type(moves[m]));
-
-        // Restore old permissions
-        restore_irreversible(&permissions, board);
 
         move_undo(board, &moves[m]);
     }
@@ -277,6 +267,6 @@ void display_history(s_board *board)
 
     for(int i = 0; i < board->history_size; ++i)
     {
-        printf("%i) %" PRIu64 "\n", i, board->key_history[i]);
+        printf("%i) %" PRIu64 "\n", i, board->history[i].key);
     }
 }

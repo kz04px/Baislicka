@@ -47,10 +47,6 @@ int qsearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int 
         return stand_pat;
     }
 
-    // Set old permissions
-    s_irreversible permissions;
-    store_irreversible(&permissions, board);
-
     s_move moves[MAX_MOVES];
     int num_moves = find_moves_captures(board, moves, board->turn);
     moves_sort_see(board, moves, num_moves, piece_values);
@@ -67,9 +63,6 @@ int qsearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int 
 
         if (square_attacked(board, board->pieces[KINGS] & board->colour[!board->turn], board->turn))
         {
-            // Restore old permissions
-            restore_irreversible(&permissions, board);
-
             move_undo(board, &moves[m]);
             continue;
         }
@@ -77,9 +70,6 @@ int qsearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int 
         info->nodes++;
 
         int score = -qsearch(info, stack + 1, board, -beta, -alpha);
-
-        // Restore old permissions
-        restore_irreversible(&permissions, board);
 
         move_undo(board, &moves[m]);
 

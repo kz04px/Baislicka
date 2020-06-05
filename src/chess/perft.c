@@ -22,11 +22,6 @@ uint64_t perft_search(s_board *board, int d)
 
     s_move moves[MAX_MOVES];
     int num_moves = find_moves_all(board, &moves[0], board->turn);
-
-    // Set old permissions
-    s_irreversible permissions;
-    store_irreversible(&permissions, board);
-
     uint64_t nodes = 0ULL;
 
     for(int m = 0; m < num_moves; ++m)
@@ -35,17 +30,11 @@ uint64_t perft_search(s_board *board, int d)
 
         if(square_attacked(board, board->pieces[KINGS]&board->colour[!board->turn], board->turn))
         {
-            // Restore old permissions
-            restore_irreversible(&permissions, board);
-
             move_undo(board, &moves[m]);
             continue;
         }
 
         nodes += perft_search(board, d-1);
-
-        // Restore old permissions
-        restore_irreversible(&permissions, board);
 
         move_undo(board, &moves[m]);
     }

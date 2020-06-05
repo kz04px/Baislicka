@@ -10,7 +10,6 @@ int legal_pv(s_board *board, const s_pv *pv)
 
     int r = 1;
     int n = 0;
-    s_irreversible permissions[128];
 
     while(n < pv->num_moves)
     {
@@ -20,18 +19,12 @@ int legal_pv(s_board *board, const s_pv *pv)
             break;
         }
 
-        // Set old permissions
-        store_irreversible(&permissions[n], board);
-
         move_make(board, &pv->moves[n]);
         n++;
     }
 
     while(n > 0)
     {
-        // Restore old permissions
-        restore_irreversible(&permissions[n-1], board);
-
         move_undo(board, &pv->moves[n-1]);
         n--;
     }

@@ -1,4 +1,5 @@
 #include "tests.h"
+#include "chess/attack.h"
 #include "chess/bitboards.h"
 #include "chess/board.h"
 #include "chess/move.h"
@@ -16,60 +17,58 @@ int test_make_undo()
 
     for(int i = 0; i < 16; ++i)
     {
-        int r = set_fen(&board, positions[i]);
-        if(r) {continue;}
-
-        s_board nboard = board;
-
-        // Set old permissions
-        s_irreversible permissions;
-        store_irreversible(&permissions, &board);
+        if(set_fen(&board, positions[i])) {continue;}
+        uint64_t old_key = board.key;
 
         s_move moves[MAX_MOVES];
         int num_moves = find_moves_all(&board, &moves[0], board.turn);
+        int in_check = square_attacked(&board, board.pieces[KINGS] & board.colour[board.turn], !board.turn);
 
-        for(int m = 0; m < num_moves; ++m)
+        // Test nullmove
+        if (!in_check)
         {
-            move_make(&board, &moves[m]);
+            null_make(&board);
 
-            if(board_equality(&board, &nboard))
+            // Make sure the hash has changed
+            if (board.key == old_key)
             {
-                return -1;
+                return -2;
             }
 
-            // Restore old permissions
-            restore_irreversible(&permissions, &board);
+            null_undo(&board);
+
+            // Make sure the key is back
+            if (board.key != old_key)
+            {
+                return -2;
+            }
+        }
+
+        // Test pseudolegal moves
+        for(int m = 0; m < num_moves; ++m)
+        {
+            // Make the move
+            move_make(&board, &moves[m]);
+            if(square_attacked(&board, board.pieces[KINGS]&board.colour[!board.turn], board.turn))
+            {
+                move_undo(&board, &moves[m]);
+                continue;
+            }
+
+            // Make sure the hash has changed
+            if (board.key == old_key)
+            {
+                return -2;
+            }
 
             move_undo(&board, &moves[m]);
+
+            // Make sure the key is back
+            if (board.key != old_key)
+            {
+                return -2;
+            }
         }
-
-        if(!board_equality(&board, &nboard))
-        {
-            return -2;
-        }
-    }
-
-    s_board nboard = board;
-
-    // Set old permissions
-    s_irreversible permissions;
-    store_irreversible(&permissions, &board);
-
-    null_make(&board);
-
-    if(board_equality(&board, &nboard))
-    {
-        return -3;
-    }
-
-    null_undo(&board);
-
-    // Restore old permissions
-    restore_irreversible(&permissions, &board);
-
-    if(!board_equality(&board, &nboard))
-    {
-        return -4;
     }
 
     return 0;

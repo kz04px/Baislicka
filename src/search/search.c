@@ -146,10 +146,6 @@ int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int
         return static_eval - margins[depth];
     }
 
-    // Set old permissions
-    s_irreversible permissions;
-    store_irreversible(&permissions, board);
-
     if (stack->null_move && !pvnode && depth > 2 && !in_check && !is_endgame(board))
     {
         // Make nullmove
@@ -160,9 +156,6 @@ int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int
 
         // Unmake nullmove
         null_undo(board);
-
-        // Restore old permissions
-        restore_irreversible(&permissions, board);
 
         // Test
         stack->pv.num_moves = 0;
@@ -228,8 +221,6 @@ int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int
 
         if (square_attacked(board, board->pieces[KINGS] & board->colour[!board->turn], board->turn))
         {
-            // Restore old permissions
-            restore_irreversible(&permissions, board);
             move_undo(board, &move);
             continue;
         }
@@ -240,8 +231,6 @@ int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int
         (stack + 1)->null_move = 1;
         best_score = -pvSearch(info, stack + 1, board, -beta, -alpha, depth - 1);
 
-        // Restore old permissions
-        restore_irreversible(&permissions, board);
         move_undo(board, &move);
 
         // Store pv line
@@ -285,8 +274,6 @@ int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int
 
         if (square_attacked(board, board->pieces[KINGS] & board->colour[!board->turn], board->turn))
         {
-            // Restore old permissions
-            restore_irreversible(&permissions, board);
             move_undo(board, &move);
             continue;
         }
@@ -307,8 +294,6 @@ int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int
             }
         }
 
-        // Restore old permissions
-        restore_irreversible(&permissions, board);
         move_undo(board, &move);
 
         if (score > best_score)
