@@ -4,7 +4,7 @@
 
 s_hashtable_entry *hashtable_poll(s_hashtable *table, const uint64_t key)
 {
-    assert(hashtable != NULL);
+    assert(table != NULL);
 
     const int index = key%(table->max_entries);
 
@@ -13,7 +13,7 @@ s_hashtable_entry *hashtable_poll(s_hashtable *table, const uint64_t key)
 
 s_hashtable_entry *hashtable_add(s_hashtable *table, const int flags, const uint64_t key, const int depth, const int eval, const s_move pv)
 {
-    assert(hashtable != NULL);
+    assert(table != NULL);
     assert(key != 0);
     assert(depth > 0);
     assert(depth <= MAX_DEPTH);
@@ -34,10 +34,16 @@ s_hashtable_entry *hashtable_add(s_hashtable *table, const int flags, const uint
     return NULL;
 }
 
-int hashtable_init(s_hashtable *table, int size_megabytes)
+int hashtable_resize(s_hashtable *table, int size_megabytes)
 {
-    assert(hashtable != NULL);
+    assert(table != NULL);
     assert(size_megabytes > 0);
+
+    // The hashtable is already this size
+    if (table->size_bytes == size_megabytes*1024*1024)
+    {
+        return 0;
+    }
 
     if(table->entries != NULL)
     {
@@ -53,7 +59,6 @@ int hashtable_init(s_hashtable *table, int size_megabytes)
     table->num_entries = 0;
     table->max_entries = table->size_bytes/sizeof(s_hashtable_entry);
     table->size_bytes = table->max_entries*sizeof(s_hashtable_entry);
-
     table->entries = calloc(table->max_entries, sizeof(s_hashtable_entry));
 
     if(table->entries == NULL)
@@ -61,17 +66,17 @@ int hashtable_init(s_hashtable *table, int size_megabytes)
         table->size_bytes = 0;
         table->num_entries = 0;
         table->max_entries = 0;
-        return -1;
+        return 0;
     }
     else
     {
-        return size_megabytes;
+        return 1;
     }
 }
 
 void hashtable_clear(s_hashtable *table)
 {
-    assert(hashtable != NULL);
+    assert(table != NULL);
 
     table->num_entries = 0;
 
@@ -87,10 +92,9 @@ void hashtable_clear(s_hashtable *table)
 
 void hashtable_free(s_hashtable *table)
 {
-    assert(hashtable != NULL);
+    assert(table != NULL);
 
     if(table->entries) {free(table->entries);}
-    free(hashtable);
 }
 
 int eval_to_tt(const int eval, const int ply)

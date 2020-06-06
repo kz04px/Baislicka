@@ -86,7 +86,7 @@ int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int
 
     int alpha_original = alpha;
 
-    s_hashtable_entry entry = *hashtable_poll(hashtable, board->key);
+    s_hashtable_entry entry = *hashtable_poll(&hashtable, board->key);
     int entry_valid = (board->key == entry.key);
 
     int pvnode = (beta - alpha > 1);
@@ -254,7 +254,7 @@ int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int
                 info->num_cutoffs[0]++;
 #endif
 
-                hashtable_add(hashtable, LOWERBOUND, board->key, depth, eval_to_tt(best_score, stack->ply), move);
+                hashtable_add(&hashtable, LOWERBOUND, board->key, depth, eval_to_tt(best_score, stack->ply), move);
 
                 return best_score;
             }
@@ -313,7 +313,7 @@ int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int
                     stack->killer_move = move;
                 }
 
-                hashtable_add(hashtable, LOWERBOUND, board->key, depth, eval_to_tt(best_score, stack->ply), move);
+                hashtable_add(&hashtable, LOWERBOUND, board->key, depth, eval_to_tt(best_score, stack->ply), move);
 
 #ifndef NDEBUG
                 info->num_cutoffs[move_num - 1]++;
@@ -351,10 +351,10 @@ int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int
     {
         flag = EXACT;
     }
-    hashtable_add(hashtable, flag, board->key, depth, eval_to_tt(best_score, stack->ply), best_move);
+    hashtable_add(&hashtable, flag, board->key, depth, eval_to_tt(best_score, stack->ply), best_move);
 
 #ifndef NDEBUG
-    s_hashtable_entry test_entry = *hashtable_poll(hashtable, board->key);
+    s_hashtable_entry test_entry = *hashtable_poll(&hashtable, board->key);
     assert(test_entry.flags == flag);
     assert(test_entry.key == board->key);
     assert(test_entry.depth == depth);

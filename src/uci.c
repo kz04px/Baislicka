@@ -10,6 +10,8 @@
 #include "search/hashtable.h"
 #include "uci.h"
 
+int hashtable_size = HASHTABLE_SIZE_DEFAULT;
+
 void isready()
 {
     printf("readyok\n");
@@ -19,7 +21,7 @@ void ucinewgame(s_board *board)
 {
     assert(board);
 
-    hashtable_clear(hashtable);
+    hashtable_clear(&hashtable);
     set_fen(board, "startpos");
 }
 
@@ -84,23 +86,17 @@ void setoption(char *part)
     {
         part += 26;
         int size = atoi(part);
-
-        if(HASHTABLE_SIZE_MIN <= size && size <= HASHTABLE_SIZE_MAX)
+        if (size < HASHTABLE_SIZE_MIN)
         {
-            while(size >= HASHTABLE_SIZE_MIN)
-            {
-                int r = hashtable_init(hashtable, size);
-
-                if(r != -1) {break;}
-
-                size = size>>1;
-            }
-
-#ifndef NDEBUG
-            printf("Total size: %iMB\n", hashtable->size_bytes/1024/1024);
-            printf("Entry size: %" PRIu64 "B\n", sizeof(s_hashtable_entry));
-            printf("Max entries: %i\n", hashtable->max_entries);
-#endif
+            hashtable_size = HASHTABLE_SIZE_MIN;
+        }
+        else if (size > HASHTABLE_SIZE_MAX)
+        {
+            hashtable_size = HASHTABLE_SIZE_MAX;
+        }
+        else
+        {
+            hashtable_size = size;
         }
     }
 }
@@ -200,6 +196,38 @@ void uci_listen()
     printf("option name Hash type spin default %i min %i max %i\n", HASHTABLE_SIZE_DEFAULT, HASHTABLE_SIZE_MIN, HASHTABLE_SIZE_MAX);
     printf("uciok\n");
 
+    char message[4096];
+
+    // Wait for the first isready before we do anything
+    while(1)
+    {
+        if(!fgets(message, 4096, stdin))
+        {
+            return;
+        }
+
+        char *part = message;
+
+        if(strncmp(part, "quit", 4) == 0)
+        {
+            return;
+        }
+        else if(strncmp(part, "isready", 7) == 0)
+        {
+            break;
+        }
+        else if(strncmp(part, "setoption", 9) == 0)
+        {
+            setoption(part);
+        }
+    }
+
+    // Create hashtable
+    hashtable_resize(&hashtable, hashtable_size);
+
+    // Wait until the hashtable has been created before replying to isready
+    isready();
+
     // board & search information
     s_board board;
     s_search_settings settings;
@@ -212,7 +240,6 @@ void uci_listen()
 
     set_fen(&board, "startpos");
 
-    char message[4096];
     int exit = 0;
     while(!exit)
     {
@@ -270,11 +297,14 @@ void uci_listen()
             else if(strncmp(part, "setoption", 9) == 0)
             {
                 setoption(part);
+
+                // Try recreate hashtable
+                hashtable_resize(&hashtable, hashtable_size);
             }
 
             part++;
         }
     }
 
-    return;
+    hashtable_free(&hashtable);
 }

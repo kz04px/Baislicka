@@ -25,9 +25,9 @@ typedef struct
     int size_bytes;
 } s_hashtable;
 
-s_hashtable *hashtable;
+s_hashtable hashtable;
 
-int hashtable_init(s_hashtable *table, int size_megabytes);
+int hashtable_resize(s_hashtable *table, int size_megabytes);
 void hashtable_clear(s_hashtable *table);
 void hashtable_free(s_hashtable *table);
 s_hashtable_entry *hashtable_poll(s_hashtable *table, const uint64_t key);
