@@ -1,9 +1,6 @@
 #ifndef DEFS_H
 #define DEFS_H
 
-#include <stdio.h>
-#include <stdlib.h>
-
 #define ENGINE_NAME "Baislicka"
 #define ENGINE_VERSION "1.0"
 #define ENGINE_AUTHOR "kz04px"

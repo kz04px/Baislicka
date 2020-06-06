@@ -1,5 +1,6 @@
 #include <string.h>
 #include <assert.h>
+#include <stdlib.h>
 #include "defs.h"
 #include "board.h"
 #include "zobrist.h"

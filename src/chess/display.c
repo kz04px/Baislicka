@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stdio.h>
 #include "defs.h"
 #include "move.h"
 #include "attack.h"
