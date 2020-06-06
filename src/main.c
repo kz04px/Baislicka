@@ -12,19 +12,6 @@ int main()
     bitboards_init();
     key_init();
 
-    hashtable = malloc(1*sizeof(*hashtable));
-    hashtable->entries = NULL;
-
-    int size = HASHTABLE_SIZE_DEFAULT;
-    while(size >= HASHTABLE_SIZE_MIN)
-    {
-        int r = hashtable_init(hashtable, size);
-
-        if(r != -1) {break;}
-
-        size = size>>1;
-    }
-
     // kill buffering
     setbuf(stdout, NULL);
     setbuf(stdin, NULL);
