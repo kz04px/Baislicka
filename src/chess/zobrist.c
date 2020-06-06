@@ -1,5 +1,6 @@
 #include "zobrist.h"
 #include <assert.h>
+#include <stdlib.h>
 
 #define RAND_64 ((uint64_t)(rand() & 0x7FFF) ^ \
                  ((uint64_t)(rand() & 0x7FFF) << 15) ^ \

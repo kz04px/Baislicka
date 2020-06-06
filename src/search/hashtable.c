@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <assert.h>
 #include "defs.h"
 #include "hashtable.h"

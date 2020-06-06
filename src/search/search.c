@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <stdlib.h>
 #include <limits.h>
 #include <assert.h>
 #include "defs.h"
