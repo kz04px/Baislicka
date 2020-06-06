@@ -23,7 +23,11 @@ int main()
 #endif
 
     char message[4096];
-    fgets(message, 4096, stdin);
+    if (!fgets(message, 4096, stdin))
+    {
+        return 1;
+    }
+
     if(strncmp(message, "uci", 3) == 0)
     {
         uci_listen();
