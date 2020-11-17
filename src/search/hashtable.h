@@ -25,7 +25,7 @@ typedef struct
     int size_bytes;
 } s_hashtable;
 
-s_hashtable hashtable;
+extern s_hashtable hashtable;
 
 int hashtable_resize(s_hashtable *table, int size_megabytes);
 void hashtable_clear(s_hashtable *table);

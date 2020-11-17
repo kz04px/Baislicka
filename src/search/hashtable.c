@@ -111,3 +111,5 @@ int eval_from_tt(const int eval, const int ply)
     if(eval < -INF+MAX_DEPTH) {return eval + ply;}
     return eval;
 }
+
+s_hashtable hashtable;
