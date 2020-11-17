@@ -76,3 +76,10 @@ void key_init()
     key_qsc[WHITE] = key_piece_positions[KINGS][WHITE][E1] ^ key_piece_positions[KINGS][WHITE][C1] ^ key_piece_positions[ROOKS][WHITE][D1] ^ key_piece_positions[ROOKS][WHITE][A1];
     key_qsc[BLACK] = key_piece_positions[KINGS][BLACK][E8] ^ key_piece_positions[KINGS][BLACK][C8] ^ key_piece_positions[ROOKS][BLACK][D8] ^ key_piece_positions[ROOKS][BLACK][A8];
 }
+
+uint64_t key_piece_positions[6][2][64];
+uint64_t key_turn;
+uint64_t key_castling[16];
+uint64_t key_ep_file[8];
+uint64_t key_ksc[2];
+uint64_t key_qsc[2];
