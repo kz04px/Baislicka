@@ -22,7 +22,16 @@ Some limited tests are included and can be run by using the above build instruct
 ## Platforms
 Both Windows and Linux are currently supported.
 
+## Contributors
+Thanks to all those that have contributed to Baislicka in some way, no matter how small.
+- [JohnAnthony](https://github.com/JohnAnthony)
+- [chunkyguy](https://github.com/chunkyguy)
+
 ## Special thanks
+- Everyone that has used Baislicka in their own engine testing, in tournaments, to play against, or anywhere else.
+
+- Camilla, for inspiring the name "Baislicka".
+
 - ##chessprogramming on freenode.net IRC
 
 - The chess programming wiki.
