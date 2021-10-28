@@ -32,7 +32,7 @@ Thanks to all those that have contributed to Baislicka in some way, no matter ho
 
 - Camilla, for inspiring the name "Baislicka".
 
-- ##chessprogramming on freenode.net IRC
+- ##chessprogramming on irc.libera.chat
 
 - The chess programming wiki.
 https://www.chessprogramming.org
