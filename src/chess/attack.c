@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stddef.h>
 #include "defs.h"
 #include "attack.h"
 #include "bitboards.h"

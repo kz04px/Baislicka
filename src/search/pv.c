@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stddef.h>
 #include "pv.h"
 
 int legal_pv(s_board *board, const s_pv *pv)

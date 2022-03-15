@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <limits.h>
+#include <stddef.h>
 #include "defs.h"
 #include "movegen.h"
 #include "attack.h"

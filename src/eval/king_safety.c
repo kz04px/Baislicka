@@ -1,5 +1,6 @@
 #include "king_safety.h"
 #include <assert.h>
+#include <stddef.h>
 #include "../chess/bitboards.h"
 
 const int king_safety_table[100] = {
