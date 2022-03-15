@@ -27,6 +27,7 @@ Thanks to all those that have contributed to Baislicka in some way, no matter ho
 - [JohnAnthony](https://github.com/JohnAnthony)
 - [chunkyguy](https://github.com/chunkyguy)
 - [En-En-Code](https://github.com/En-En-Code)
+- [tissatussa](https://github.com/tissatussa)
 
 ## Special thanks
 - Everyone that has used Baislicka in their own engine testing, in tournaments, to play against, or anywhere else.
