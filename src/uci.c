@@ -103,7 +103,11 @@ void setoption(char *part)
     }
 }
 
-void go(pthread_t *search_thread, s_thread_data *data, char *part)
+/*  go returns the number of characters read in part, so uci_listen
+    can skip that many characters after the entire command is read.
+    This prevents uci_listen from treating the "go" in "movestogo"
+    as a second go command, which is known to cause issues. */
+int go(pthread_t *search_thread, s_thread_data *data, char *part)
 {
     assert(search_thread);
     assert(data);
@@ -132,6 +136,7 @@ void go(pthread_t *search_thread, s_thread_data *data, char *part)
     data->settings->mate = 0;
 
     // This is a bit ugly
+    int chars_read = 0;
     while(part[1] != '\0')
     {
         if(strncmp(part, "infinite", 8) == 0)
@@ -142,40 +147,48 @@ void go(pthread_t *search_thread, s_thread_data *data, char *part)
         else if(strncmp(part, "wtime", 5) == 0)
         {
             part += 6;
+            chars_read += 6;
             data->settings->wtime = atoi(part);
         }
         else if(strncmp(part, "btime", 5) == 0)
         {
             part += 6;
+            chars_read += 6;
             data->settings->btime = atoi(part);
         }
         else if(strncmp(part, "winc", 4) == 0)
         {
             part += 5;
+            chars_read += 5;
             data->settings->winc = atoi(part);
         }
         else if(strncmp(part, "binc", 4) == 0)
         {
             part += 5;
+            chars_read += 5;
             data->settings->binc = atoi(part);
         }
         else if(strncmp(part, "movestogo", 9) == 0)
         {
             part += 10;
+            chars_read += 10;
             data->settings->movestogo = atoi(part);
         }
         else if(strncmp(part, "depth", 5) == 0)
         {
             part += 6;
+            chars_read += 6;
             data->settings->depth = atoi(part);
         }
         else if(strncmp(part, "movetime", 8) == 0)
         {
             part += 9;
+            chars_read += 9;
             data->settings->movetime = atoi(part);
         }
 
         part++;
+        chars_read++;
     }
 
     if(data->settings->movestogo == 1)
@@ -189,6 +202,8 @@ void go(pthread_t *search_thread, s_thread_data *data, char *part)
     {
         fprintf(stderr, "Error creating thread\n");
     }
+    
+    return chars_read;
 }
 
 void uci_listen()
@@ -285,7 +300,7 @@ void uci_listen()
             }
             else if(strncmp(part, "go", 2) == 0)
             {
-                go(&search_thread, &data, part);
+                part += go(&search_thread, &data, part);
             }
             else if(strncmp(part, "stop", 4) == 0)
             {
