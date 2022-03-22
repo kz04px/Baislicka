@@ -3,12 +3,15 @@ cmake_minimum_required(VERSION 3.10)
 # Project
 project(Baislicka VERSION 1.0 LANGUAGES C)
 
+# Packages
+find_package(Threads REQUIRED)
+
 # Base directory relative includes
 include_directories(.)
 include_directories(./src/)
 
 # Flags
-set(CMAKE_C_FLAGS "-pthread -Wall -Wextra -Wshadow")
+set(CMAKE_C_FLAGS "-Wall -Wextra -Wshadow")
 set(CMAKE_C_FLAGS_DEBUG "-g")
 set(CMAKE_C_FLAGS_RELEASE "-O3 -flto -march=native -DNDEBUG")
 
@@ -68,3 +71,5 @@ add_executable(
     src/eval/king_safety.c
     src/eval/mobility.c
 )
+
+target_link_libraries(baislicka Threads::Threads)
