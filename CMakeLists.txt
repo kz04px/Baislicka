@@ -73,3 +73,5 @@ add_executable(
 )
 
 target_link_libraries(baislicka Threads::Threads)
+
+set_property(TARGET baislicka PROPERTY INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
