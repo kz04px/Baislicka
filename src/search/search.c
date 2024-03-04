@@ -345,7 +345,7 @@ int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int
     }
 
     int flag;
-    if (best_score == alpha_original)
+    if (best_score <= alpha_original)
     {
         flag = UPPERBOUND;
     }
