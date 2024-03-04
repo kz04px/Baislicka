@@ -300,6 +300,9 @@ int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int
 
         if (score > best_score)
         {
+            best_move = move;
+            best_score = score;
+
             // Store pv line
             stack->pv.moves[0] = move;
             for (int i = 0; i < (stack + 1)->pv.num_moves && i < MAX_DEPTH - 1; ++i)
@@ -323,9 +326,6 @@ int pvSearch(s_search_info *info, s_stack *stack, s_board *board, int alpha, int
 
                 return score;
             }
-
-            best_move = move;
-            best_score = score;
         }
     }
 
